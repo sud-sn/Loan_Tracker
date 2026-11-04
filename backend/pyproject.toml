@@ -1,0 +1,75 @@
+[project]
+name = "loan-tracker-backend"
+version = "1.0.0"
+description = "Loan Tracker API: borrowers, loans, schedules, payments, daily log"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "sqlalchemy>=2.0.30",
+  "psycopg[binary]>=3.2",
+  "alembic>=1.13",
+  "argon2-cffi>=23.1",
+  "pyjwt>=2.8",
+  "pyotp>=2.9",
+  "cryptography>=42",
+  "python-multipart>=0.0.9",
+  "jinja2>=3.1",
+  "weasyprint>=62",
+  "pillow>=10.3",
+  "pillow-heif>=0.16",
+  "openpyxl>=3.1",
+  "apscheduler>=3.10,<4",
+  "pywebpush>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "hypothesis>=6.100",
+  "httpx>=0.27",
+  "ruff>=0.5",
+  "mypy>=1.10",
+  "pypdf>=4.2",
+  "types-python-dateutil",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101", "B008", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]
+"alembic/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+check_untyped_defs = true
+files = ["app"]
+
+[[tool.mypy.overrides]]
+module = "app.engine.*"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "slow: performance tests with large seeded data (run with -m slow)",
+]
+addopts = "-m 'not slow'"
