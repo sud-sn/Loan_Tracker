@@ -43,7 +43,7 @@ def _row(loan: Loan, b: Borrower, *, amount: int, due_date: date | None, oldest_
         "amount_due": from_paise(amount), "due_date": due_date, "overdue_amount": from_paise(overdue_amount),
         "overdue_days": overdue_days, "bucket": ageing_bucket(overdue_days), "last_payment_on": loan.last_payment_on,
         "days_since_last_payment": (today - (loan.last_payment_on or loan.disbursal_date)).days,
-        "multiple_overdue": b.id in flagged, "penalty_due": ZERO,
+        "multiple_overdue": b.id in flagged, "penalty_due": ZERO, "outstanding": from_paise(loan.outstanding),
     }
 
 

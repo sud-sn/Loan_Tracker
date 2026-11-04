@@ -1,0 +1,7492 @@
+{
+ "components": {
+  "schemas": {
+   "AllocationOut": {
+    "properties": {
+     "due_date": {
+      "format": "date",
+      "title": "Due Date",
+      "type": "string"
+     },
+     "interest_part": {
+      "title": "Interest Part",
+      "type": "string"
+     },
+     "penalty_part": {
+      "title": "Penalty Part",
+      "type": "string"
+     },
+     "principal_part": {
+      "title": "Principal Part",
+      "type": "string"
+     },
+     "seq": {
+      "title": "Seq",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "seq",
+     "due_date",
+     "penalty_part",
+     "interest_part",
+     "principal_part"
+    ],
+    "title": "AllocationOut",
+    "type": "object"
+   },
+   "Body_import_commit_api_v1_import_commit_post": {
+    "properties": {
+     "file": {
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "type": "string"
+     }
+    },
+    "required": [
+     "file"
+    ],
+    "title": "Body_import_commit_api_v1_import_commit_post",
+    "type": "object"
+   },
+   "Body_import_preview_api_v1_import_preview_post": {
+    "properties": {
+     "file": {
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "type": "string"
+     }
+    },
+    "required": [
+     "file"
+    ],
+    "title": "Body_import_preview_api_v1_import_preview_post",
+    "type": "object"
+   },
+   "Body_upload_document_api_v1_documents_post": {
+    "properties": {
+     "doc_type": {
+      "title": "Doc Type",
+      "type": "string"
+     },
+     "file": {
+      "contentMediaType": "application/octet-stream",
+      "title": "File",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "owner_id": {
+      "format": "uuid",
+      "title": "Owner Id",
+      "type": "string"
+     },
+     "owner_type": {
+      "enum": [
+       "borrower",
+       "loan"
+      ],
+      "title": "Owner Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "owner_type",
+     "owner_id",
+     "doc_type",
+     "file"
+    ],
+    "title": "Body_upload_document_api_v1_documents_post",
+    "type": "object"
+   },
+   "BorrowerDetailOut": {
+    "properties": {
+     "aadhaar_masked": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Aadhaar Masked"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "alt_phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Alt Phone"
+     },
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "consents": {
+      "items": {
+       "$ref": "#/components/schemas/ConsentOut"
+      },
+      "title": "Consents",
+      "type": "array"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "guarantors": {
+      "items": {
+       "$ref": "#/components/schemas/GuarantorOut"
+      },
+      "title": "Guarantors",
+      "type": "array"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "preferred_language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Preferred Language",
+      "type": "string"
+     },
+     "profile_incomplete": {
+      "title": "Profile Incomplete",
+      "type": "boolean"
+     },
+     "relation_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation Name"
+     },
+     "status": {
+      "enum": [
+       "active",
+       "blocked",
+       "closed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "totals": {
+      "$ref": "#/components/schemas/BorrowerTotals"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "code",
+     "name_en",
+     "name_ta",
+     "relation_name",
+     "phone",
+     "alt_phone",
+     "aadhaar_masked",
+     "address",
+     "preferred_language",
+     "status",
+     "notes",
+     "profile_incomplete",
+     "version",
+     "created_at",
+     "guarantors",
+     "totals",
+     "consents"
+    ],
+    "title": "BorrowerDetailOut",
+    "type": "object"
+   },
+   "BorrowerIn": {
+    "properties": {
+     "aadhaar": {
+      "maxLength": 14,
+      "minLength": 12,
+      "title": "Aadhaar",
+      "type": "string"
+     },
+     "address": {
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Address",
+      "type": "string"
+     },
+     "alt_phone": {
+      "anyOf": [
+       {
+        "maxLength": 16,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Alt Phone"
+     },
+     "confirm_duplicate": {
+      "default": false,
+      "title": "Confirm Duplicate",
+      "type": "boolean"
+     },
+     "consent": {
+      "$ref": "#/components/schemas/ConsentIn"
+     },
+     "guarantors": {
+      "items": {
+       "$ref": "#/components/schemas/GuarantorIn"
+      },
+      "maxItems": 5,
+      "title": "Guarantors",
+      "type": "array"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 4000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "phone": {
+      "maxLength": 16,
+      "minLength": 10,
+      "title": "Phone",
+      "type": "string"
+     },
+     "preferred_language": {
+      "default": "ta",
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Preferred Language",
+      "type": "string"
+     },
+     "relation_name": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation Name"
+     }
+    },
+    "required": [
+     "phone",
+     "aadhaar",
+     "address",
+     "consent"
+    ],
+    "title": "BorrowerIn",
+    "type": "object"
+   },
+   "BorrowerListItem": {
+    "properties": {
+     "active_loans": {
+      "title": "Active Loans",
+      "type": "integer"
+     },
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "multiple_overdue": {
+      "title": "Multiple Overdue",
+      "type": "boolean"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "outstanding": {
+      "title": "Outstanding",
+      "type": "string"
+     },
+     "overdue_amount": {
+      "title": "Overdue Amount",
+      "type": "string"
+     },
+     "overdue_days": {
+      "title": "Overdue Days",
+      "type": "integer"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "profile_incomplete": {
+      "title": "Profile Incomplete",
+      "type": "boolean"
+     },
+     "status": {
+      "enum": [
+       "active",
+       "blocked",
+       "closed"
+      ],
+      "title": "Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "code",
+     "name_en",
+     "name_ta",
+     "phone",
+     "status",
+     "outstanding",
+     "overdue_amount",
+     "overdue_days",
+     "active_loans",
+     "multiple_overdue",
+     "profile_incomplete"
+    ],
+    "title": "BorrowerListItem",
+    "type": "object"
+   },
+   "BorrowerOut": {
+    "properties": {
+     "aadhaar_masked": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Aadhaar Masked"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "alt_phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Alt Phone"
+     },
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "guarantors": {
+      "items": {
+       "$ref": "#/components/schemas/GuarantorOut"
+      },
+      "title": "Guarantors",
+      "type": "array"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "preferred_language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Preferred Language",
+      "type": "string"
+     },
+     "profile_incomplete": {
+      "title": "Profile Incomplete",
+      "type": "boolean"
+     },
+     "relation_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation Name"
+     },
+     "status": {
+      "enum": [
+       "active",
+       "blocked",
+       "closed"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "code",
+     "name_en",
+     "name_ta",
+     "relation_name",
+     "phone",
+     "alt_phone",
+     "aadhaar_masked",
+     "address",
+     "preferred_language",
+     "status",
+     "notes",
+     "profile_incomplete",
+     "version",
+     "created_at",
+     "guarantors"
+    ],
+    "title": "BorrowerOut",
+    "type": "object"
+   },
+   "BorrowerRef": {
+    "properties": {
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "preferred_language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Preferred Language",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "code",
+     "name_en",
+     "name_ta",
+     "phone",
+     "preferred_language"
+    ],
+    "title": "BorrowerRef",
+    "type": "object"
+   },
+   "BorrowerTotals": {
+    "properties": {
+     "active_loans": {
+      "title": "Active Loans",
+      "type": "integer"
+     },
+     "closed_loans": {
+      "title": "Closed Loans",
+      "type": "integer"
+     },
+     "last_payment_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Payment On"
+     },
+     "outstanding": {
+      "title": "Outstanding",
+      "type": "string"
+     },
+     "overdue_amount": {
+      "title": "Overdue Amount",
+      "type": "string"
+     },
+     "overdue_days": {
+      "title": "Overdue Days",
+      "type": "integer"
+     },
+     "overdue_loans": {
+      "title": "Overdue Loans",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "outstanding",
+     "overdue_amount",
+     "overdue_days",
+     "active_loans",
+     "closed_loans",
+     "overdue_loans",
+     "last_payment_on"
+    ],
+    "title": "BorrowerTotals",
+    "type": "object"
+   },
+   "BorrowerUpdateIn": {
+    "properties": {
+     "aadhaar": {
+      "anyOf": [
+       {
+        "maxLength": 14,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Aadhaar"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "alt_phone": {
+      "anyOf": [
+       {
+        "maxLength": 16,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Alt Phone"
+     },
+     "confirm_duplicate": {
+      "default": false,
+      "title": "Confirm Duplicate",
+      "type": "boolean"
+     },
+     "guarantors": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/GuarantorIn"
+        },
+        "maxItems": 5,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Guarantors"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 4000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "maxLength": 16,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "preferred_language": {
+      "anyOf": [
+       {
+        "enum": [
+         "en",
+         "ta"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Preferred Language"
+     },
+     "relation_name": {
+      "anyOf": [
+       {
+        "maxLength": 150,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation Name"
+     },
+     "status": {
+      "anyOf": [
+       {
+        "enum": [
+         "active",
+         "blocked",
+         "closed"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "BorrowerUpdateIn",
+    "type": "object"
+   },
+   "CashEntryIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "category_id": {
+      "format": "uuid",
+      "title": "Category Id",
+      "type": "string"
+     },
+     "direction": {
+      "enum": [
+       "in",
+       "out"
+      ],
+      "title": "Direction",
+      "type": "string"
+     },
+     "entry_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Entry Date"
+     },
+     "idempotency_key": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idempotency Key"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "direction",
+     "category_id",
+     "amount"
+    ],
+    "title": "CashEntryIn",
+    "type": "object"
+   },
+   "CashEntryOut": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "category_id": {
+      "format": "uuid",
+      "title": "Category Id",
+      "type": "string"
+     },
+     "created_at": {
+      "title": "Created At"
+     },
+     "direction": {
+      "enum": [
+       "in",
+       "out"
+      ],
+      "title": "Direction",
+      "type": "string"
+     },
+     "entry_date": {
+      "format": "date",
+      "title": "Entry Date",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "mode": {
+      "title": "Mode",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "entry_date",
+     "direction",
+     "category_id",
+     "amount",
+     "mode",
+     "note",
+     "version",
+     "created_at"
+    ],
+    "title": "CashEntryOut",
+    "type": "object"
+   },
+   "CashEntryUpdate": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Amount"
+     },
+     "category_id": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Category Id"
+     },
+     "entry_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Entry Date"
+     },
+     "mode": {
+      "anyOf": [
+       {
+        "enum": [
+         "cash",
+         "upi",
+         "bank",
+         "other"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mode"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "CashEntryUpdate",
+    "type": "object"
+   },
+   "CategoryIn": {
+    "properties": {
+     "is_active": {
+      "default": true,
+      "title": "Is Active",
+      "type": "boolean"
+     },
+     "kind": {
+      "enum": [
+       "expense",
+       "income"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name_en": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Name En",
+      "type": "string"
+     },
+     "name_ta": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Name Ta",
+      "type": "string"
+     },
+     "sort_order": {
+      "default": 0,
+      "title": "Sort Order",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "name_en",
+     "name_ta",
+     "kind"
+    ],
+    "title": "CategoryIn",
+    "type": "object"
+   },
+   "CategoryOut": {
+    "properties": {
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "is_active": {
+      "default": true,
+      "title": "Is Active",
+      "type": "boolean"
+     },
+     "kind": {
+      "enum": [
+       "expense",
+       "income"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "name_en": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Name En",
+      "type": "string"
+     },
+     "name_ta": {
+      "maxLength": 60,
+      "minLength": 1,
+      "title": "Name Ta",
+      "type": "string"
+     },
+     "sort_order": {
+      "default": 0,
+      "title": "Sort Order",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "name_en",
+     "name_ta",
+     "kind",
+     "id"
+    ],
+    "title": "CategoryOut",
+    "type": "object"
+   },
+   "ConsentIn": {
+    "properties": {
+     "given": {
+      "title": "Given",
+      "type": "boolean"
+     },
+     "language": {
+      "default": "ta",
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "method": {
+      "default": "verbal",
+      "enum": [
+       "verbal",
+       "signed"
+      ],
+      "title": "Method",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "given"
+    ],
+    "title": "ConsentIn",
+    "type": "object"
+   },
+   "ConsentOut": {
+    "properties": {
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "method": {
+      "title": "Method",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "notice_version": {
+      "title": "Notice Version",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "notice_version",
+     "language",
+     "method",
+     "note",
+     "created_at"
+    ],
+    "title": "ConsentOut",
+    "type": "object"
+   },
+   "CustomRowIn": {
+    "properties": {
+     "interest_part": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Interest Part"
+     },
+     "principal_part": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Principal Part"
+     }
+    },
+    "required": [
+     "principal_part",
+     "interest_part"
+    ],
+    "title": "CustomRowIn",
+    "type": "object"
+   },
+   "DocumentOut": {
+    "properties": {
+     "can_delete": {
+      "title": "Can Delete",
+      "type": "boolean"
+     },
+     "can_download": {
+      "title": "Can Download",
+      "type": "boolean"
+     },
+     "can_view": {
+      "title": "Can View",
+      "type": "boolean"
+     },
+     "created_at": {
+      "title": "Created At"
+     },
+     "doc_type": {
+      "title": "Doc Type",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "mime": {
+      "title": "Mime",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "original_name": {
+      "title": "Original Name",
+      "type": "string"
+     },
+     "owner_id": {
+      "format": "uuid",
+      "title": "Owner Id",
+      "type": "string"
+     },
+     "owner_type": {
+      "enum": [
+       "borrower",
+       "loan"
+      ],
+      "title": "Owner Type",
+      "type": "string"
+     },
+     "size": {
+      "title": "Size",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "owner_type",
+     "owner_id",
+     "doc_type",
+     "original_name",
+     "mime",
+     "size",
+     "note",
+     "created_at",
+     "can_view",
+     "can_download",
+     "can_delete"
+    ],
+    "title": "DocumentOut",
+    "type": "object"
+   },
+   "GuarantorIn": {
+    "properties": {
+     "name": {
+      "maxLength": 150,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "maxLength": 16,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "relation": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation"
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "title": "GuarantorIn",
+    "type": "object"
+   },
+   "GuarantorOut": {
+    "properties": {
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "name": {
+      "maxLength": 150,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "maxLength": 16,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "relation": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Relation"
+     }
+    },
+    "required": [
+     "name",
+     "id"
+    ],
+    "title": "GuarantorOut",
+    "type": "object"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "title": "Detail",
+      "type": "array"
+     }
+    },
+    "title": "HTTPValidationError",
+    "type": "object"
+   },
+   "LanguageIn": {
+    "properties": {
+     "language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     }
+    },
+    "required": [
+     "language"
+    ],
+    "title": "LanguageIn",
+    "type": "object"
+   },
+   "LinkOut": {
+    "properties": {
+     "expires_in": {
+      "title": "Expires In",
+      "type": "integer"
+     },
+     "url": {
+      "title": "Url",
+      "type": "string"
+     }
+    },
+    "required": [
+     "url",
+     "expires_in"
+    ],
+    "title": "LinkOut",
+    "type": "object"
+   },
+   "LoanCreateIn": {
+    "properties": {
+     "acknowledge_rate_warning": {
+      "default": false,
+      "title": "Acknowledge Rate Warning",
+      "type": "boolean"
+     },
+     "borrower_id": {
+      "format": "uuid",
+      "title": "Borrower Id",
+      "type": "string"
+     },
+     "disbursal_mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Disbursal Mode",
+      "type": "string"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 2000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "penalty": {
+      "$ref": "#/components/schemas/PenaltyIn",
+      "default": {
+       "grace_days": 0,
+       "mode": "off",
+       "value": "0"
+      }
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "terms": {
+      "$ref": "#/components/schemas/TermsIn"
+     }
+    },
+    "required": [
+     "borrower_id",
+     "terms",
+     "idempotency_key"
+    ],
+    "title": "LoanCreateIn",
+    "type": "object"
+   },
+   "LoanDetailOut": {
+    "properties": {
+     "borrower": {
+      "$ref": "#/components/schemas/BorrowerRef"
+     },
+     "closed_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Closed On"
+     },
+     "closed_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Closed Reason"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "disbursal_date": {
+      "format": "date",
+      "title": "Disbursal Date",
+      "type": "string"
+     },
+     "disbursal_mode": {
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Disbursal Mode",
+      "type": "string"
+     },
+     "first_due_date": {
+      "format": "date",
+      "title": "First Due Date",
+      "type": "string"
+     },
+     "fixed_installment": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fixed Installment"
+     },
+     "fixed_style": {
+      "anyOf": [
+       {
+        "enum": [
+         "flat",
+         "reducing"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fixed Style"
+     },
+     "frequency": {
+      "enum": [
+       "monthly",
+       "weekly",
+       "daily",
+       "single"
+      ],
+      "title": "Frequency",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "installment_amount": {
+      "title": "Installment Amount",
+      "type": "string"
+     },
+     "installments": {
+      "title": "Installments",
+      "type": "integer"
+     },
+     "last_payment_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Payment On"
+     },
+     "loan_no": {
+      "title": "Loan No",
+      "type": "string"
+     },
+     "maturity_date": {
+      "format": "date",
+      "title": "Maturity Date",
+      "type": "string"
+     },
+     "method": {
+      "enum": [
+       "reducing",
+       "flat",
+       "interest_only",
+       "simple_days",
+       "fixed_amount",
+       "custom"
+      ],
+      "title": "Method",
+      "type": "string"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "payments": {
+      "items": {
+       "$ref": "#/components/schemas/PaymentOut"
+      },
+      "title": "Payments",
+      "type": "array"
+     },
+     "penalty_grace_days": {
+      "title": "Penalty Grace Days",
+      "type": "integer"
+     },
+     "penalty_mode": {
+      "enum": [
+       "off",
+       "per_day",
+       "pct_month"
+      ],
+      "title": "Penalty Mode",
+      "type": "string"
+     },
+     "penalty_value": {
+      "title": "Penalty Value",
+      "type": "string"
+     },
+     "principal": {
+      "title": "Principal",
+      "type": "string"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "rate": {
+      "title": "Rate",
+      "type": "string"
+     },
+     "rate_basis": {
+      "enum": [
+       "month",
+       "year"
+      ],
+      "title": "Rate Basis",
+      "type": "string"
+     },
+     "schedule": {
+      "items": {
+       "$ref": "#/components/schemas/ScheduleItemOut"
+      },
+      "title": "Schedule",
+      "type": "array"
+     },
+     "stored_status": {
+      "enum": [
+       "active",
+       "closed",
+       "written_off"
+      ],
+      "title": "Stored Status",
+      "type": "string"
+     },
+     "summary": {
+      "$ref": "#/components/schemas/LoanSummaryOut"
+     },
+     "term_unit": {
+      "enum": [
+       "months",
+       "days",
+       "installments"
+      ],
+      "title": "Term Unit",
+      "type": "string"
+     },
+     "term_value": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Term Value"
+     },
+     "total_interest": {
+      "title": "Total Interest",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "loan_no",
+     "borrower",
+     "principal",
+     "rate",
+     "rate_basis",
+     "term_value",
+     "term_unit",
+     "frequency",
+     "method",
+     "fixed_style",
+     "fixed_installment",
+     "installments",
+     "installment_amount",
+     "total_interest",
+     "disbursal_date",
+     "first_due_date",
+     "maturity_date",
+     "disbursal_mode",
+     "penalty_mode",
+     "penalty_value",
+     "penalty_grace_days",
+     "stored_status",
+     "closed_on",
+     "closed_reason",
+     "last_payment_on",
+     "purpose",
+     "notes",
+     "version",
+     "created_at",
+     "summary",
+     "schedule",
+     "payments"
+    ],
+    "title": "LoanDetailOut",
+    "type": "object"
+   },
+   "LoanListItem": {
+    "properties": {
+     "borrower": {
+      "$ref": "#/components/schemas/BorrowerRef"
+     },
+     "disbursal_date": {
+      "format": "date",
+      "title": "Disbursal Date",
+      "type": "string"
+     },
+     "frequency": {
+      "enum": [
+       "monthly",
+       "weekly",
+       "daily",
+       "single"
+      ],
+      "title": "Frequency",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "loan_no": {
+      "title": "Loan No",
+      "type": "string"
+     },
+     "maturity_date": {
+      "format": "date",
+      "title": "Maturity Date",
+      "type": "string"
+     },
+     "method": {
+      "enum": [
+       "reducing",
+       "flat",
+       "interest_only",
+       "simple_days",
+       "fixed_amount",
+       "custom"
+      ],
+      "title": "Method",
+      "type": "string"
+     },
+     "outstanding": {
+      "title": "Outstanding",
+      "type": "string"
+     },
+     "overdue_amount": {
+      "title": "Overdue Amount",
+      "type": "string"
+     },
+     "overdue_days": {
+      "title": "Overdue Days",
+      "type": "integer"
+     },
+     "principal": {
+      "title": "Principal",
+      "type": "string"
+     },
+     "status": {
+      "title": "Status",
+      "type": "string"
+     },
+     "stored_status": {
+      "title": "Stored Status",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "loan_no",
+     "borrower",
+     "principal",
+     "disbursal_date",
+     "maturity_date",
+     "method",
+     "frequency",
+     "stored_status",
+     "status",
+     "outstanding",
+     "overdue_amount",
+     "overdue_days"
+    ],
+    "title": "LoanListItem",
+    "type": "object"
+   },
+   "LoanSummaryOut": {
+    "properties": {
+     "days_since_last_payment": {
+      "title": "Days Since Last Payment",
+      "type": "integer"
+     },
+     "due_today_amount": {
+      "title": "Due Today Amount",
+      "type": "string"
+     },
+     "interest_outstanding": {
+      "title": "Interest Outstanding",
+      "type": "string"
+     },
+     "next_due_amount": {
+      "title": "Next Due Amount",
+      "type": "string"
+     },
+     "next_due_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Due Date"
+     },
+     "overdue_amount": {
+      "title": "Overdue Amount",
+      "type": "string"
+     },
+     "overdue_days": {
+      "title": "Overdue Days",
+      "type": "integer"
+     },
+     "overdue_installments": {
+      "title": "Overdue Installments",
+      "type": "integer"
+     },
+     "paid_total": {
+      "title": "Paid Total",
+      "type": "string"
+     },
+     "penalty_outstanding": {
+      "title": "Penalty Outstanding",
+      "type": "string"
+     },
+     "principal_outstanding": {
+      "title": "Principal Outstanding",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "active",
+       "due_soon",
+       "overdue",
+       "closed",
+       "written_off"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "total_outstanding": {
+      "title": "Total Outstanding",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status",
+     "overdue_days",
+     "overdue_amount",
+     "overdue_installments",
+     "due_today_amount",
+     "next_due_date",
+     "next_due_amount",
+     "principal_outstanding",
+     "interest_outstanding",
+     "penalty_outstanding",
+     "total_outstanding",
+     "days_since_last_payment",
+     "paid_total"
+    ],
+    "title": "LoanSummaryOut",
+    "type": "object"
+   },
+   "LoanUpdateIn": {
+    "properties": {
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 2000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "purpose": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Purpose"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "LoanUpdateIn",
+    "type": "object"
+   },
+   "LoginIn": {
+    "properties": {
+     "password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Password",
+      "type": "string"
+     },
+     "phone": {
+      "maxLength": 16,
+      "minLength": 10,
+      "title": "Phone",
+      "type": "string"
+     },
+     "totp": {
+      "anyOf": [
+       {
+        "maxLength": 10,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Totp"
+     }
+    },
+    "required": [
+     "phone",
+     "password"
+    ],
+    "title": "LoginIn",
+    "type": "object"
+   },
+   "MeOut": {
+    "properties": {
+     "csrf_token": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Csrf Token"
+     },
+     "staff_can_create_loans": {
+      "title": "Staff Can Create Loans",
+      "type": "boolean"
+     },
+     "staff_enabled": {
+      "title": "Staff Enabled",
+      "type": "boolean"
+     },
+     "user": {
+      "$ref": "#/components/schemas/UserOut"
+     }
+    },
+    "required": [
+     "user",
+     "staff_enabled",
+     "staff_can_create_loans"
+    ],
+    "title": "MeOut",
+    "type": "object"
+   },
+   "Ok": {
+    "properties": {
+     "ok": {
+      "default": true,
+      "title": "Ok",
+      "type": "boolean"
+     }
+    },
+    "title": "Ok",
+    "type": "object"
+   },
+   "Page_BorrowerListItem_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/BorrowerListItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "page": {
+      "title": "Page",
+      "type": "integer"
+     },
+     "page_size": {
+      "title": "Page Size",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "items",
+     "total",
+     "page",
+     "page_size"
+    ],
+    "title": "Page[BorrowerListItem]",
+    "type": "object"
+   },
+   "Page_LoanListItem_": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/LoanListItem"
+      },
+      "title": "Items",
+      "type": "array"
+     },
+     "page": {
+      "title": "Page",
+      "type": "integer"
+     },
+     "page_size": {
+      "title": "Page Size",
+      "type": "integer"
+     },
+     "total": {
+      "title": "Total",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "items",
+     "total",
+     "page",
+     "page_size"
+    ],
+    "title": "Page[LoanListItem]",
+    "type": "object"
+   },
+   "PasswordChangeIn": {
+    "properties": {
+     "current_password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Current Password",
+      "type": "string"
+     },
+     "new_password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "New Password",
+      "type": "string"
+     }
+    },
+    "required": [
+     "current_password",
+     "new_password"
+    ],
+    "title": "PasswordChangeIn",
+    "type": "object"
+   },
+   "PaymentIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "paid_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Paid On"
+     },
+     "reference": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference"
+     }
+    },
+    "required": [
+     "amount",
+     "idempotency_key"
+    ],
+    "title": "PaymentIn",
+    "type": "object"
+   },
+   "PaymentOut": {
+    "properties": {
+     "allocations": {
+      "items": {
+       "$ref": "#/components/schemas/AllocationOut"
+      },
+      "title": "Allocations",
+      "type": "array"
+     },
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "balance_after": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Balance After"
+     },
+     "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "interest_total": {
+      "title": "Interest Total",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "payment",
+       "reversal",
+       "settlement"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "loan_id": {
+      "format": "uuid",
+      "title": "Loan Id",
+      "type": "string"
+     },
+     "mode": {
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "paid_on": {
+      "format": "date",
+      "title": "Paid On",
+      "type": "string"
+     },
+     "penalty_total": {
+      "title": "Penalty Total",
+      "type": "string"
+     },
+     "principal_total": {
+      "title": "Principal Total",
+      "type": "string"
+     },
+     "receipt_no": {
+      "title": "Receipt No",
+      "type": "string"
+     },
+     "reference": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference"
+     },
+     "replayed": {
+      "default": false,
+      "title": "Replayed",
+      "type": "boolean"
+     },
+     "reversal_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reversal Reason"
+     },
+     "reversed_by_id": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reversed By Id"
+     },
+     "reversed_of_id": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reversed Of Id"
+     }
+    },
+    "required": [
+     "id",
+     "receipt_no",
+     "loan_id",
+     "kind",
+     "amount",
+     "paid_on",
+     "mode",
+     "reference",
+     "note",
+     "reversed_of_id",
+     "reversal_reason",
+     "created_at",
+     "allocations",
+     "penalty_total",
+     "interest_total",
+     "principal_total"
+    ],
+    "title": "PaymentOut",
+    "type": "object"
+   },
+   "PenaltyIn": {
+    "properties": {
+     "grace_days": {
+      "default": 0,
+      "maximum": 365.0,
+      "minimum": 0.0,
+      "title": "Grace Days",
+      "type": "integer"
+     },
+     "mode": {
+      "default": "off",
+      "enum": [
+       "off",
+       "per_day",
+       "pct_month"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "default": "0",
+      "title": "Value"
+     }
+    },
+    "title": "PenaltyIn",
+    "type": "object"
+   },
+   "PreviewOut": {
+    "properties": {
+     "first_due_date": {
+      "format": "date",
+      "title": "First Due Date",
+      "type": "string"
+     },
+     "installment": {
+      "title": "Installment",
+      "type": "string"
+     },
+     "installments": {
+      "title": "Installments",
+      "type": "integer"
+     },
+     "last_installment": {
+      "title": "Last Installment",
+      "type": "string"
+     },
+     "maturity_date": {
+      "format": "date",
+      "title": "Maturity Date",
+      "type": "string"
+     },
+     "max_rate_monthly": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Rate Monthly"
+     },
+     "monthly_rate_equivalent": {
+      "title": "Monthly Rate Equivalent",
+      "type": "string"
+     },
+     "rate_above_maximum": {
+      "title": "Rate Above Maximum",
+      "type": "boolean"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/ScheduleRowOut"
+      },
+      "title": "Rows",
+      "type": "array"
+     },
+     "total_interest": {
+      "title": "Total Interest",
+      "type": "string"
+     },
+     "total_payable": {
+      "title": "Total Payable",
+      "type": "string"
+     },
+     "total_principal": {
+      "title": "Total Principal",
+      "type": "string"
+     }
+    },
+    "required": [
+     "installment",
+     "last_installment",
+     "total_principal",
+     "total_interest",
+     "total_payable",
+     "installments",
+     "first_due_date",
+     "maturity_date",
+     "monthly_rate_equivalent",
+     "rate_above_maximum",
+     "max_rate_monthly",
+     "rows"
+    ],
+    "title": "PreviewOut",
+    "type": "object"
+   },
+   "PushIn": {
+    "properties": {
+     "endpoint": {
+      "maxLength": 2000,
+      "title": "Endpoint",
+      "type": "string"
+     },
+     "keys": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "title": "Keys",
+      "type": "object"
+     }
+    },
+    "required": [
+     "endpoint",
+     "keys"
+    ],
+    "title": "PushIn",
+    "type": "object"
+   },
+   "ReminderOut": {
+    "properties": {
+     "language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "message": {
+      "title": "Message",
+      "type": "string"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     },
+     "tel_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tel Url"
+     },
+     "whatsapp_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Whatsapp Url"
+     }
+    },
+    "required": [
+     "phone",
+     "language",
+     "message",
+     "whatsapp_url",
+     "tel_url"
+    ],
+    "title": "ReminderOut",
+    "type": "object"
+   },
+   "RevealOut": {
+    "properties": {
+     "aadhaar": {
+      "title": "Aadhaar",
+      "type": "string"
+     }
+    },
+    "required": [
+     "aadhaar"
+    ],
+    "title": "RevealOut",
+    "type": "object"
+   },
+   "ReverseIn": {
+    "properties": {
+     "reason": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "ReverseIn",
+    "type": "object"
+   },
+   "ScheduleItemOut": {
+    "properties": {
+     "closing_balance": {
+      "title": "Closing Balance",
+      "type": "string"
+     },
+     "due_date": {
+      "format": "date",
+      "title": "Due Date",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "installment": {
+      "title": "Installment",
+      "type": "string"
+     },
+     "interest_part": {
+      "title": "Interest Part",
+      "type": "string"
+     },
+     "paid_interest": {
+      "title": "Paid Interest",
+      "type": "string"
+     },
+     "paid_penalty": {
+      "title": "Paid Penalty",
+      "type": "string"
+     },
+     "paid_principal": {
+      "title": "Paid Principal",
+      "type": "string"
+     },
+     "penalty_due": {
+      "title": "Penalty Due",
+      "type": "string"
+     },
+     "principal_part": {
+      "title": "Principal Part",
+      "type": "string"
+     },
+     "seq": {
+      "title": "Seq",
+      "type": "integer"
+     },
+     "status": {
+      "enum": [
+       "upcoming",
+       "due_today",
+       "partially_paid",
+       "overdue",
+       "paid"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "unpaid": {
+      "title": "Unpaid",
+      "type": "string"
+     },
+     "waived": {
+      "title": "Waived",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "seq",
+     "due_date",
+     "installment",
+     "principal_part",
+     "interest_part",
+     "closing_balance",
+     "paid_principal",
+     "paid_interest",
+     "paid_penalty",
+     "waived",
+     "penalty_due",
+     "unpaid",
+     "status"
+    ],
+    "title": "ScheduleItemOut",
+    "type": "object"
+   },
+   "ScheduleRowOut": {
+    "properties": {
+     "closing_balance": {
+      "title": "Closing Balance",
+      "type": "string"
+     },
+     "due_date": {
+      "format": "date",
+      "title": "Due Date",
+      "type": "string"
+     },
+     "installment": {
+      "title": "Installment",
+      "type": "string"
+     },
+     "interest_part": {
+      "title": "Interest Part",
+      "type": "string"
+     },
+     "principal_part": {
+      "title": "Principal Part",
+      "type": "string"
+     },
+     "seq": {
+      "title": "Seq",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "seq",
+     "due_date",
+     "installment",
+     "principal_part",
+     "interest_part",
+     "closing_balance"
+    ],
+    "title": "ScheduleRowOut",
+    "type": "object"
+   },
+   "SearchResult": {
+    "properties": {
+     "borrower_id": {
+      "format": "uuid",
+      "title": "Borrower Id",
+      "type": "string"
+     },
+     "code": {
+      "title": "Code",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "borrower",
+       "loan"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "loan_id": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Loan Id"
+     },
+     "loan_no": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Loan No"
+     },
+     "matched": {
+      "title": "Matched",
+      "type": "string"
+     },
+     "name_en": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name En"
+     },
+     "name_ta": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name Ta"
+     },
+     "outstanding": {
+      "title": "Outstanding",
+      "type": "string"
+     },
+     "overdue": {
+      "title": "Overdue",
+      "type": "boolean"
+     },
+     "phone": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Phone"
+     }
+    },
+    "required": [
+     "kind",
+     "borrower_id",
+     "code",
+     "name_en",
+     "name_ta",
+     "phone",
+     "outstanding",
+     "overdue",
+     "matched"
+    ],
+    "title": "SearchResult",
+    "type": "object"
+   },
+   "SettingsIn": {
+    "properties": {
+     "balance_start_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Balance Start Date"
+     },
+     "daily_summary_time": {
+      "anyOf": [
+       {
+        "format": "time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Daily Summary Time"
+     },
+     "default_language": {
+      "anyOf": [
+       {
+        "enum": [
+         "en",
+         "ta"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Default Language"
+     },
+     "due_soon_days": {
+      "anyOf": [
+       {
+        "maximum": 60.0,
+        "minimum": 0.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Due Soon Days"
+     },
+     "due_window_days": {
+      "anyOf": [
+       {
+        "maximum": 90.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Due Window Days"
+     },
+     "lender_address": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lender Address"
+     },
+     "lender_name": {
+      "anyOf": [
+       {
+        "maxLength": 120,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lender Name"
+     },
+     "licence_no": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Licence No"
+     },
+     "long_unpaid_days": {
+      "anyOf": [
+       {
+        "maximum": 3650.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Long Unpaid Days"
+     },
+     "max_files_per_owner": {
+      "anyOf": [
+       {
+        "maximum": 200.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Files Per Owner"
+     },
+     "max_rate_monthly": {
+      "anyOf": [
+       {
+        "maximum": 100.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Rate Monthly"
+     },
+     "max_upload_mb": {
+      "anyOf": [
+       {
+        "maximum": 50.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Max Upload Mb"
+     },
+     "opening_balance": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Opening Balance"
+     },
+     "penalty_default_mode": {
+      "anyOf": [
+       {
+        "enum": [
+         "off",
+         "per_day",
+         "pct_month"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Penalty Default Mode"
+     },
+     "penalty_default_value": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Penalty Default Value"
+     },
+     "penalty_grace_days": {
+      "anyOf": [
+       {
+        "maximum": 365.0,
+        "minimum": 0.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Penalty Grace Days"
+     },
+     "retention_years": {
+      "anyOf": [
+       {
+        "maximum": 50.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Retention Years"
+     },
+     "staff_can_create_loans": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Staff Can Create Loans"
+     },
+     "staff_enabled": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Staff Enabled"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "SettingsIn",
+    "type": "object"
+   },
+   "SettleIn": {
+    "properties": {
+     "expected_total": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Expected Total"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On"
+     },
+     "reference": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference"
+     }
+    },
+    "required": [
+     "expected_total",
+     "idempotency_key"
+    ],
+    "title": "SettleIn",
+    "type": "object"
+   },
+   "SettlementOut": {
+    "properties": {
+     "credit": {
+      "title": "Credit",
+      "type": "string"
+     },
+     "interest": {
+      "title": "Interest",
+      "type": "string"
+     },
+     "interest_waived": {
+      "title": "Interest Waived",
+      "type": "string"
+     },
+     "on": {
+      "format": "date",
+      "title": "On",
+      "type": "string"
+     },
+     "penalty": {
+      "title": "Penalty",
+      "type": "string"
+     },
+     "principal": {
+      "title": "Principal",
+      "type": "string"
+     },
+     "total": {
+      "title": "Total",
+      "type": "string"
+     }
+    },
+    "required": [
+     "on",
+     "principal",
+     "interest",
+     "penalty",
+     "credit",
+     "total",
+     "interest_waived"
+    ],
+    "title": "SettlementOut",
+    "type": "object"
+   },
+   "SetupIn": {
+    "properties": {
+     "language": {
+      "default": "en",
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     },
+     "password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Password",
+      "type": "string"
+     },
+     "phone": {
+      "maxLength": 16,
+      "minLength": 10,
+      "title": "Phone",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "phone",
+     "password"
+    ],
+    "title": "SetupIn",
+    "type": "object"
+   },
+   "SetupStatusOut": {
+    "properties": {
+     "needs_setup": {
+      "title": "Needs Setup",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "needs_setup"
+    ],
+    "title": "SetupStatusOut",
+    "type": "object"
+   },
+   "StaffIn": {
+    "properties": {
+     "language": {
+      "default": "en",
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+     },
+     "password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Password",
+      "type": "string"
+     },
+     "phone": {
+      "maxLength": 16,
+      "minLength": 10,
+      "title": "Phone",
+      "type": "string"
+     }
+    },
+    "required": [
+     "name",
+     "phone",
+     "password"
+    ],
+    "title": "StaffIn",
+    "type": "object"
+   },
+   "StaffUpdateIn": {
+    "properties": {
+     "is_active": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Is Active"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "maxLength": 120,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "new_password": {
+      "anyOf": [
+       {
+        "maxLength": 256,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "New Password"
+     },
+     "role": {
+      "anyOf": [
+       {
+        "enum": [
+         "owner",
+         "staff"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Role"
+     }
+    },
+    "title": "StaffUpdateIn",
+    "type": "object"
+   },
+   "StepUpIn": {
+    "properties": {
+     "password": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Password",
+      "type": "string"
+     },
+     "totp": {
+      "anyOf": [
+       {
+        "maxLength": 10,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Totp"
+     }
+    },
+    "required": [
+     "password"
+    ],
+    "title": "StepUpIn",
+    "type": "object"
+   },
+   "TermsIn": {
+    "description": "Loan terms as the lender enters them.\n\nFixed amount every installment (``method=\"fixed_amount\"``): give ``fixed_installment``;\nthe app works out how many installments are needed. ``fixed_style`` says whether the\ninterest inside each payment is the same every time (flat) or on the remaining balance.\n\nSet the split yourself (``method=\"custom\"``): give ``custom_principal`` and optionally\n``custom_interest`` per installment (the period is worked out), or a term to split the\nprincipal equally, or ``custom_rows`` with one row per installment.",
+    "properties": {
+     "custom_interest": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Interest"
+     },
+     "custom_principal": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Principal"
+     },
+     "custom_rows": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/CustomRowIn"
+        },
+        "maxItems": 3660,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Rows"
+     },
+     "disbursal_date": {
+      "format": "date",
+      "title": "Disbursal Date",
+      "type": "string"
+     },
+     "first_due_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "First Due Date"
+     },
+     "fixed_installment": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fixed Installment"
+     },
+     "fixed_style": {
+      "default": "flat",
+      "enum": [
+       "flat",
+       "reducing"
+      ],
+      "title": "Fixed Style",
+      "type": "string"
+     },
+     "frequency": {
+      "default": "monthly",
+      "enum": [
+       "monthly",
+       "weekly",
+       "daily",
+       "single"
+      ],
+      "title": "Frequency",
+      "type": "string"
+     },
+     "method": {
+      "default": "reducing",
+      "enum": [
+       "reducing",
+       "flat",
+       "interest_only",
+       "simple_days",
+       "fixed_amount",
+       "custom"
+      ],
+      "title": "Method",
+      "type": "string"
+     },
+     "principal": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Principal"
+     },
+     "rate": {
+      "anyOf": [
+       {
+        "maximum": 100.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Rate"
+     },
+     "rate_basis": {
+      "default": "month",
+      "enum": [
+       "month",
+       "year"
+      ],
+      "title": "Rate Basis",
+      "type": "string"
+     },
+     "term_unit": {
+      "default": "months",
+      "enum": [
+       "months",
+       "days",
+       "installments"
+      ],
+      "title": "Term Unit",
+      "type": "string"
+     },
+     "term_value": {
+      "anyOf": [
+       {
+        "maximum": 3660.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Term Value"
+     }
+    },
+    "required": [
+     "principal",
+     "rate",
+     "disbursal_date"
+    ],
+    "title": "TermsIn",
+    "type": "object"
+   },
+   "TotpCodeIn": {
+    "properties": {
+     "code": {
+      "maxLength": 10,
+      "minLength": 6,
+      "title": "Code",
+      "type": "string"
+     }
+    },
+    "required": [
+     "code"
+    ],
+    "title": "TotpCodeIn",
+    "type": "object"
+   },
+   "TotpSetupOut": {
+    "properties": {
+     "otpauth_uri": {
+      "title": "Otpauth Uri",
+      "type": "string"
+     },
+     "secret": {
+      "title": "Secret",
+      "type": "string"
+     }
+    },
+    "required": [
+     "secret",
+     "otpauth_uri"
+    ],
+    "title": "TotpSetupOut",
+    "type": "object"
+   },
+   "UserOut": {
+    "properties": {
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "is_active": {
+      "title": "Is Active",
+      "type": "boolean"
+     },
+     "language": {
+      "enum": [
+       "en",
+       "ta"
+      ],
+      "title": "Language",
+      "type": "string"
+     },
+     "last_login": {
+      "anyOf": [
+       {
+        "format": "date-time",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Last Login"
+     },
+     "name": {
+      "title": "Name",
+      "type": "string"
+     },
+     "phone": {
+      "title": "Phone",
+      "type": "string"
+     },
+     "role": {
+      "enum": [
+       "owner",
+       "staff"
+      ],
+      "title": "Role",
+      "type": "string"
+     },
+     "totp_enabled": {
+      "title": "Totp Enabled",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "phone",
+     "role",
+     "language",
+     "totp_enabled",
+     "is_active",
+     "last_login"
+    ],
+    "title": "UserOut",
+    "type": "object"
+   },
+   "ValidationError": {
+    "properties": {
+     "ctx": {
+      "title": "Context",
+      "type": "object"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "title": "Location",
+      "type": "array"
+     },
+     "msg": {
+      "title": "Message",
+      "type": "string"
+     },
+     "type": {
+      "title": "Error Type",
+      "type": "string"
+     }
+    },
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError",
+    "type": "object"
+   },
+   "WriteOffIn": {
+    "properties": {
+     "amount_received": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Amount Received"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "reason": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason",
+     "idempotency_key"
+    ],
+    "title": "WriteOffIn",
+    "type": "object"
+   }
+  }
+ },
+ "info": {
+  "title": "Loan Tracker API",
+  "version": "1.0.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/api/healthz": {
+   "get": {
+    "operationId": "healthz_api_healthz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "string"
+         },
+         "title": "Response Healthz Api Healthz Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Healthz",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/api/readyz": {
+   "get": {
+    "operationId": "readyz_api_readyz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Readyz Api Readyz Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Readyz",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/api/v1/audit": {
+   "get": {
+    "operationId": "audit_log_api_v1_audit_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "page",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "minimum": 1,
+       "title": "Page",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page_size",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "title": "Page Size",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "action",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Action"
+      }
+     },
+     {
+      "in": "query",
+      "name": "entity_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Entity Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Audit Log Api V1 Audit Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Audit Log",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/auth/language": {
+   "put": {
+    "operationId": "set_language_api_v1_auth_language_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LanguageIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/UserOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Set Language",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/login": {
+   "post": {
+    "operationId": "login_api_v1_auth_login_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoginIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MeOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Login",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/logout": {
+   "post": {
+    "operationId": "logout_api_v1_auth_logout_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Logout",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/me": {
+   "get": {
+    "operationId": "me_api_v1_auth_me_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MeOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Me",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/password": {
+   "put": {
+    "operationId": "change_password_api_v1_auth_password_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PasswordChangeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Change Password",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/refresh": {
+   "post": {
+    "operationId": "refresh_api_v1_auth_refresh_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MeOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Refresh",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/setup": {
+   "get": {
+    "operationId": "setup_status_api_v1_auth_setup_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SetupStatusOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Setup Status",
+    "tags": [
+     "auth"
+    ]
+   },
+   "post": {
+    "operationId": "setup_api_v1_auth_setup_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SetupIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MeOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Setup",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/step-up": {
+   "post": {
+    "operationId": "step_up_api_v1_auth_step_up_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StepUpIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Step Up",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/totp/disable": {
+   "post": {
+    "operationId": "totp_disable_api_v1_auth_totp_disable_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Totp Disable",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/totp/enable": {
+   "post": {
+    "operationId": "totp_enable_api_v1_auth_totp_enable_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TotpCodeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Totp Enable",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/auth/totp/setup": {
+   "post": {
+    "operationId": "totp_setup_api_v1_auth_totp_setup_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TotpSetupOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Totp Setup",
+    "tags": [
+     "auth"
+    ]
+   }
+  },
+  "/api/v1/borrowers": {
+   "get": {
+    "operationId": "list_borrowers_api_v1_borrowers_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "active",
+          "blocked",
+          "closed"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "query",
+      "name": "has_overdue",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Has Overdue"
+      }
+     },
+     {
+      "in": "query",
+      "name": "has_active_loan",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Has Active Loan"
+      }
+     },
+     {
+      "in": "query",
+      "name": "sort",
+      "required": false,
+      "schema": {
+       "default": "name",
+       "enum": [
+        "name",
+        "code",
+        "outstanding",
+        "overdue_days"
+       ],
+       "title": "Sort",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "desc",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Desc",
+       "type": "boolean"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "minimum": 1,
+       "title": "Page",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page_size",
+      "required": false,
+      "schema": {
+       "default": 30,
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Page Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_BorrowerListItem_"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Borrowers",
+    "tags": [
+     "borrowers"
+    ]
+   },
+   "post": {
+    "operationId": "create_borrower_api_v1_borrowers_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BorrowerIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BorrowerOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}": {
+   "delete": {
+    "operationId": "delete_borrower_api_v1_borrowers__borrower_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   },
+   "get": {
+    "operationId": "get_borrower_api_v1_borrowers__borrower_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BorrowerDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   },
+   "patch": {
+    "operationId": "update_borrower_api_v1_borrowers__borrower_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BorrowerUpdateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/BorrowerOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/consents": {
+   "post": {
+    "operationId": "add_consent_api_v1_borrowers__borrower_id__consents_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ConsentIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Add Consent",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/erase": {
+   "post": {
+    "operationId": "erase_borrower_api_v1_borrowers__borrower_id__erase_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Erase Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/export": {
+   "get": {
+    "operationId": "export_borrower_api_v1_borrowers__borrower_id__export_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "title": "Response Export Borrower Api V1 Borrowers  Borrower Id  Export Get"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Export Borrower",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/loans": {
+   "get": {
+    "operationId": "borrower_loans_api_v1_borrowers__borrower_id__loans_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/LoanListItem"
+         },
+         "title": "Response Borrower Loans Api V1 Borrowers  Borrower Id  Loans Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Borrower Loans",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/reveal-aadhaar": {
+   "post": {
+    "operationId": "reveal_aadhaar_api_v1_borrowers__borrower_id__reveal_aadhaar_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RevealOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reveal Aadhaar",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/borrowers/{borrower_id}/statement.pdf": {
+   "get": {
+    "operationId": "statement_api_v1_borrowers__borrower_id__statement_pdf_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "borrower_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Borrower Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Statement",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/cash-entries": {
+   "post": {
+    "operationId": "create_entry_api_v1_cash_entries_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CashEntryIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CashEntryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Entry",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/cash-entries/{entry_id}": {
+   "delete": {
+    "operationId": "delete_entry_api_v1_cash_entries__entry_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "entry_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Entry Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete Entry",
+    "tags": [
+     "home"
+    ]
+   },
+   "patch": {
+    "operationId": "update_entry_api_v1_cash_entries__entry_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "entry_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Entry Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CashEntryUpdate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CashEntryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Entry",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/cash-entries/{entry_id}/history": {
+   "get": {
+    "operationId": "entry_history_api_v1_cash_entries__entry_id__history_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "entry_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Entry Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         "title": "Response Entry History Api V1 Cash Entries  Entry Id  History Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Entry History",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/categories": {
+   "get": {
+    "operationId": "list_categories_api_v1_categories_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "include_inactive",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Include Inactive",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/CategoryOut"
+         },
+         "title": "Response List Categories Api V1 Categories Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Categories",
+    "tags": [
+     "home"
+    ]
+   },
+   "post": {
+    "operationId": "create_category_api_v1_categories_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CategoryIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CategoryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Category",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/categories/{category_id}": {
+   "put": {
+    "operationId": "update_category_api_v1_categories__category_id__put",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "category_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Category Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CategoryIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CategoryOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Category",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/dashboard": {
+   "get": {
+    "operationId": "dashboard_api_v1_dashboard_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Dashboard Api V1 Dashboard Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Dashboard",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/daybook": {
+   "get": {
+    "operationId": "get_daybook_api_v1_daybook_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "on",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "On"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Get Daybook Api V1 Daybook Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Daybook",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/daybook/export": {
+   "get": {
+    "operationId": "export_daybook_api_v1_daybook_export_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "start",
+      "required": true,
+      "schema": {
+       "format": "date",
+       "title": "Start",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end",
+      "required": true,
+      "schema": {
+       "format": "date",
+       "title": "End",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "fmt",
+      "required": false,
+      "schema": {
+       "default": "pdf",
+       "enum": [
+        "csv",
+        "pdf"
+       ],
+       "title": "Fmt",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Export Daybook",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/documents": {
+   "get": {
+    "operationId": "list_documents_api_v1_documents_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "owner_type",
+      "required": true,
+      "schema": {
+       "enum": [
+        "borrower",
+        "loan"
+       ],
+       "title": "Owner Type",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "owner_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Owner Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/DocumentOut"
+         },
+         "title": "Response List Documents Api V1 Documents Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Documents",
+    "tags": [
+     "documents"
+    ]
+   },
+   "post": {
+    "operationId": "upload_document_api_v1_documents_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_upload_document_api_v1_documents_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/DocumentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Upload Document",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/api/v1/documents/{doc_id}": {
+   "delete": {
+    "operationId": "delete_document_api_v1_documents__doc_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Doc Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete Document",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/api/v1/documents/{doc_id}/link": {
+   "post": {
+    "operationId": "document_link_api_v1_documents__doc_id__link_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "doc_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Doc Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "download",
+      "required": false,
+      "schema": {
+       "default": false,
+       "title": "Download",
+       "type": "boolean"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LinkOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Document Link",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/api/v1/dues": {
+   "get": {
+    "operationId": "list_dues_api_v1_dues_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "which",
+      "required": false,
+      "schema": {
+       "default": "today",
+       "enum": [
+        "today",
+        "upcoming",
+        "overdue",
+        "long_unpaid"
+       ],
+       "title": "Which",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "sort",
+      "required": false,
+      "schema": {
+       "default": "overdue_days",
+       "enum": [
+        "overdue_days",
+        "overdue_amount"
+       ],
+       "title": "Sort",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "minimum": 1,
+       "title": "Page",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page_size",
+      "required": false,
+      "schema": {
+       "default": 50,
+       "maximum": 200,
+       "minimum": 1,
+       "title": "Page Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response List Dues Api V1 Dues Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Dues",
+    "tags": [
+     "home"
+    ]
+   }
+  },
+  "/api/v1/export/full.zip": {
+   "get": {
+    "description": "Owner-triggered full data export (PRD section 13). Aadhaar is masked: only the last 4 digits.",
+    "operationId": "full_export_api_v1_export_full_zip_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Full Export",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/files/{token}": {
+   "get": {
+    "operationId": "serve_file_api_v1_files__token__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "token",
+      "required": true,
+      "schema": {
+       "title": "Token",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Serve File",
+    "tags": [
+     "documents"
+    ]
+   }
+  },
+  "/api/v1/import/commit": {
+   "post": {
+    "operationId": "import_commit_api_v1_import_commit_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_import_commit_api_v1_import_commit_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Import Commit Api V1 Import Commit Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Import Commit",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/import/preview": {
+   "post": {
+    "operationId": "import_preview_api_v1_import_preview_post",
+    "requestBody": {
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "$ref": "#/components/schemas/Body_import_preview_api_v1_import_preview_post"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Import Preview Api V1 Import Preview Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Import Preview",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/import/template.xlsx": {
+   "get": {
+    "operationId": "import_template_api_v1_import_template_xlsx_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Import Template",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/loans": {
+   "get": {
+    "operationId": "list_loans_api_v1_loans_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "status",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "active",
+          "closed",
+          "written_off"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "in": "query",
+      "name": "borrower_id",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "uuid",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Borrower Id"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page",
+      "required": false,
+      "schema": {
+       "default": 1,
+       "minimum": 1,
+       "title": "Page",
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "page_size",
+      "required": false,
+      "schema": {
+       "default": 30,
+       "maximum": 100,
+       "minimum": 1,
+       "title": "Page Size",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Page_LoanListItem_"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "List Loans",
+    "tags": [
+     "loans"
+    ]
+   },
+   "post": {
+    "operationId": "create_loan_api_v1_loans_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoanCreateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Loan",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/preview": {
+   "post": {
+    "operationId": "preview_api_v1_loans_preview_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TermsIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PreviewOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Preview",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}": {
+   "delete": {
+    "operationId": "delete_loan_api_v1_loans__loan_id__delete",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Delete Loan",
+    "tags": [
+     "loans"
+    ]
+   },
+   "get": {
+    "operationId": "get_loan_api_v1_loans__loan_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Loan",
+    "tags": [
+     "loans"
+    ]
+   },
+   "patch": {
+    "operationId": "update_loan_api_v1_loans__loan_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoanUpdateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Loan",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/payments": {
+   "post": {
+    "operationId": "record_payment_api_v1_loans__loan_id__payments_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "name": "Idempotency-Key",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PaymentIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PaymentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Record Payment",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/reminder": {
+   "get": {
+    "operationId": "reminder_api_v1_loans__loan_id__reminder_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReminderOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reminder",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/settle": {
+   "post": {
+    "operationId": "settle_api_v1_loans__loan_id__settle_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettleIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PaymentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Settle",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/settlement": {
+   "get": {
+    "operationId": "settlement_api_v1_loans__loan_id__settlement_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "on",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "On"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SettlementOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Settlement",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/summary.pdf": {
+   "get": {
+    "operationId": "loan_summary_pdf_api_v1_loans__loan_id__summary_pdf_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Loan Summary Pdf",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/write-off": {
+   "post": {
+    "operationId": "write_off_api_v1_loans__loan_id__write_off_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WriteOffIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Write Off",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/payments/{payment_id}": {
+   "get": {
+    "operationId": "get_payment_api_v1_payments__payment_id__get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "payment_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Payment Id",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PaymentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Get Payment",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/payments/{payment_id}/receipt.pdf": {
+   "get": {
+    "operationId": "receipt_api_v1_payments__payment_id__receipt_pdf_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "payment_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Payment Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Receipt",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/payments/{payment_id}/reverse": {
+   "post": {
+    "operationId": "reverse_payment_api_v1_payments__payment_id__reverse_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "payment_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Payment Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReverseIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PaymentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Reverse Payment",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/push/subscribe": {
+   "post": {
+    "operationId": "push_subscribe_api_v1_push_subscribe_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PushIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ok"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Push Subscribe",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/push/vapid-public-key": {
+   "get": {
+    "operationId": "vapid_key_api_v1_push_vapid_public_key_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "anyOf": [
+           {
+            "type": "string"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         },
+         "title": "Response Vapid Key Api V1 Push Vapid Public Key Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Vapid Key",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/reports/ageing": {
+   "get": {
+    "operationId": "report_ageing_api_v1_reports_ageing_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         "title": "Response Report Ageing Api V1 Reports Ageing Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Report Ageing",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/reports/collections": {
+   "get": {
+    "operationId": "report_collections_api_v1_reports_collections_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End"
+      }
+     },
+     {
+      "in": "query",
+      "name": "group",
+      "required": false,
+      "schema": {
+       "default": "day",
+       "enum": [
+        "day",
+        "month"
+       ],
+       "title": "Group",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         "title": "Response Report Collections Api V1 Reports Collections Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Report Collections",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/reports/interest": {
+   "get": {
+    "operationId": "report_interest_api_v1_reports_interest_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End"
+      }
+     },
+     {
+      "in": "query",
+      "name": "group",
+      "required": false,
+      "schema": {
+       "default": "month",
+       "enum": [
+        "day",
+        "month"
+       ],
+       "title": "Group",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         "title": "Response Report Interest Api V1 Reports Interest Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Report Interest",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/reports/outstanding": {
+   "get": {
+    "operationId": "report_outstanding_api_v1_reports_outstanding_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "additionalProperties": true,
+          "type": "object"
+         },
+         "title": "Response Report Outstanding Api V1 Reports Outstanding Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Report Outstanding",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/reports/{kind}/export": {
+   "get": {
+    "operationId": "report_export_api_v1_reports__kind__export_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "kind",
+      "required": true,
+      "schema": {
+       "enum": [
+        "collections",
+        "outstanding",
+        "ageing",
+        "interest"
+       ],
+       "title": "Kind",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "fmt",
+      "required": false,
+      "schema": {
+       "default": "pdf",
+       "enum": [
+        "csv",
+        "pdf"
+       ],
+       "title": "Fmt",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     },
+     {
+      "in": "query",
+      "name": "start",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Start"
+      }
+     },
+     {
+      "in": "query",
+      "name": "end",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "End"
+      }
+     },
+     {
+      "in": "query",
+      "name": "group",
+      "required": false,
+      "schema": {
+       "default": "day",
+       "enum": [
+        "day",
+        "month"
+       ],
+       "title": "Group",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Report Export",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/search": {
+   "get": {
+    "operationId": "search_api_v1_search_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "q",
+      "required": true,
+      "schema": {
+       "maxLength": 60,
+       "minLength": 1,
+       "title": "Q",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/SearchResult"
+         },
+         "title": "Response Search Api V1 Search Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Search",
+    "tags": [
+     "borrowers"
+    ]
+   }
+  },
+  "/api/v1/settings": {
+   "get": {
+    "operationId": "get_settings__api_v1_settings_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Get Settings  Api V1 Settings Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Get Settings ",
+    "tags": [
+     "admin"
+    ]
+   },
+   "put": {
+    "operationId": "put_settings_api_v1_settings_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettingsIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Put Settings Api V1 Settings Put",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Put Settings",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/settings/status": {
+   "get": {
+    "operationId": "settings_status_api_v1_settings_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Settings Status Api V1 Settings Status Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Settings Status",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/users": {
+   "get": {
+    "operationId": "list_users_api_v1_users_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/UserOut"
+         },
+         "title": "Response List Users Api V1 Users Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "List Users",
+    "tags": [
+     "users"
+    ]
+   },
+   "post": {
+    "operationId": "create_staff_api_v1_users_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StaffIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/UserOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Create Staff",
+    "tags": [
+     "users"
+    ]
+   }
+  },
+  "/api/v1/users/{user_id}": {
+   "patch": {
+    "operationId": "update_user_api_v1_users__user_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "user_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "User Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StaffUpdateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/UserOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update User",
+    "tags": [
+     "users"
+    ]
+   }
+  },
+  "/healthz": {
+   "get": {
+    "operationId": "healthz_healthz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "type": "string"
+         },
+         "title": "Response Healthz Healthz Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Healthz",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/readyz": {
+   "get": {
+    "operationId": "readyz_readyz_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Readyz Readyz Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Readyz",
+    "tags": [
+     "health"
+    ]
+   }
+  }
+ }
+}
