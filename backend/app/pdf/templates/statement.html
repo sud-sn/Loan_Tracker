@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ b.code }}{% endblock %}
+{% block head_right %}
+  <h1>{{ t("statement.title") }}</h1>
+  <div><b>{{ borrower_name }}</b> · {{ b.code }}</div>
+  <div class="muted">{{ t("statement.generated", date=date(today)) }}</div>
+{% endblock %}
+{% block body %}
+<table class="kv">
+  <tr><td>{{ t("statement.outstanding") }}</td><td><b>{{ money(b.totals.outstanding) }}</b></td></tr>
+  <tr><td>{{ t("report.overdue") }}</td><td>{{ money(b.totals.overdue_amount) }}</td></tr>
+</table>
+{% for loan in loans %}
+<h2>{{ loan.loan_no }} · {{ money(loan.principal) }} · {{ t("method." ~ loan.method) }}</h2>
+<table class="kv">
+  <tr><td>{{ t("loan.disbursal_date") }}</td><td>{{ date(loan.disbursal_date) }}</td></tr>
+  <tr><td>{{ t("loan.rate") }}</td><td>{{ rate(loan.rate) }} {{ t("rate." ~ loan.rate_basis) }}</td></tr>
+  <tr><td>{{ t("statement.paid") }}</td><td>{{ money(loan.summary.paid_total) }}</td></tr>
+  <tr><td>{{ t("statement.outstanding") }}</td><td><b>{{ money(loan.summary.total_outstanding) }}</b></td></tr>
+</table>
+<table>
+  <tr><th>#</th><th>{{ t("receipt.due_date") }}</th><th class="num">{{ t("loan.installment") }}</th><th class="num">{{ t("receipt.principal") }}</th><th class="num">{{ t("receipt.interest") }}</th><th>{{ t("loan.status") }}</th></tr>
+  {% for r in loan.schedule %}
+  <tr><td>{{ r.seq }}</td><td>{{ date(r.due_date) }}</td><td class="num">{{ money(r.installment) }}</td><td class="num">{{ money(r.principal_part) }}</td><td class="num">{{ money(r.interest_part) }}</td><td>{{ t("status." ~ r.status) }}</td></tr>
+  {% endfor %}
+</table>
+<table>
+  <tr><th>{{ t("receipt.no") }}</th><th>{{ t("receipt.date") }}</th><th>{{ t("receipt.mode") }}</th><th class="num">{{ t("report.amount") }}</th></tr>
+  {% for p in loan.payments %}
+  <tr><td>{{ p.receipt_no }}</td><td>{{ date(p.paid_on) }}</td><td>{{ t("mode." ~ p.mode) }}</td><td class="num">{{ money(-p.amount if p.kind == "reversal" else p.amount) }}</td></tr>
+  {% else %}
+  <tr><td colspan="4" class="muted">{{ t("statement.none") }}</td></tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% endblock %}

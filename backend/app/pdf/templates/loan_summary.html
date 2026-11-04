@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ loan.loan_no }}{% endblock %}
+{% block head_right %}
+  <h1>{{ t("loan.summary_title") }}</h1>
+  <div>{{ t("receipt.loan") }}: <b>{{ loan.loan_no }}</b></div>
+  <div>{{ t("receipt.code") }}: {{ loan.borrower.code }}</div>
+{% endblock %}
+{% block body %}
+<table class="kv">
+  <tr><td>{{ t("receipt.borrower") }}</td><td><b>{{ borrower_name }}</b></td></tr>
+  <tr><td>{{ t("loan.principal") }}</td><td>{{ money(loan.principal) }}</td></tr>
+  <tr><td>{{ t("loan.rate") }}</td><td>{{ rate(loan.rate) }} {{ t("rate." ~ loan.rate_basis) }}</td></tr>
+  <tr><td>{{ t("loan.method") }}</td><td>{{ t("method." ~ loan.method) }}</td></tr>
+  <tr><td>{{ t("loan.frequency") }}</td><td>{{ t("frequency." ~ loan.frequency) }}</td></tr>
+  <tr><td>{{ t("loan.installments") }}</td><td>{{ loan.installments }}</td></tr>
+  <tr><td>{{ t("loan.installment") }}</td><td>{{ money(loan.installment_amount) }}</td></tr>
+  <tr><td>{{ t("loan.total_interest") }}</td><td>{{ money(loan.total_interest) }}</td></tr>
+  <tr><td>{{ t("loan.total_payable") }}</td><td><b>{{ money(loan.principal + loan.total_interest) }}</b></td></tr>
+  <tr><td>{{ t("loan.disbursal_date") }}</td><td>{{ date(loan.disbursal_date) }}</td></tr>
+  <tr><td>{{ t("loan.maturity_date") }}</td><td>{{ date(loan.maturity_date) }}</td></tr>
+</table>
+<h2>{{ t("loan.schedule") }}</h2>
+<table>
+  <tr><th>#</th><th>{{ t("receipt.due_date") }}</th><th class="num">{{ t("loan.installment") }}</th><th class="num">{{ t("receipt.principal") }}</th><th class="num">{{ t("receipt.interest") }}</th><th class="num">{{ t("loan.balance") }}</th><th>{{ t("loan.status") }}</th></tr>
+  {% for r in loan.schedule %}
+  <tr><td>{{ r.seq }}</td><td>{{ date(r.due_date) }}</td><td class="num">{{ money(r.installment) }}</td><td class="num">{{ money(r.principal_part) }}</td><td class="num">{{ money(r.interest_part) }}</td><td class="num">{{ money(r.closing_balance) }}</td><td>{{ t("status." ~ r.status) }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

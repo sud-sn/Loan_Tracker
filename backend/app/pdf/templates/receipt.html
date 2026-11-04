@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ p.receipt_no }}{% endblock %}
+{% block head_right %}
+  <h1>{{ t("receipt.reversal_title") if p.kind == "reversal" else t("receipt.title") }}</h1>
+  <div>{{ t("receipt.no") }}: <b>{{ p.receipt_no }}</b></div>
+  <div>{{ t("receipt.date") }}: {{ date(p.paid_on) }}</div>
+{% endblock %}
+{% block body %}
+<table class="kv">
+  <tr><td>{{ t("receipt.borrower") }}</td><td><b>{{ borrower_name }}</b></td></tr>
+  <tr><td>{{ t("receipt.code") }}</td><td>{{ b.code }}</td></tr>
+  <tr><td>{{ t("receipt.loan") }}</td><td>{{ loan.loan_no }}</td></tr>
+  <tr><td>{{ t("receipt.mode") }}</td><td>{{ t("mode." ~ p.mode) }}{% if p.reference %} · {{ t("receipt.reference") }}: {{ p.reference }}{% endif %}</td></tr>
+</table>
+<div class="box">
+  <div class="muted">{{ t("receipt.amount") }}</div>
+  <div class="big">{{ money(p.amount) }}</div>
+  <div>{{ t("receipt.amount_words") }}: {{ words(p.amount) }}</div>
+  {% if p.kind == "reversal" %}<div class="warn">{{ t("receipt.reversal_of", receipt=p.reference, reason=p.reversal_reason) }}</div>{% endif %}
+</div>
+<h2>{{ t("receipt.split") }}</h2>
+<table>
+  <tr><th>{{ t("receipt.installment") }}</th><th>{{ t("receipt.due_date") }}</th><th class="num">{{ t("receipt.penalty") }}</th><th class="num">{{ t("receipt.interest") }}</th><th class="num">{{ t("receipt.principal") }}</th></tr>
+  {% for a in p.allocations %}
+  <tr><td>{{ a.seq }}</td><td>{{ date(a.due_date) }}</td><td class="num">{{ money(a.penalty_part) }}</td><td class="num">{{ money(a.interest_part) }}</td><td class="num">{{ money(a.principal_part) }}</td></tr>
+  {% endfor %}
+  <tr class="total"><td colspan="2">{{ t("receipt.total") }}</td><td class="num">{{ money(p.penalty_total) }}</td><td class="num">{{ money(p.interest_total) }}</td><td class="num">{{ money(p.principal_total) }}</td></tr>
+</table>
+<table class="kv"><tr><td>{{ t("receipt.balance_after") }}</td><td><b>{{ money(p.balance_after) }}</b></td></tr></table>
+<div class="sign"><div>{{ t("receipt.signature") }}</div></div>
+<p class="muted">{{ t("receipt.footer") }}</p>
+{% endblock %}

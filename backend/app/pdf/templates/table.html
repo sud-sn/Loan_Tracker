@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block head_right %}
+  <h1>{{ title }}</h1>
+  {% if subtitle %}<div class="muted">{{ subtitle }}</div>{% endif %}
+{% endblock %}
+{% block body %}
+{% if summary %}
+<table class="kv">{% for k, v in summary %}<tr><td>{{ k }}</td><td><b>{{ v }}</b></td></tr>{% endfor %}</table>
+{% endif %}
+<table>
+  <tr>{% for h in headers %}<th class="{{ 'num' if loop.index0 in numeric else '' }}">{{ h }}</th>{% endfor %}</tr>
+  {% for row in rows %}
+  <tr>{% for cell in row %}<td class="{{ 'num' if loop.index0 in numeric else '' }}">{{ cell }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table>
+{% endblock %}

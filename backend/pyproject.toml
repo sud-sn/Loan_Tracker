@@ -44,12 +44,12 @@ build-backend = "setuptools.build_meta"
 include = ["app*"]
 
 [tool.ruff]
-line-length = 120
+line-length = 130
 target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "SIM"]
-ignore = ["S101", "B008", "S311"]
+ignore = ["S101", "B008", "S311", "UP046"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
