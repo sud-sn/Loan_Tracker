@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Main flows on a laptop and at phone width, in English and Tamil: sign in, add a borrower, give a fixed-amount
+// Main flows on a laptop, a large monitor, a tablet and at phone width, in English and Tamil: sign in, add a borrower, give a fixed-amount
 // loan, record a payment, see an overdue loan. Every visited screen is checked for sideways
 // overflow and for untranslated keys. Invented data only.
 
@@ -14,7 +14,7 @@ const T = {
     fixedToggle: "Borrower wants a fixed amount every month", fixedAmount: "Amount every month", next: "Next",
     saveLoan: "Save loan", openLoan: "Open the loan", recordPayment: "Record payment",
     amountReceived: "Amount received", savePayment: "Save payment", interest: "Interest", principal: "Principal",
-    overdueTab: "Overdue", daysLate: "10 days late",
+    overdueTab: "Overdue", daysLate: "10 days late", collapse: "Collapse menu", expand: "Expand menu",
   },
   ta: {
     switch: "தமிழ்", mobile: "கைபேசி எண்", password: "கடவுச்சொல்", signIn: "உள்நுழை", createOwner: "கணக்கை உருவாக்கு",
@@ -23,7 +23,7 @@ const T = {
     fixedToggle: "ஒவ்வொரு மாதமும் ஒரே தொகை கட்ட வாடிக்கையாளர் விரும்புகிறார்", fixedAmount: "ஒவ்வொரு மாதமும் தொகை",
     next: "அடுத்து", saveLoan: "கடனைச் சேமி", openLoan: "கடனைத் திற", recordPayment: "பணம் பதிவு",
     amountReceived: "பெற்ற தொகை", savePayment: "கட்டணத்தைச் சேமி", interest: "வட்டி", principal: "அசல்",
-    overdueTab: "தவறியவை", daysLate: "10 நாள் தாமதம்",
+    overdueTab: "தவறியவை", daysLate: "10 நாள் தாமதம்", collapse: "மெனுவைச் சுருக்கு", expand: "மெனுவை விரி",
   },
 } as const;
 
@@ -125,6 +125,59 @@ for (const lang of ["en", "ta"] as const) {
     await page.getByRole("tab", { name: new RegExp(`^${t.overdueTab}`) }).click();
     const row = page.locator("article").filter({ hasText: loan.loan_no });
     await expect(row).toContainText(t.daysLate);
+    await noOverflowOrRawKeys(page);
+  });
+
+  test(`the left menu and the page fit the screen (${lang})`, async ({ page }, testInfo) => {
+    const t = T[lang];
+    await signIn(page, lang);
+    const aside = page.locator("aside[data-sidebar]");
+    const bottom = page.locator("nav[data-bottom-nav]");
+    // The menu and the page share the full width: no gap, no overlap, no sideways scrolling.
+    const shared = () => page.evaluate(() => {
+      const a = document.querySelector("aside[data-sidebar]")!.getBoundingClientRect();
+      const m = document.querySelector("main")!.getBoundingClientRect();
+      return { aside: Math.round(a.width), main: Math.round(m.width), touching: Math.abs(m.left - a.right) <= 1,
+        total: Math.round(a.width + m.width), screen: document.documentElement.clientWidth };
+    });
+    const allLinksVisible = async () => {
+      for (const link of await aside.locator("nav a").all()) await expect(link).toBeInViewport();
+    };
+
+    if (testInfo.project.name === "phone") {
+      await expect(bottom).toBeVisible();
+      await expect(aside).toBeHidden();
+      return;
+    }
+    await expect(bottom).toBeHidden();
+    await expect(aside).toBeVisible();
+    await allLinksVisible();
+
+    if (testInfo.project.name === "tablet") {
+      // Tablets get the narrow rail with short labels; there is nothing to fold.
+      await expect(aside).toHaveAttribute("data-sidebar", "rail");
+      await expect(page.getByRole("button", { name: t.collapse })).toHaveCount(0);
+    } else {
+      await expect(aside).toHaveAttribute("data-sidebar", "full");
+      const full = await shared();
+      expect(full.touching).toBe(true);
+      expect(Math.abs(full.total - full.screen)).toBeLessThanOrEqual(2);
+
+      // Folding the menu gives the page the space, and the choice survives a reload.
+      await page.getByRole("button", { name: t.collapse }).click();
+      await expect(aside).toHaveAttribute("data-sidebar", "rail");
+      await expect.poll(async () => (await shared()).main).toBeGreaterThan(full.main + 80);
+      await allLinksVisible();
+      await page.goto("/loans");
+      await noOverflowOrRawKeys(page);
+      await page.reload();
+      await expect(aside).toHaveAttribute("data-sidebar", "rail");
+      await page.getByRole("button", { name: t.expand }).click();
+      await expect(aside).toHaveAttribute("data-sidebar", "full");
+    }
+    const after = await shared();
+    expect(after.touching).toBe(true);
+    expect(Math.abs(after.total - after.screen)).toBeLessThanOrEqual(2);
     await noOverflowOrRawKeys(page);
   });
 }

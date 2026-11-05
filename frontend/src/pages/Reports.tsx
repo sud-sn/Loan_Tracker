@@ -42,10 +42,10 @@ export function ReportsPage() {
         ))}
       </div>
       {dated && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 @3xl/main:grid-cols-[repeat(2,minmax(0,16rem))_minmax(0,1fr)]">
           <Field label={t("reports.from")}>{(id) => <Input id={id} type="date" value={start} onChange={(e) => setStart(e.target.value)} />}</Field>
           <Field label={t("reports.to")}>{(id) => <Input id={id} type="date" value={end} max={todayIST()} onChange={(e) => setEnd(e.target.value)} />}</Field>
-          <div className="col-span-2 flex items-end gap-2">
+          <div className="col-span-2 flex flex-wrap items-end gap-2 @3xl/main:col-span-1">
             {(["day", "month"] as const).map((g) => (
               <Button key={g} variant={group === g ? "secondary" : "outline"} onClick={() => setGroup(g)}>
                 {g === "day" ? t("reports.groupDay") : t("reports.groupMonth")}

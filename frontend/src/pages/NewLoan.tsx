@@ -124,7 +124,8 @@ export function NewLoanPage() {
 
   const stepTitles = [t("loan.stepBorrower"), t("loan.stepTerms"), t("loan.stepReview"), t("loan.stepSave")];
   return (
-    <div className="space-y-5">
+    // A form stays readable on ultrawide monitors: at most 110 rem wide, centred (only above ~2400 px).
+    <div className="mx-auto max-w-[110rem] space-y-5">
       <div>
         <h1 className="text-2xl">{t("loan.new")}</h1>
         {/* Numbers only in the bar; the current step's name is written out below, so long Tamil
@@ -156,7 +157,7 @@ export function NewLoanPage() {
       )}
 
       {step === 2 && (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(22rem,32%,40rem)]">
         <section className="min-w-0 space-y-4">
           <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start">
           <Field label={t("loan.principal")}>
@@ -297,7 +298,7 @@ export function NewLoanPage() {
         <aside className="space-y-3 lg:sticky lg:top-24">
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
             fixedNote={s.fixedOn && p ? t("loan.fixedNote", { amount: money(p.installment), period }) : undefined} />
-          <div className="sticky bottom-20 z-10 flex gap-2 lg:static">
+          <div className="sticky bottom-20 z-10 flex gap-2 md:bottom-4 lg:static">
             <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
             <Button size="lg" className="flex-1" disabled={!p || !!previewError} onClick={() => setStep(3)}>
               {t("app.next")}<ArrowRight className="h-5 w-5" aria-hidden />
@@ -308,7 +309,7 @@ export function NewLoanPage() {
       )}
 
       {step === 3 && p && (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(22rem,32%,40rem)]">
         <aside className="space-y-3 lg:sticky lg:top-24 lg:order-2">
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
             fixedNote={s.fixedOn ? t("loan.fixedNote", { amount: money(p.installment), period }) : undefined} />
@@ -323,7 +324,7 @@ export function NewLoanPage() {
             </div>
           )}
           {save.error && <p role="alert" className="field-error">{errorMessage(save.error)}</p>}
-          <div className="sticky bottom-20 z-10 flex gap-2 lg:static">
+          <div className="sticky bottom-20 z-10 flex gap-2 md:bottom-4 lg:static">
             <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
             <Button size="lg" variant="paid" className="flex-1" loading={save.isPending}
               disabled={(p.rate_above_maximum && !ack) || !!previewError || !terms} onClick={() => save.mutate()}>

@@ -81,7 +81,7 @@ export function BorrowerDetailPage() {
       </div>
 
       {/* Laptop: profile, consent and privacy on the left; loans, documents and statement on the right. */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(19rem,1fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[clamp(19rem,32%,34rem)_minmax(0,1fr)]">
         <div className="space-y-4">
           <Card>
             <dl>

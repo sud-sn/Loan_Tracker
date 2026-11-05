@@ -130,7 +130,7 @@ export function QuickAddButtons() {
     { label: t("nav.addIncome"), Icon: PlusCircle, run: () => qa.addCash("in"), cls: "bg-surface text-ink border border-line" },
   ];
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 @[44rem]/main:grid-cols-4">
       {items.map((it) => (
         <button key={it.label} onClick={it.run}
           className={`flex min-h-[64px] items-center justify-center gap-2 rounded-2xl px-3 py-2 text-center font-semibold shadow-card ${it.cls}`}>

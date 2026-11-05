@@ -62,7 +62,12 @@
     "addExpense": "Add expense",
     "addIncome": "Add other income",
     "addBorrower": "Add borrower",
-    "borrowersShort": "Borrowers"
+    "borrowersShort": "Borrowers",
+    "menu": "Main menu",
+    "importShort": "Import",
+    "auditShort": "Audit",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu"
   },
   "auth": {
     "signInTitle": "Sign in",

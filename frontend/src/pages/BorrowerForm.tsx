@@ -106,7 +106,7 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
   const show = (e?: string) => (touched ? e : undefined);
   const years = settings.data?.retention_years ?? 8;
   return (
-    <form className="space-y-5" noValidate onSubmit={(e) => {
+    <form className={inline ? "space-y-5" : "mx-auto max-w-[110rem] space-y-5"} noValidate onSubmit={(e) => {
       e.preventDefault();
       setTouched(true);
       if (valid) save.mutate(false);

@@ -77,7 +77,7 @@ export function LoanDetailPage() {
       </div>
 
       {/* Laptop: details and actions on the left (stays in view), schedule and payments on the right. */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(19rem,1fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[clamp(19rem,32%,34rem)_minmax(0,1fr)]">
         <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1">
           <Card>
             <h2 className="mb-1 text-lg">{t("loan.summary")}</h2>

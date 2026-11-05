@@ -62,7 +62,12 @@
     "addExpense": "செலவு சேர்",
     "addIncome": "மற்ற வரவு சேர்",
     "addBorrower": "வாடிக்கையாளர் சேர்",
-    "borrowersShort": "நபர்கள்"
+    "borrowersShort": "நபர்கள்",
+    "menu": "முதன்மை மெனு",
+    "importShort": "இறக்குமதி",
+    "auditShort": "பதிவுகள்",
+    "collapseMenu": "மெனுவைச் சுருக்கு",
+    "expandMenu": "மெனுவை விரி"
   },
   "auth": {
     "signInTitle": "உள்நுழை",

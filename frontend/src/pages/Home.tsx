@@ -75,16 +75,17 @@ export function HomePage() {
       )}
 
       {book.isError && <ErrorState error={book.error} onRetry={() => void book.refetch()} />}
-      <section aria-label={t("home.title")} className="card overflow-hidden p-0">
-        <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 xl:grid-cols-6">
+      <section aria-label={t("home.title")} className="card @container overflow-hidden p-0">
+        {/* Columns follow the card's own width: 2 on a phone, 3 on a tablet or small laptop, 6 when there is room. */}
+        <div className="grid grid-cols-2 gap-px bg-line @md:grid-cols-3 @5xl:grid-cols-6">
           <Stat label={t("home.opening")} value={b ? (b.tracked ? money(b.opening_balance) : "—") : null} />
           <Stat label={t("home.moneyIn")} value={b ? money(b.money_in) : null} tone="in" />
           <Stat label={t("home.moneyOut")} value={b ? money(b.money_out) : null} tone="out" />
           <Stat label={t("home.closing")} value={b ? (b.tracked ? money(b.closing_balance) : "—") : null} strong />
           <Stat label={t("home.week")} value={b ? money(b.week.net) : null}
-            sub={b ? `+${money(b.week.in)} · −${money(b.week.out)}` : undefined} tone={b && Number(b.week.net) < 0 ? "out" : "in"} />
+            sub={b ? [`+${money(b.week.in)}`, `−${money(b.week.out)}`] : undefined} tone={b && Number(b.week.net) < 0 ? "out" : "in"} />
           <Stat label={t("home.month")} value={b ? money(b.month.net) : null}
-            sub={b ? `+${money(b.month.in)} · −${money(b.month.out)}` : undefined} tone={b && Number(b.month.net) < 0 ? "out" : "in"} />
+            sub={b ? [`+${money(b.month.in)}`, `−${money(b.month.out)}`] : undefined} tone={b && Number(b.month.net) < 0 ? "out" : "in"} />
         </div>
         {/* Footer of the same card, always present, so nothing below moves when the data arrives. */}
         <div className="flex min-h-touch flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-3 py-1">
@@ -110,6 +111,9 @@ export function HomePage() {
 
       <QuickAddButtons />
 
+      {/* On very wide screens (main area 110 rem+, e.g. 2560 px monitors) today's log and "who has to pay"
+          sit side by side instead of leaving the screen half empty. */}
+      <div className="grid gap-6 @[110rem]/main:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] @[110rem]/main:items-start">
       {/* Today's log: money in and money out side by side (equal height) from tablet width up. */}
       <section aria-label={t("home.title")} className="space-y-3">
         <div className="grid gap-4 md:grid-cols-2">
@@ -121,6 +125,7 @@ export function HomePage() {
         {exportButtons && <div className="flex flex-wrap gap-2 lg:hidden">{exportButtons}</div>}
       </section>
 
+      <div className="space-y-6">
       {/* Who has to pay: full width, so each row lays out as one line on a laptop. */}
       <DueLists windowDays={settings.data?.due_window_days ?? 7} />
 
@@ -144,6 +149,8 @@ export function HomePage() {
           </div>
         ) : <div className="grid grid-cols-2 gap-3 md:grid-cols-3"><Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" /></div>}
       </section>
+      </div>
+      </div>
       {editing && editing.source_type === "cash_entry" && (
         <Suspense fallback={null}><CashEntrySheet direction={editing.direction} onClose={() => setEditing(null)}
           existing={{ id: editing.source_id, version: editing.version ?? 1, amount: editing.amount, note: editing.note,
@@ -154,7 +161,7 @@ export function HomePage() {
 }
 
 function Stat({ label, value, tone, strong, sub }: { label: string; value: string | null; tone?: "in" | "out"; strong?: boolean;
-  sub?: string }) {
+  sub?: string[] }) {
   return (
     <div className="min-w-0 bg-surface p-3 xl:p-4">
       <p className="text-sm text-muted">{label}</p>
@@ -162,7 +169,8 @@ function Stat({ label, value, tone, strong, sub }: { label: string; value: strin
         <p className={cn("truncate text-lg font-bold tabular xl:text-xl", tone === "in" && "text-moneyin",
           tone === "out" && "text-moneyout", strong && "text-brand")} title={value}>{value}</p>
       )}
-      {sub && <p className="truncate text-xs text-muted tabular" title={sub}>{sub}</p>}
+      {/* In and out wrap onto two lines when the column is narrow; never cut off. */}
+      {sub && <p className="flex flex-wrap gap-x-1.5 text-xs text-muted tabular">{sub.map((s) => <span key={s}>{s}</span>)}</p>}
     </div>
   );
 }

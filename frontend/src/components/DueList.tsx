@@ -92,23 +92,23 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
   };
   const late = row.overdue_days > 0;
   const showOutstanding = which === "long_unpaid" && Number(row.overdue_amount) === 0;
-  const btn = "flex min-h-touch items-center justify-center gap-1.5 rounded-xl px-2 font-semibold @3xl:min-h-[40px] @3xl:px-3 @3xl:text-sm";
+  const btn = "flex min-h-touch items-center justify-center gap-1.5 rounded-xl px-2 font-semibold @4xl:min-h-[40px] @4xl:px-3 @4xl:text-sm";
   // Narrow panel: a card (name and amount, then details, then three big buttons).
-  // Wide panel (container 48rem+): one row with columns, like a table.
+  // Wide panel (container 56rem+): one row with columns, like a table. Names wrap rather than being cut.
   return (
     <article className={cn(
       "card grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 p-3 [grid-template-areas:'who_amt''info_info''act_act']",
-      "@3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(7.5rem,auto)_auto] @3xl:items-center @3xl:gap-x-4 @3xl:py-2",
-      "@3xl:[grid-template-areas:'who_info_amt_act']",
+      "@4xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(7.5rem,auto)_auto] @4xl:items-center @4xl:gap-x-4 @4xl:py-2",
+      "@4xl:[grid-template-areas:'who_info_amt_act']",
       late && "border-l-4 border-l-late",
     )}>
       <Link to={`/loans/${row.loan_id}`} className="min-w-0 [grid-area:who]">
-        <p className="truncate text-lg font-semibold @3xl:text-base">{displayName(lang, row.name_en, row.name_ta)}</p>
+        <p className="text-lg font-semibold [overflow-wrap:anywhere] @4xl:text-base">{displayName(lang, row.name_en, row.name_ta)}</p>
         <p className="text-sm text-muted"><span className="whitespace-nowrap">{row.code}</span> · <span className="whitespace-nowrap">{row.loan_no}</span></p>
       </Link>
       <div className="text-right [grid-area:amt]">
         {showOutstanding && <p className="text-sm text-muted">{t("borrower.outstanding")}</p>}
-        <p className="text-lg font-bold tabular @3xl:text-base">
+        <p className="text-lg font-bold tabular @4xl:text-base">
           {money(showOutstanding ? row.outstanding : which === "long_unpaid" ? row.overdue_amount : row.amount_due)}
         </p>
         {late && (
@@ -130,19 +130,19 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
           </p>
         )}
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-2 [grid-area:act] @3xl:mt-0 @3xl:flex @3xl:gap-1.5">
+      <div className="mt-2 grid grid-cols-3 gap-2 [grid-area:act] @4xl:mt-0 @4xl:flex @4xl:gap-1.5">
         <a href={row.phone ? `tel:+91${row.phone}` : undefined} aria-disabled={!row.phone}
           className={cn(btn, "border border-line bg-surface hover:bg-sunken")}>
-          <Phone className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />{t("dues.call")}
+          <Phone className="h-5 w-5 shrink-0 @4xl:h-4 @4xl:w-4" aria-hidden />{t("dues.call")}
         </a>
         <button onClick={openWhatsApp} disabled={!row.phone || busy}
           className={cn(btn, "border border-line bg-surface hover:bg-sunken disabled:opacity-50")}>
-          <MessageCircle className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />
+          <MessageCircle className="h-5 w-5 shrink-0 @4xl:h-4 @4xl:w-4" aria-hidden />
           <span className="min-w-0 leading-tight">{t("dues.whatsapp")}</span>
         </button>
         <button onClick={() => qa.receivePayment(row.loan_id, which === "upcoming" ? undefined : row.amount_due)}
           className={cn(btn, "bg-paid text-white hover:bg-paid/90")}>
-          <HandCoins className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />
+          <HandCoins className="h-5 w-5 shrink-0 @4xl:h-4 @4xl:w-4" aria-hidden />
           <span className="leading-tight">{t("dues.recordPayment")}</span>
         </button>
       </div>

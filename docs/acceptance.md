@@ -25,8 +25,10 @@ check · ◐ = partly met · ⏳ = must be done on the owner's machine.
 | 18 | Not reachable from the public internet; only over the private VPN | ⏳ | Compose binds to the Tailscale address only and publishes no database port; check from outside (runbook §9) |
 | 19 | 100 notebook loans import with preview, row-by-row errors, totals that match | ✅ | `test_import_100_notebook_loans_with_preview_and_errors`, `test_import_reports_errors_row_by_row` |
 
-Also verified: the end-to-end tests pass on a laptop screen (1366 × 768) and at phone width (360 px)
-in English and Tamil; layouts checked at 1280, 1366, 1440 and 1920 px with no sideways scrolling.
+Also verified: the end-to-end tests pass on a phone (360 px), a tablet (820 × 1180), a laptop
+(1366 × 768) and a 1920 × 1080 monitor in English and Tamil, including the left menu (rail on tablets,
+fold/unfold on laptops). Layouts were checked at 13 sizes from 768 to 3440 px, including a short
+1366 × 600 window, with no sideways scrolling and no text cut off.
 
 ## Speed at the PRD's scale (p95, 20 runs each)
 

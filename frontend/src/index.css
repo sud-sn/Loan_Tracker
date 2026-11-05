@@ -61,10 +61,15 @@
 }
 
 @layer base {
-  html { -webkit-text-size-adjust: 100%; }
+  /* Everything is sized in rem, so on large monitors (wider than 1600 px) text, buttons and the menu
+     grow a little with the screen, up to 18 px at 2400 px and wider. Laptops and phones stay at 16 px. */
+  html {
+    -webkit-text-size-adjust: 100%;
+    font-size: clamp(100%, calc(100% + (100vw - 1600px) / 400), 112.5%);
+  }
   body {
     @apply bg-bg text-ink antialiased;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
   }
   /* Tamil needs taller lines and room to grow; nothing may be cut off. */
@@ -72,7 +77,7 @@
   html[lang="ta"] button, html[lang="ta"] .btn { line-height: 1.35; }
   :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }
   h1, h2, h3 { @apply font-semibold tracking-tight; }
-  input, select, textarea { font-size: 16px; } /* no zoom on iOS */
+  input, select, textarea { font-size: max(16px, 1rem); } /* never below 16 px: no zoom on iOS */
   .tabular { font-variant-numeric: tabular-nums; }
 }
 
@@ -89,7 +94,8 @@
   .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 76px); }
 }
 
-@media (min-width: 1024px) {
+/* From tablet width up the menu is on the left, so no room is kept for the phone's bottom bar. */
+@media (min-width: 768px) {
   .safe-bottom { padding-bottom: 2rem; }
 }
 

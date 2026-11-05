@@ -53,9 +53,8 @@ export function SettingsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl xl:text-3xl">{t("settings.title")}</h1>
-      {/* Cards flow in two columns on wide screens (each sits right under the one above, no gaps);
-          one column on a phone. */}
-      <div className="space-y-4 xl:block xl:columns-2 xl:gap-4 xl:space-y-0 xl:[&>*]:mb-4 xl:[&>*]:break-inside-avoid">
+      {/* Cards flow in columns that follow the page width (also when the menu is folded): 1, then 2 from 60 rem, 3 from 110 rem. */}
+      <div className="space-y-4 @[60rem]/main:block @[60rem]/main:columns-2 @[60rem]/main:gap-4 @[60rem]/main:space-y-0 @[60rem]/main:[&>*]:mb-4 @[60rem]/main:[&>*]:break-inside-avoid @[110rem]/main:columns-3">
       <Card>
         <h2 className="mb-3 text-lg">{t("settings.account")}</h2>
         <p className="mb-3">{me?.user.name} · {me?.user.phone}</p>
@@ -158,7 +157,7 @@ export function SettingsPage() {
       </div>
       {isOwner && form && (
         dirty && (
-            <div className="sticky bottom-20 z-10 lg:bottom-4">
+            <div className="sticky bottom-20 z-10 md:bottom-4">
               <Button size="lg" className="w-full shadow-lg" loading={save.isPending} onClick={() => save.mutate(form)}>
                 {t("settings.saveSettings")}
               </Button>
