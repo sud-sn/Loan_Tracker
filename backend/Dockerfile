@@ -1,8 +1,10 @@
 # Loan Tracker API and worker image.
 FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
-# Pango + HarfBuzz for WeasyPrint (Tamil shaping); fonts are bundled in app/pdf/fonts.
+# Debian security updates first (the base image can lag behind them), then Pango + HarfBuzz for
+# WeasyPrint (Tamil shaping); fonts are bundled in app/pdf/fonts.
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
