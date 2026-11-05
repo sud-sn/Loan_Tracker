@@ -6,7 +6,9 @@ payments, keeps a daily log of money in and out, and shows at a glance who is du
 not paid for a long time.
 
 It runs on your own computer or home server. The database and documents stay on that machine, and
-only you can reach it, over your home network or a private VPN such as Tailscale.
+only you can reach it, over your home network or a private VPN such as Tailscale. It is built for a
+laptop browser first (full-width tables and side-by-side panels) and also works as an installable app
+on a phone.
 
 > Built from `Loan_Tracker___Product_Requirements.md` (4 Nov 2026). Decisions taken where the PRD
 > was open are in [`docs/decisions/`](docs/decisions/). What is verified, and how, is in
