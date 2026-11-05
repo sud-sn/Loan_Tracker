@@ -1,11 +1,12 @@
 # 0001 · Where the code lives
 
-**Status:** accepted (owner's instruction, 4 Nov 2026)
+**Status:** accepted (owner's instruction, 5 Nov 2026)
 
-The PRD asks for a monorepo. The owner asked for a new repository `sud-sn/loan-tracker`; it did not
-exist and this session cannot create repositories, so, as the owner instructed, the project was built
-on branch `claude/new-product-requirements-xihztp` of `sud-sn/ADF` with the ADF files removed from
-that branch only (ADF is untouched on `master`).
+The code lives in its own repository, `sud-sn/Loan_Tracker`, as the PRD's monorepo.
 
-**Later:** create `sud-sn/loan-tracker`, then `git push <new-remote> claude/new-product-requirements-xihztp:main`.
+It was first built on a branch of `sud-sn/ADF`, because the new repository did not exist yet. When
+the owner created `sud-sn/Loan_Tracker`, the Loan Tracker commits were copied here with the same
+files and messages, without the unrelated ADF history underneath them. `sud-sn/ADF` is unchanged on
+`master`.
+
 Nothing in the code depends on the repository name.
