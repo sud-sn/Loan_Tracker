@@ -17,7 +17,6 @@
   "dependencies": {
     "@fontsource/noto-sans": "5.1.0",
     "@fontsource/noto-sans-tamil": "5.1.0",
-    "@hookform/resolvers": "3.9.1",
     "@radix-ui/react-dialog": "1.1.2",
     "@radix-ui/react-switch": "1.1.1",
     "@tanstack/react-query": "5.62.0",
@@ -29,11 +28,9 @@
     "qrcode": "1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-hook-form": "7.54.0",
     "react-i18next": "15.1.3",
-    "react-router-dom": "6.28.0",
-    "tailwind-merge": "2.5.5",
-    "zod": "3.23.8"
+    "react-router-dom": "6.30.6",
+    "tailwind-merge": "2.5.5"
   },
   "devDependencies": {
     "@eslint/js": "9.15.0",
