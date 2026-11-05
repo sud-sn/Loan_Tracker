@@ -156,11 +156,13 @@ export function NewLoanPage() {
       )}
 
       {step === 2 && (
-        <section className="space-y-4">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <section className="min-w-0 space-y-4">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start">
           <Field label={t("loan.principal")}>
             {(id, d) => <MoneyInput id={id} describedBy={d} value={s.principal} onChange={(v) => set("principal", v)} autoFocus />}
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-[minmax(4.5rem,0.6fr)_minmax(9.5rem,1.4fr)] items-end gap-3">
             <Field label={t("loan.rate")}>
               {(id) => <Input id={id} inputMode="decimal" value={s.rate} className="tabular"
                 onChange={(e) => set("rate", e.target.value.replace(/[^\d.]/g, ""))} />}
@@ -173,6 +175,7 @@ export function NewLoanPage() {
                 </Select>
               )}
             </Field>
+          </div>
           </div>
           <Segmented label={t("loan.frequency")} value={s.frequency} columns={4}
             onChange={(v) => setS((prev) => ({ ...prev, frequency: v, rows: null,
@@ -289,19 +292,24 @@ export function NewLoanPage() {
             {(id) => <Input id={id} value={s.purpose} onChange={(e) => set("purpose", e.target.value)} />}
           </Field>
 
+        </section>
+        {/* The live result stays in view beside the form on a laptop; below the form on a phone. */}
+        <aside className="space-y-3 lg:sticky lg:top-24">
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
             fixedNote={s.fixedOn && p ? t("loan.fixedNote", { amount: money(p.installment), period }) : undefined} />
-          <div className="sticky bottom-20 z-10 flex gap-2 lg:bottom-4">
+          <div className="sticky bottom-20 z-10 flex gap-2 lg:static">
             <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
             <Button size="lg" className="flex-1" disabled={!p || !!previewError} onClick={() => setStep(3)}>
               {t("app.next")}<ArrowRight className="h-5 w-5" aria-hidden />
             </Button>
           </div>
-        </section>
+        </aside>
+        </div>
       )}
 
       {step === 3 && p && (
-        <section className="space-y-4">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <aside className="space-y-3 lg:sticky lg:top-24 lg:order-2">
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
             fixedNote={s.fixedOn ? t("loan.fixedNote", { amount: money(p.installment), period }) : undefined} />
           {p.rate_above_maximum && (
@@ -314,17 +322,20 @@ export function NewLoanPage() {
               </label>
             </div>
           )}
-          <ScheduleEditor p={p} editable={s.fixedOn && s.fixedMode === "split"} rows={s.rows} principal={s.principal}
-            onRows={(rows) => set("rows", rows)} />
           {save.error && <p role="alert" className="field-error">{errorMessage(save.error)}</p>}
-          <div className="sticky bottom-20 z-10 flex gap-2 lg:bottom-4">
+          <div className="sticky bottom-20 z-10 flex gap-2 lg:static">
             <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
             <Button size="lg" variant="paid" className="flex-1" loading={save.isPending}
               disabled={(p.rate_above_maximum && !ack) || !!previewError || !terms} onClick={() => save.mutate()}>
               {t("loan.save")}
             </Button>
           </div>
+        </aside>
+        <section className="min-w-0 space-y-4 lg:order-1">
+          <ScheduleEditor p={p} editable={s.fixedOn && s.fixedMode === "split"} rows={s.rows} principal={s.principal}
+            onRows={(rows) => set("rows", rows)} />
         </section>
+        </div>
       )}
 
       {step === 4 && saved && (
@@ -369,11 +380,11 @@ function StepBorrower({ borrowerId, onPick }: { borrowerId: string; onPick: (id:
   const unique = (results.data ?? []).filter((r, i, all) => all.findIndex((x) => x.borrower_id === r.borrower_id) === i);
   return (
     <section className="space-y-3">
-      <Field label={t("loan.pickBorrower")}>
+      <div className="lg:max-w-2xl"><Field label={t("loan.pickBorrower")}>
         {(id) => <Input id={id} type="search" autoFocus value={q} placeholder={t("app.searchPlaceholder")}
           onChange={(e) => setQ(e.target.value)} />}
-      </Field>
-      <ul className="space-y-2">
+      </Field></div>
+      <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {unique.map((r) => (
           <li key={r.borrower_id}>
             <button onClick={() => onPick(r.borrower_id)}
@@ -388,7 +399,7 @@ function StepBorrower({ borrowerId, onPick }: { borrowerId: string; onPick: (id:
           </li>
         ))}
       </ul>
-      <Button variant="secondary" className="w-full" onClick={() => setAdding(true)}>
+      <Button variant="secondary" className="w-full lg:w-auto" onClick={() => setAdding(true)}>
         <UserPlus className="h-5 w-5" aria-hidden />{t("loan.orAddNew")}
       </Button>
       <Link to="/borrowers" className="sr-only">{t("nav.borrowers")}</Link>

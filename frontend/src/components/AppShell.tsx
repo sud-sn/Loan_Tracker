@@ -20,7 +20,7 @@ function NavItem({ to, icon, label, end }: { to: string; icon: ReactNode; label:
     <NavLink to={to} end={end}
       className={({ isActive }) => cn(
         "flex min-h-touch min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-center text-[12px] font-semibold",
-        "lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:text-base",
+        "lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:text-left lg:text-base",
         isActive ? "text-brand lg:bg-brand-soft" : "text-muted hover:text-ink",
       )}>
       {icon}
@@ -56,11 +56,12 @@ export function AppShell() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:bg-surface focus:p-3">
         {t("app.skipToContent")}
       </a>
-      <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
-        <aside className="hidden border-r border-line bg-surface lg:flex lg:flex-col lg:gap-1 lg:p-3">
+      <div className="min-h-dvh lg:grid lg:grid-cols-[232px_minmax(0,1fr)] xl:grid-cols-[256px_minmax(0,1fr)]">
+        {/* Laptop and desktop: a fixed sidebar; the page beside it uses all the remaining width. */}
+        <aside className="hidden border-r border-line bg-surface lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-1 lg:overflow-y-auto lg:p-3">
           <div className="mb-3 flex items-center gap-2 px-2 py-2">
-            <img src="/favicon.svg" alt="" className="h-9 w-9" />
-            <span className="text-lg font-bold text-brand">{t("app.name")}</span>
+            <img src="/favicon.svg" alt="" className="h-9 w-9 shrink-0" />
+            <span className="text-lg font-bold leading-tight text-brand">{t("app.name")}</span>
           </div>
           <NavItem to="/" end icon={<Home className={icon} aria-hidden />} label={t("nav.home")} />
           <NavItem to="/borrowers" icon={<Users className={icon} aria-hidden />} label={t("nav.borrowers")} />
@@ -70,20 +71,21 @@ export function AppShell() {
             className="mt-3 flex min-h-touch items-center justify-center gap-2 rounded-xl bg-brand px-3 font-semibold text-brand-ink">
             <Plus className="h-5 w-5" aria-hidden />{t("nav.add")}
           </button>
-          <div className="mt-auto space-y-2 px-2 pt-4 text-sm text-muted">
-            <p className="truncate">{me?.user.name}</p>
-            <button onClick={signOut} className="flex min-h-touch items-center gap-2 font-semibold text-ink">
-              <LogOut className="h-5 w-5" aria-hidden />{t("app.signOut")}
-            </button>
-          </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col">
           <header className="sticky top-0 z-20 border-b border-line bg-bg/95 backdrop-blur">
-            <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2 lg:px-6">
+            <div className="flex items-center gap-2 px-3 py-2 lg:gap-4 lg:px-6 xl:px-8">
               <img src="/favicon.svg" alt="" className="h-8 w-8 lg:hidden" />
-              <GlobalSearch />
+              <div className="min-w-0 flex-1 lg:max-w-2xl"><GlobalSearch /></div>
+              <div className="hidden flex-1 lg:block" />
               <LanguageSwitch className="shrink-0" />
+              <div className="hidden items-center gap-2 lg:flex">
+                <span className="max-w-[12rem] truncate text-sm font-semibold" title={me?.user.name}>{me?.user.name}</span>
+                <button onClick={signOut} className="inline-flex min-h-touch items-center gap-2 rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
+                  <LogOut className="h-5 w-5" aria-hidden />{t("app.signOut")}
+                </button>
+              </div>
             </div>
             {!online && (
               <p role="status" className="flex items-center gap-2 bg-due-soft px-4 py-2 text-sm font-semibold text-due">
@@ -91,7 +93,7 @@ export function AppShell() {
               </p>
             )}
           </header>
-          <main id="main" className="safe-bottom mx-auto max-w-5xl px-3 pt-4 lg:px-6">
+          <main id="main" className="safe-bottom mx-auto w-full max-w-[1800px] flex-1 px-3 pt-4 lg:px-6 lg:pt-6 xl:px-8">
             <Outlet />
           </main>
         </div>

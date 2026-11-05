@@ -274,7 +274,9 @@
     "export": "Export their data",
     "erase": "Erase their data",
     "eraseConfirm": "Erase this borrower's personal details? Loan records are kept as the law requires.",
-    "deleteConfirm": "Delete this borrower? This is only possible if they never had a loan."
+    "deleteConfirm": "Delete this borrower? This is only possible if they never had a loan.",
+    "count_one": "{{count}} borrower",
+    "count_other": "{{count}} borrowers"
   },
   "consentText": {
     "en": "We record your name, phone, address, Aadhaar number and documents only to give and manage your loan and to contact you about payments. They are stored securely on the lender's own computer, are not shared, and are kept for {{years}} years after your loan closes. You can ask to see, correct or remove your details.",
@@ -383,7 +385,9 @@
     "deleteConfirm": "Delete this loan? Only possible when no payment was recorded.",
     "closedOn": "Closed on {{date}}",
     "settledEarly": "Closed early",
-    "fixedNote": "Borrower pays {{amount}} every {{period}}"
+    "fixedNote": "Borrower pays {{amount}} every {{period}}",
+    "count_one": "{{count}} loan",
+    "count_other": "{{count}} loans"
   },
   "payment": {
     "title": "Record payment",

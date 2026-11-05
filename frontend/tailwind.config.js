@@ -1,3 +1,5 @@
+import containerQueries from "@tailwindcss/container-queries";
+
 /** Design tokens live in src/index.css as CSS variables; Tailwind only maps names to them. */
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -27,5 +29,6 @@ export default {
       boxShadow: { card: "0 1px 2px rgb(var(--shadow) / 0.06), 0 2px 8px rgb(var(--shadow) / 0.05)" },
     },
   },
-  plugins: [],
+  // Container queries: panels adapt to the space they actually get, not only to the window size.
+  plugins: [containerQueries],
 };

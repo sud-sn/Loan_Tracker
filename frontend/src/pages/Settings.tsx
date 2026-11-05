@@ -52,7 +52,10 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl">{t("settings.title")}</h1>
+      <h1 className="text-2xl xl:text-3xl">{t("settings.title")}</h1>
+      {/* Cards flow in two columns on wide screens (each sits right under the one above, no gaps);
+          one column on a phone. */}
+      <div className="space-y-4 xl:block xl:columns-2 xl:gap-4 xl:space-y-0 xl:[&>*]:mb-4 xl:[&>*]:break-inside-avoid">
       <Card>
         <h2 className="mb-3 text-lg">{t("settings.account")}</h2>
         <p className="mb-3">{me?.user.name} · {me?.user.phone}</p>
@@ -144,13 +147,6 @@ export function SettingsPage() {
               {form.staff_enabled && <StaffList />}
             </div>
           </Card>
-          {dirty && (
-            <div className="sticky bottom-20 z-10 lg:bottom-4">
-              <Button size="lg" className="w-full shadow-lg" loading={save.isPending} onClick={() => save.mutate(form)}>
-                {t("settings.saveSettings")}
-              </Button>
-            </div>
-          )}
           <CategoriesCard />
           <HealthCard />
           <Card>
@@ -158,6 +154,16 @@ export function SettingsPage() {
             <Button variant="outline" onClick={() => void openFile("/export/full.zip", undefined, true)}>{t("settings.fullExport")}</Button>
           </Card>
         </>
+      )}
+      </div>
+      {isOwner && form && (
+        dirty && (
+            <div className="sticky bottom-20 z-10 lg:bottom-4">
+              <Button size="lg" className="w-full shadow-lg" loading={save.isPending} onClick={() => save.mutate(form)}>
+                {t("settings.saveSettings")}
+              </Button>
+            </div>
+        )
       )}
     </div>
   );

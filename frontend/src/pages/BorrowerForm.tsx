@@ -112,91 +112,98 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
       if (valid) save.mutate(false);
     }}>
       {!inline && <h1 className="text-2xl">{editing ? t("borrower.editTitle") : t("borrower.newTitle")}</h1>}
-      <NameFields nameEn={names.nameEn} nameTa={names.nameTa} onChange={setNames} error={show(errors.name)} />
-      <Field label={t("borrower.relation")} optional={t("app.optional")}>
-        {(fid) => <Input id={fid} value={relation} onChange={(e) => setRelation(e.target.value)} />}
-      </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t("borrower.phone")} error={show(errors.phone)}>
-          {(fid, d) => <Input id={fid} aria-describedby={d} type="tel" inputMode="numeric" autoComplete="off" value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/[^\d+ ]/g, ""))} />}
-        </Field>
-        <Field label={t("borrower.altPhone")} optional={t("app.optional")}>
-          {(fid) => <Input id={fid} type="tel" inputMode="numeric" value={altPhone} onChange={(e) => setAltPhone(e.target.value)} />}
-        </Field>
-      </div>
-      <Field label={t("borrower.aadhaar")} error={show(errors.aadhaar)}
-        hint={editing ? `${existing.data?.aadhaar_masked ?? ""} · ${t("borrower.aadhaarKeep")}` : t("borrower.aadhaarHint")}>
-        {(fid, d) => (
-          <>
-            <Input id={fid} aria-describedby={d} inputMode="numeric" autoComplete="off" value={aadhaar}
-              className="tabular tracking-wider" placeholder="XXXX XXXX XXXX"
-              onChange={(e) => setAadhaar(formatAadhaarInput(e.target.value))} />
-            {aadhaarDigits.length === 12 && isValidAadhaar(aadhaarDigits) && (
-              <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-paid">
-                <CheckCircle2 className="h-4 w-4" aria-hidden />{t("borrower.aadhaarChecked")}
-              </p>
-            )}
-          </>
-        )}
-      </Field>
-      <Field label={t("borrower.address")} error={show(errors.address)}>
-        {(fid, d) => <Textarea id={fid} aria-describedby={d} value={address} onChange={(e) => setAddress(e.target.value)} />}
-      </Field>
-      <Segmented label={t("borrower.language")} value={language} onChange={setLanguage}
-        options={[{ value: "ta", label: "தமிழ்" }, { value: "en", label: "English" }]} />
-      {editing && (
-        <Field label={t("borrower.statusLabel")}>
-          {(fid) => (
-            <Select id={fid} value={status} onChange={(e) => setStatus(e.target.value)}>
-              {["active", "blocked", "closed"].map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-            </Select>
-          )}
-        </Field>
-      )}
-      <fieldset className="space-y-3">
-        <legend className="field-label">{t("borrower.guarantor")}</legend>
-        {guarantors.map((g, i) => (
-          <div key={i} className="grid gap-2 rounded-xl border border-line p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
-            <Input aria-label={t("borrower.guarantorName")} placeholder={t("borrower.guarantorName")} value={g.name}
-              onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-            <Input aria-label={t("borrower.guarantorPhone")} placeholder={t("borrower.guarantorPhone")} type="tel"
-              value={g.phone} onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)))} />
-            <Input aria-label={t("borrower.guarantorRelation")} placeholder={t("borrower.guarantorRelation")}
-              value={g.relation} onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, relation: e.target.value } : x)))} />
-            <Button size="icon" variant="ghost" aria-label={t("app.delete")}
-              onClick={() => setGuarantors((gs) => gs.filter((_, j) => j !== i))}><Trash2 className="h-5 w-5" aria-hidden /></Button>
+      {/* Laptop: personal details on the left; language, guarantor, notes and consent on the right. */}
+      <div className={inline ? "space-y-5" : "grid items-start gap-x-8 gap-y-5 xl:grid-cols-2"}>
+        <div className="min-w-0 space-y-5">
+          <NameFields nameEn={names.nameEn} nameTa={names.nameTa} onChange={setNames} error={show(errors.name)} />
+          <Field label={t("borrower.relation")} optional={t("app.optional")}>
+            {(fid) => <Input id={fid} value={relation} onChange={(e) => setRelation(e.target.value)} />}
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t("borrower.phone")} error={show(errors.phone)}>
+              {(fid, d) => <Input id={fid} aria-describedby={d} type="tel" inputMode="numeric" autoComplete="off" value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/[^\d+ ]/g, ""))} />}
+            </Field>
+            <Field label={t("borrower.altPhone")} optional={t("app.optional")}>
+              {(fid) => <Input id={fid} type="tel" inputMode="numeric" value={altPhone} onChange={(e) => setAltPhone(e.target.value)} />}
+            </Field>
           </div>
-        ))}
-        {guarantors.length < 5 && (
-          <Button variant="outline" size="sm" onClick={() => setGuarantors((gs) => [...gs, { name: "", phone: "", relation: "" }])}>
-            <Plus className="h-4 w-4" aria-hidden />{t("borrower.addGuarantor")}
-          </Button>
-        )}
-      </fieldset>
-      <Field label={t("borrower.notes")} optional={t("app.optional")}>
-        {(fid) => <Textarea id={fid} value={notes} onChange={(e) => setNotes(e.target.value)} />}
-      </Field>
-      {!editing && (
-        <fieldset className="space-y-3 rounded-2xl border border-line bg-sunken/50 p-4">
-          <legend className="px-1 font-semibold">{t("borrower.consentTitle")}</legend>
-          <button type="button" className="min-h-touch font-semibold text-brand underline" onClick={() => setNoticeOpen(true)}>
-            {t("borrower.showNotice")}
-          </button>
-          <Segmented label={t("borrower.consentMethod")} value={consentMethod} onChange={setConsentMethod}
-            options={[{ value: "verbal", label: t("borrower.consentVerbal") }, { value: "signed", label: t("borrower.consentSigned") }]} />
-          <label className="flex min-h-touch cursor-pointer items-start gap-3">
-            <input type="checkbox" className="mt-1 h-6 w-6 accent-[rgb(var(--brand))]" checked={consent}
-              onChange={(e) => setConsent(e.target.checked)} />
-            <span>{t("borrower.consentNotice")}</span>
-          </label>
-          {show(errors.consent) && <p role="alert" className="field-error">{errors.consent}</p>}
-        </fieldset>
-      )}
+          <Field label={t("borrower.aadhaar")} error={show(errors.aadhaar)}
+            hint={editing ? `${existing.data?.aadhaar_masked ?? ""} · ${t("borrower.aadhaarKeep")}` : t("borrower.aadhaarHint")}>
+            {(fid, d) => (
+              <>
+                <Input id={fid} aria-describedby={d} inputMode="numeric" autoComplete="off" value={aadhaar}
+                  className="tabular tracking-wider" placeholder="XXXX XXXX XXXX"
+                  onChange={(e) => setAadhaar(formatAadhaarInput(e.target.value))} />
+                {aadhaarDigits.length === 12 && isValidAadhaar(aadhaarDigits) && (
+                  <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-paid">
+                    <CheckCircle2 className="h-4 w-4" aria-hidden />{t("borrower.aadhaarChecked")}
+                  </p>
+                )}
+              </>
+            )}
+          </Field>
+          <Field label={t("borrower.address")} error={show(errors.address)}>
+            {(fid, d) => <Textarea id={fid} aria-describedby={d} value={address} onChange={(e) => setAddress(e.target.value)} />}
+          </Field>
+        </div>
+        <div className="min-w-0 space-y-5">
+          <Segmented label={t("borrower.language")} value={language} onChange={setLanguage}
+            options={[{ value: "ta", label: "தமிழ்" }, { value: "en", label: "English" }]} />
+          {editing && (
+            <Field label={t("borrower.statusLabel")}>
+              {(fid) => (
+                <Select id={fid} value={status} onChange={(e) => setStatus(e.target.value)}>
+                  {["active", "blocked", "closed"].map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+                </Select>
+              )}
+            </Field>
+          )}
+          <fieldset className="space-y-3">
+            <legend className="field-label">{t("borrower.guarantor")}</legend>
+            {guarantors.map((g, i) => (
+              <div key={i} className="grid gap-2 rounded-xl border border-line p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                <Input aria-label={t("borrower.guarantorName")} placeholder={t("borrower.guarantorName")} value={g.name}
+                  onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
+                <Input aria-label={t("borrower.guarantorPhone")} placeholder={t("borrower.guarantorPhone")} type="tel"
+                  value={g.phone} onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)))} />
+                <Input aria-label={t("borrower.guarantorRelation")} placeholder={t("borrower.guarantorRelation")}
+                  value={g.relation} onChange={(e) => setGuarantors((gs) => gs.map((x, j) => (j === i ? { ...x, relation: e.target.value } : x)))} />
+                <Button size="icon" variant="ghost" aria-label={t("app.delete")}
+                  onClick={() => setGuarantors((gs) => gs.filter((_, j) => j !== i))}><Trash2 className="h-5 w-5" aria-hidden /></Button>
+              </div>
+            ))}
+            {guarantors.length < 5 && (
+              <Button variant="outline" size="sm" onClick={() => setGuarantors((gs) => [...gs, { name: "", phone: "", relation: "" }])}>
+                <Plus className="h-4 w-4" aria-hidden />{t("borrower.addGuarantor")}
+              </Button>
+            )}
+          </fieldset>
+          <Field label={t("borrower.notes")} optional={t("app.optional")}>
+            {(fid) => <Textarea id={fid} value={notes} onChange={(e) => setNotes(e.target.value)} />}
+          </Field>
+          {!editing && (
+            <fieldset className="space-y-3 rounded-2xl border border-line bg-sunken/50 p-4">
+              <legend className="px-1 font-semibold">{t("borrower.consentTitle")}</legend>
+              <button type="button" className="min-h-touch font-semibold text-brand underline" onClick={() => setNoticeOpen(true)}>
+                {t("borrower.showNotice")}
+              </button>
+              <Segmented label={t("borrower.consentMethod")} value={consentMethod} onChange={setConsentMethod}
+                options={[{ value: "verbal", label: t("borrower.consentVerbal") }, { value: "signed", label: t("borrower.consentSigned") }]} />
+              <label className="flex min-h-touch cursor-pointer items-start gap-3">
+                <input type="checkbox" className="mt-1 h-6 w-6 accent-[rgb(var(--brand))]" checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)} />
+                <span>{t("borrower.consentNotice")}</span>
+              </label>
+              {show(errors.consent) && <p role="alert" className="field-error">{errors.consent}</p>}
+            </fieldset>
+          )}
+        </div>
+      </div>
       {save.error && !duplicate && <ErrorState error={save.error} />}
-      <div className="flex gap-2">
+      <div className="flex gap-2 xl:justify-end">
         {!inline && <Button variant="outline" onClick={() => navigate(-1)}>{t("app.cancel")}</Button>}
-        <Button type="submit" size="lg" className="flex-1" loading={save.isPending}>{t("app.save")}</Button>
+        <Button type="submit" size="lg" className="flex-1 xl:min-w-[12rem] xl:flex-none" loading={save.isPending}>{t("app.save")}</Button>
       </div>
 
       <Sheet open={noticeOpen} onOpenChange={setNoticeOpen} title={t("borrower.consentTitle")}>

@@ -94,6 +94,8 @@ jobs:
       LT_COOKIE_SECURE: "false"
       LT_SCANNER: builtin
       LT_APP_ORIGIN: http://localhost:4173
+      # Every test signs in; the normal limit (10 a minute) is for real use, not a test run.
+      LT_LOGIN_RATE_PER_MINUTE: "200"
       LT_AADHAAR_HMAC_SECRET: e2e-hmac-secret-only-for-ci-0123456789abcdef
       LT_SESSION_SECRET: e2e-session-secret-only-for-ci-0123456789abcdef
       LT_FILE_LINK_SECRET: e2e-file-secret-only-for-ci-0123456789abcdef
@@ -119,7 +121,7 @@ jobs:
           npm ci && npx playwright install --with-deps chromium && npm run build
           nohup npx vite preview --port 4173 > /tmp/web.log 2>&1 &
           sleep 3
-      - name: End-to-end tests (English and Tamil, phone width)
+      - name: End-to-end tests (English and Tamil, laptop and phone)
         working-directory: frontend
         run: npx playwright test
       - if: failure()

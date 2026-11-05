@@ -43,7 +43,7 @@ export function GlobalSearch() {
     navigate(r.loan_id ? `/loans/${r.loan_id}` : `/borrowers/${r.borrower_id}`);
   };
   return (
-    <div ref={wrap} className="relative w-full max-w-xl">
+    <div ref={wrap} className="relative w-full">
       <label htmlFor={`${listId}-input`} className="sr-only">{t("app.search")}</label>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" aria-hidden />
       <input id={`${listId}-input`} type="search" role="combobox" aria-expanded={open && !!debounced}

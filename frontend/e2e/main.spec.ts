@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Main flows at phone width in English and Tamil: sign in, add a borrower, give a fixed-amount
+// Main flows on a laptop and at phone width, in English and Tamil: sign in, add a borrower, give a fixed-amount
 // loan, record a payment, see an overdue loan. Every visited screen is checked for sideways
 // overflow and for untranslated keys. Invented data only.
 
@@ -41,8 +41,8 @@ function aadhaar(body11: string): string {
 const unique = () => String(Date.now()).slice(-8);
 
 async function noOverflowOrRawKeys(page: Page) {
-  const width = await page.evaluate(() => document.documentElement.scrollWidth);
-  expect(width, "no sideways scrolling at 360 px").toBeLessThanOrEqual(361);
+  const { width, view } = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, view: innerWidth }));
+  expect(width, "no sideways scrolling").toBeLessThanOrEqual(view + 1);
   const text = await page.locator("body").innerText();
   expect(text).not.toMatch(/\b(app|nav|loan|borrower|dues|home|errors|settings|payment|status)\.[a-zA-Z_]+\b/);
 }

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// End-to-end tests at phone width (360 px) in English and Tamil (PRD section 13).
+// End-to-end tests in English and Tamil on a laptop screen (the main way the app is used) and at
+// phone width (360 px).
 // Expects the API on :8000 and `vite preview` on :4173 (see the e2e job in .github/workflows/ci.yml).
 export default defineConfig({
   testDir: "e2e",
@@ -16,5 +17,8 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "phone", use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 780 } } }],
+  projects: [
+    { name: "laptop", use: { ...devices["Desktop Chrome"], viewport: { width: 1366, height: 768 } } },
+    { name: "phone", use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 780 } } },
+  ],
 });

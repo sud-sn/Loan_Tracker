@@ -32,14 +32,27 @@ export function HomePage() {
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => api.get<AppSettings>("/settings") });
   const b = book.data;
 
+  const exportButtons = isOwner && (
+    <>
+      <Button variant="outline" size="sm" onClick={() => void openFile("/daybook/export", { start: day, end: day, fmt: "pdf", lang })}>
+        <Download className="h-4 w-4" aria-hidden />{t("home.export")} · PDF
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => void openFile("/daybook/export", { start: day, end: day, fmt: "csv", lang }, true)}>
+        <Download className="h-4 w-4" aria-hidden />CSV
+      </Button>
+    </>
+  );
+  const hasModes = !!b && Object.keys(b.by_mode).length > 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+      {/* Date bar: centred on a phone, left-aligned with the day's actions on the right on a laptop. */}
+      <div className="flex items-center gap-2">
         <Button size="icon" variant="outline" aria-label={t("app.previousDay")} onClick={() => setDay(addDays(day, -1))}>
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </Button>
-        <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-xl">{day === today ? t("home.title") : dmy(day)}</h1>
+        <div className="min-w-0 flex-1 text-center lg:flex-none lg:px-2 lg:text-left">
+          <h1 className="text-xl xl:text-2xl">{day === today ? t("home.title") : dmy(day)}</h1>
           <p className="text-sm text-muted">{longDate(day, lang)}</p>
         </div>
         <label className="relative inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-xl border border-line bg-surface">
@@ -52,73 +65,69 @@ export function HomePage() {
           onClick={() => setDay(addDays(day, 1))}>
           <ChevronRight className="h-5 w-5" aria-hidden />
         </Button>
+        {day !== today && (
+          <Button variant="secondary" className="hidden lg:inline-flex" onClick={() => setDay(today)}>{t("app.today")}</Button>
+        )}
+        <div className="hidden flex-1 justify-end gap-2 lg:flex">{exportButtons}</div>
       </div>
       {day !== today && (
-        <Button variant="secondary" className="w-full" onClick={() => setDay(today)}>{t("app.today")}</Button>
+        <Button variant="secondary" className="w-full lg:hidden" onClick={() => setDay(today)}>{t("app.today")}</Button>
       )}
 
       {book.isError && <ErrorState error={book.error} onRetry={() => void book.refetch()} />}
-      <section aria-label={t("home.title")} className="card grid grid-cols-2 gap-px overflow-hidden bg-line p-0 sm:grid-cols-4">
-        <Stat label={t("home.opening")} value={b ? (b.tracked ? money(b.opening_balance) : "—") : null} />
-        <Stat label={t("home.moneyIn")} value={b ? money(b.money_in) : null} tone="in" />
-        <Stat label={t("home.moneyOut")} value={b ? money(b.money_out) : null} tone="out" />
-        <Stat label={t("home.closing")} value={b ? (b.tracked ? money(b.closing_balance) : "—") : null} strong />
-      </section>
-      {b && !b.tracked && (
-        <p className="text-sm text-muted">
-          {b.balance_start_date ? t("home.notTracked", { date: dmy(b.balance_start_date) }) : t("home.setStart")}
-        </p>
-      )}
-      {/* Always rendered so nothing below moves when the day's data arrives. */}
-      <div className="min-h-touch">
+      <section aria-label={t("home.title")} className="card overflow-hidden p-0">
+        <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 xl:grid-cols-6">
+          <Stat label={t("home.opening")} value={b ? (b.tracked ? money(b.opening_balance) : "—") : null} />
+          <Stat label={t("home.moneyIn")} value={b ? money(b.money_in) : null} tone="in" />
+          <Stat label={t("home.moneyOut")} value={b ? money(b.money_out) : null} tone="out" />
+          <Stat label={t("home.closing")} value={b ? (b.tracked ? money(b.closing_balance) : "—") : null} strong />
+          <Stat label={t("home.week")} value={b ? money(b.week.net) : null}
+            sub={b ? `+${money(b.week.in)} · −${money(b.week.out)}` : undefined} tone={b && Number(b.week.net) < 0 ? "out" : "in"} />
+          <Stat label={t("home.month")} value={b ? money(b.month.net) : null}
+            sub={b ? `+${money(b.month.in)} · −${money(b.month.out)}` : undefined} tone={b && Number(b.month.net) < 0 ? "out" : "in"} />
+        </div>
+        {/* Footer of the same card, always present, so nothing below moves when the data arrives. */}
+        <div className="flex min-h-touch flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-3 py-1">
+          <p className="text-sm text-muted">
+            {b && !b.tracked ? (b.balance_start_date ? t("home.notTracked", { date: dmy(b.balance_start_date) }) : t("home.setStart"))
+              : b ? `${t("home.net")}: ${money(b.net)}` : "\u00a0"}
+          </p>
           <button className="min-h-touch text-sm font-semibold text-brand underline disabled:no-underline disabled:opacity-50"
-            onClick={() => setShowModes((s) => !s)} disabled={!b || Object.keys(b.by_mode).length === 0}
-            aria-expanded={showModes}>{t("home.byMode")}</button>
-          {showModes && b && (
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {Object.entries(b.by_mode).map(([mode, v]) => (
-                <div key={mode} className="rounded-xl border border-line bg-surface p-3 text-sm">
-                  <p className="font-semibold">{t(`mode.${mode}`)}</p>
-                  <p className="text-moneyin tabular">+ {money(v.in)}</p>
-                  <p className="text-moneyout tabular">− {money(v.out)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-      </div>
+            onClick={() => setShowModes((v) => !v)} disabled={!hasModes} aria-expanded={showModes}>{t("home.byMode")}</button>
+        </div>
+        {showModes && b && (
+          <div className="grid grid-cols-2 gap-2 border-t border-line p-3 sm:grid-cols-4">
+            {Object.entries(b.by_mode).map(([mode, v]) => (
+              <div key={mode} className="rounded-xl border border-line bg-surface p-3 text-sm">
+                <p className="font-semibold">{t(`mode.${mode}`)}</p>
+                <p className="text-moneyin tabular">+ {money(v.in)}</p>
+                <p className="text-moneyout tabular">− {money(v.out)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <QuickAddButtons />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <EntryList title={t("home.moneyIn")} icon="in" entries={b?.entries_in} empty={t("home.nothingIn")}
-          loading={book.isLoading} onEdit={setEditing} />
-        <EntryList title={t("home.moneyOut")} icon="out" entries={b?.entries_out} empty={t("home.nothingOut")}
-          loading={book.isLoading} onEdit={setEditing} />
-      </div>
-      {b && (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <Total label={t("home.net")} value={b.net} />
-          <Total label={t("home.week")} value={b.week.net} sub={`+${money(b.week.in)} / −${money(b.week.out)}`} />
-          <Total label={t("home.month")} value={b.month.net} sub={`+${money(b.month.in)} / −${money(b.month.out)}`} />
+      {/* Today's log: money in and money out side by side (equal height) from tablet width up. */}
+      <section aria-label={t("home.title")} className="space-y-3">
+        <div className="grid gap-4 md:grid-cols-2">
+          <EntryList title={t("home.moneyIn")} icon="in" entries={b?.entries_in} empty={t("home.nothingIn")}
+            loading={book.isLoading} onEdit={setEditing} />
+          <EntryList title={t("home.moneyOut")} icon="out" entries={b?.entries_out} empty={t("home.nothingOut")}
+            loading={book.isLoading} onEdit={setEditing} />
         </div>
-      )}
-      {isOwner && (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => void openFile("/daybook/export", { start: day, end: day, fmt: "pdf", lang })}>
-            <Download className="h-4 w-4" aria-hidden />{t("home.export")} · PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => void openFile("/daybook/export", { start: day, end: day, fmt: "csv", lang }, true)}>
-            <Download className="h-4 w-4" aria-hidden />CSV
-          </Button>
-        </div>
-      )}
+        {exportButtons && <div className="flex flex-wrap gap-2 lg:hidden">{exportButtons}</div>}
+      </section>
 
+      {/* Who has to pay: full width, so each row lays out as one line on a laptop. */}
       <DueLists windowDays={settings.data?.due_window_days ?? 7} />
 
       <section aria-labelledby="cards" className="space-y-3">
         <h2 id="cards" className="text-xl">{t("home.cards")}</h2>
         {dash.data ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <DashCard label={t("dash.principalOutstanding")} value={money(dash.data.principal_outstanding)} />
             <DashCard label={t("dash.toReceive")} value={money(dash.data.total_to_receive)} />
             <DashCard label={t("dash.collectedMonth")} value={money(dash.data.collected_this_month.total)}
@@ -133,7 +142,7 @@ export function HomePage() {
             <DashCard label={t("dash.activeLoans")} value={String(dash.data.active_loans)} />
             <DashCard label={t("dash.activeBorrowers")} value={String(dash.data.active_borrowers)} />
           </div>
-        ) : <div className="grid grid-cols-2 gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>}
+        ) : <div className="grid grid-cols-2 gap-3 md:grid-cols-3"><Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" /></div>}
       </section>
       {editing && editing.source_type === "cash_entry" && (
         <Suspense fallback={null}><CashEntrySheet direction={editing.direction} onClose={() => setEditing(null)}
@@ -144,27 +153,20 @@ export function HomePage() {
   );
 }
 
-function Stat({ label, value, tone, strong }: { label: string; value: string | null; tone?: "in" | "out"; strong?: boolean }) {
+function Stat({ label, value, tone, strong, sub }: { label: string; value: string | null; tone?: "in" | "out"; strong?: boolean;
+  sub?: string }) {
   return (
-    <div className="bg-surface p-3">
+    <div className="min-w-0 bg-surface p-3 xl:p-4">
       <p className="text-sm text-muted">{label}</p>
       {value === null ? <Skeleton className="mt-1 h-6 w-24" /> : (
-        <p className={cn("text-lg font-bold tabular", tone === "in" && "text-moneyin", tone === "out" && "text-moneyout",
-          strong && "text-brand")}>{value}</p>
+        <p className={cn("truncate text-lg font-bold tabular xl:text-xl", tone === "in" && "text-moneyin",
+          tone === "out" && "text-moneyout", strong && "text-brand")} title={value}>{value}</p>
       )}
+      {sub && <p className="truncate text-xs text-muted tabular" title={sub}>{sub}</p>}
     </div>
   );
 }
 
-function Total({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-xl border border-line bg-surface p-3">
-      <p className="text-sm text-muted">{label}</p>
-      <p className={cn("font-bold tabular", Number(value) < 0 ? "text-moneyout" : "text-moneyin")}>{money(value)}</p>
-      {sub && <p className="text-xs text-muted tabular">{sub}</p>}
-    </div>
-  );
-}
 
 function DashCard({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "due" | "late" }) {
   return (
@@ -184,7 +186,7 @@ function EntryList({ title, icon, entries, empty, loading, onEdit }: { title: st
   return (
     // A fixed minimum height keeps whatever comes next below the first screen while the day loads,
     // so nothing visible jumps when the entries arrive (layout shift).
-    <section className="card min-h-[22rem] p-0">
+    <section className="card @container flex min-h-[22rem] flex-col p-0 md:min-h-0">
       <h2 className={cn("flex items-center gap-2 border-b border-line px-4 py-3 text-lg", icon === "in" ? "text-moneyin" : "text-moneyout")}>
         <Icon className="h-5 w-5" aria-hidden />{title}
       </h2>
@@ -197,20 +199,24 @@ function EntryList({ title, icon, entries, empty, loading, onEdit }: { title: st
             loan: t("home.loansGiven"), income: t("home.otherIncome"), expense: t("home.ownSpending") }[e.kind];
           const to = e.loan_id ? `/loans/${e.loan_id}` : undefined;
           const body = (
-            <div className="flex min-h-touch items-start justify-between gap-3 px-4 py-2.5">
+            // Narrow card: name and amount, details below. Wide card (36rem+): name | references | amount.
+            <div className="grid min-h-touch grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 px-4 py-2.5 @xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_auto]">
               <div className="min-w-0">
                 <p className="truncate font-semibold">{label}</p>
-                <p className="text-sm text-muted">
-                  {kind}{e.code ? ` · ${e.code}` : ""}{e.loan_no ? ` · ${e.loan_no}` : ""} · {t(`mode.${e.mode}`)}
+                <p className="truncate text-sm text-muted">{kind}</p>
+              </div>
+              <div className="col-span-2 row-start-2 min-w-0 text-sm text-muted @xl:col-span-1 @xl:row-start-auto">
+                <p className="truncate">
+                  {e.code ? <span className="whitespace-nowrap">{e.code}</span> : null}
+                  {e.loan_no ? <> · <span className="whitespace-nowrap">{e.loan_no}</span></> : null}
+                  {e.code || e.loan_no ? " · " : ""}{t(`mode.${e.mode}`)}
                 </p>
                 {e.principal && e.kind !== "loan" && (
-                  <p className="text-sm text-muted">
-                    {t("payment.principal")} {money(e.principal)} · {t("payment.interest")} {money(e.interest)}
-                  </p>
+                  <p className="truncate">{t("payment.principal")} {money(e.principal)} · {t("payment.interest")} {money(e.interest)}</p>
                 )}
-                {e.note && <p className="truncate text-sm text-muted">{e.note}</p>}
+                {e.note && <p className="truncate">{e.note}</p>}
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="col-start-2 row-start-1 flex shrink-0 items-center gap-1 @xl:col-start-3">
                 {e.kind === "reversal" && <Undo2 className="h-4 w-4 text-late" aria-label={t("home.reversed")} />}
                 <span className={cn("font-bold tabular", icon === "in" ? "text-moneyin" : "text-moneyout")}>{money(e.amount)}</span>
                 {e.source_type === "cash_entry" && <Pencil className="h-4 w-4 text-muted" aria-hidden />}

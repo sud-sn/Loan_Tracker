@@ -65,7 +65,7 @@ export function LoanDetailPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card><p className="text-sm text-muted">{t("loan.outstanding")}</p><p className="text-lg font-bold tabular">{money(s.total_outstanding)}</p></Card>
         <Card className={Number(s.overdue_amount) > 0 ? "border-l-4 border-l-late" : ""}>
           <p className="text-sm text-muted">{t("loan.overdueAmount")}</p>
@@ -76,100 +76,102 @@ export function LoanDetailPage() {
         <Card><p className="text-sm text-muted">{t("loan.paid")}</p><p className="text-lg font-bold tabular">{money(s.paid_total)}</p></Card>
       </div>
 
-      <Card>
-        <h2 className="mb-1 text-lg">{t("loan.summary")}</h2>
-        <dl>
-          <KeyValue label={t("loan.principal")} value={money(l.principal)} />
-          <KeyValue label={t("loan.rate")} value={`${Number(l.rate)} ${t(`rateBasis.${l.rate_basis}`)}`} />
-          <KeyValue label={t("loan.method")} value={t(`method.${l.method}`)} />
-          <KeyValue label={t("loan.frequency")} value={t(`frequency.${l.frequency}`)} />
-          {l.fixed_installment && <KeyValue label={t("loan.fixedAmount", { period })} value={money(l.fixed_installment)} />}
-          <KeyValue label={t("loan.installment")} value={money(l.installment_amount)} />
-          <KeyValue label={t("loan.installments")} value={l.installments} />
-          <KeyValue label={t("loan.totalInterest")} value={money(l.total_interest)} />
-          <KeyValue label={t("loan.disbursalDate")} value={`${dmy(l.disbursal_date)} · ${t(`mode.${l.disbursal_mode}`)}`} />
-          <KeyValue label={t("loan.maturity")} value={dmy(l.maturity_date)} />
-          {Number(s.penalty_outstanding) > 0 && <KeyValue label={t("payment.penalty")} value={money(s.penalty_outstanding)} />}
-          {l.purpose && <KeyValue label={t("loan.purpose")} value={l.purpose} />}
-        </dl>
-      </Card>
-
-      <div className="flex flex-wrap gap-2">
-        {l.borrower.phone && (
-          <>
-            <a href={`tel:+91${l.borrower.phone}`} className="inline-flex min-h-touch items-center gap-2 rounded-xl border border-line bg-surface px-4 font-semibold">
-              <Phone className="h-5 w-5" aria-hidden />{t("dues.call")}
-            </a>
-            <Button variant="outline" loading={reminder.isPending} onClick={() => reminder.mutate()}>
-              <MessageCircle className="h-5 w-5" aria-hidden />{t("dues.whatsapp")}
-            </Button>
-          </>
-        )}
-        {(["ta", "en"] as const).map((pl) => (
-          <Button key={pl} variant="outline" onClick={() => void openFile(`/loans/${id}/summary.pdf`, { lang: pl })}>
-            <Printer className="h-5 w-5" aria-hidden />{t("loan.printSummary")} · {pl === "ta" ? "தமிழ்" : "EN"}
-          </Button>
-        ))}
-      </div>
-
-      <section className="space-y-2">
-        <h2 className="text-lg">{t("loan.schedule")}</h2>
-        <ScheduleList rows={l.schedule} />
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-lg">{t("loan.payments")}</h2>
-        {l.payments.length === 0 && <p className="text-muted">{t("loan.noPayments")}</p>}
-        <ul className="space-y-2">
-          {l.payments.map((p) => (
-            <li key={p.id} className={cn("card p-3", p.kind === "reversal" && "border-l-4 border-l-late")}>
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-semibold">{p.receipt_no} · {dmy(p.paid_on)}</p>
-                  <p className="text-sm text-muted">
-                    {p.kind === "reversal" ? t("payment.reversal") : p.kind === "settlement" ? t("payment.settlement") : t(`mode.${p.mode}`)}
-                    {p.reversal_reason ? ` · ${p.reversal_reason}` : ""}
-                    {p.reversed_by_id ? ` · ${t("payment.reversed")}` : ""}
-                  </p>
-                  <p className="text-sm text-muted">
-                    {t("payment.interest")} {money(p.interest_total)} · {t("payment.principal")} {money(p.principal_total)}
-                    {Number(p.penalty_total) !== 0 && ` · ${t("payment.penalty")} ${money(p.penalty_total)}`}
-                  </p>
-                </div>
-                <p className={cn("text-lg font-bold tabular", p.kind === "reversal" ? "text-late" : "text-moneyin", p.reversed_by_id && "line-through")}>
-                  {p.kind === "reversal" ? "−" : ""}{money(p.amount)}
-                </p>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => void openFile(`/payments/${p.id}/receipt.pdf`)}>
-                  <FileText className="h-4 w-4" aria-hidden />{t("payment.receipt")}
+      {/* Laptop: details and actions on the left (stays in view), schedule and payments on the right. */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(19rem,1fr)_minmax(0,2fr)]">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1">
+          <Card>
+            <h2 className="mb-1 text-lg">{t("loan.summary")}</h2>
+            <dl>
+              <KeyValue label={t("loan.principal")} value={money(l.principal)} />
+              <KeyValue label={t("loan.rate")} value={`${Number(l.rate)} ${t(`rateBasis.${l.rate_basis}`)}`} />
+              <KeyValue label={t("loan.method")} value={t(`method.${l.method}`)} />
+              <KeyValue label={t("loan.frequency")} value={t(`frequency.${l.frequency}`)} />
+              {l.fixed_installment && <KeyValue label={t("loan.fixedAmount", { period })} value={money(l.fixed_installment)} />}
+              <KeyValue label={t("loan.installment")} value={money(l.installment_amount)} />
+              <KeyValue label={t("loan.installments")} value={l.installments} />
+              <KeyValue label={t("loan.totalInterest")} value={money(l.total_interest)} />
+              <KeyValue label={t("loan.disbursalDate")} value={`${dmy(l.disbursal_date)} · ${t(`mode.${l.disbursal_mode}`)}`} />
+              <KeyValue label={t("loan.maturity")} value={dmy(l.maturity_date)} />
+              {Number(s.penalty_outstanding) > 0 && <KeyValue label={t("payment.penalty")} value={money(s.penalty_outstanding)} />}
+              {l.purpose && <KeyValue label={t("loan.purpose")} value={l.purpose} />}
+            </dl>
+          </Card>
+          <div className="flex flex-wrap gap-2 lg:grid lg:grid-cols-2">
+            {l.borrower.phone && (
+              <>
+                <a href={`tel:+91${l.borrower.phone}`} className="inline-flex min-h-touch items-center gap-2 rounded-xl border border-line bg-surface px-4 font-semibold">
+                  <Phone className="h-5 w-5" aria-hidden />{t("dues.call")}
+                </a>
+                <Button variant="outline" loading={reminder.isPending} onClick={() => reminder.mutate()}>
+                  <MessageCircle className="h-5 w-5" aria-hidden />{t("dues.whatsapp")}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => void shareFile(`/payments/${p.id}/receipt.pdf`)}>
-                  <Share2 className="h-4 w-4" aria-hidden />{t("app.share")}
-                </Button>
-                {isOwner && p.kind === "payment" && !p.reversed_by_id && l.stored_status !== "written_off" && (
-                  <Button size="sm" variant="ghost" className="text-late" onClick={() => setReversing(p)}>
-                    <Undo2 className="h-4 w-4" aria-hidden />{t("payment.reverse")}
-                  </Button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <Card><Documents ownerType="loan" ownerId={id} maxMb={settings.data?.max_upload_mb} /></Card>
-
-      {isOwner && active && (
-        <Card>
-          <h2 className="mb-2 text-lg">{t("loan.actions")}</h2>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => setSettling(true)}>{t("loan.settle")}</Button>
-            <Button variant="outline" onClick={() => setWritingOff(true)}>{t("loan.writeOff")}</Button>
-            {l.payments.length === 0 && <Button variant="ghost" className="text-late" onClick={() => setDeleting(true)}>{t("app.delete")}</Button>}
+              </>
+            )}
+            {(["ta", "en"] as const).map((pl) => (
+              <Button key={pl} variant="outline" onClick={() => void openFile(`/loans/${id}/summary.pdf`, { lang: pl })}>
+                <Printer className="h-5 w-5" aria-hidden />{t("loan.printSummary")} · {pl === "ta" ? "தமிழ்" : "EN"}
+              </Button>
+            ))}
           </div>
-        </Card>
-      )}
+          {isOwner && active && (
+            <Card>
+              <h2 className="mb-2 text-lg">{t("loan.actions")}</h2>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setSettling(true)}>{t("loan.settle")}</Button>
+                <Button variant="outline" onClick={() => setWritingOff(true)}>{t("loan.writeOff")}</Button>
+                {l.payments.length === 0 && <Button variant="ghost" className="text-late" onClick={() => setDeleting(true)}>{t("app.delete")}</Button>}
+              </div>
+            </Card>
+          )}
+          <Card><Documents ownerType="loan" ownerId={id} maxMb={settings.data?.max_upload_mb} /></Card>
+        </aside>
+        <div className="min-w-0 space-y-6">
+          <section className="space-y-2">
+            <h2 className="text-lg">{t("loan.schedule")}</h2>
+            <ScheduleList rows={l.schedule} />
+          </section>
+          <section className="space-y-2">
+            <h2 className="text-lg">{t("loan.payments")}</h2>
+            {l.payments.length === 0 && <p className="text-muted">{t("loan.noPayments")}</p>}
+            <ul className="space-y-2">
+              {l.payments.map((p) => (
+                <li key={p.id} className={cn("card p-3", p.kind === "reversal" && "border-l-4 border-l-late")}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{p.receipt_no} · {dmy(p.paid_on)}</p>
+                      <p className="text-sm text-muted">
+                        {p.kind === "reversal" ? t("payment.reversal") : p.kind === "settlement" ? t("payment.settlement") : t(`mode.${p.mode}`)}
+                        {p.reversal_reason ? ` · ${p.reversal_reason}` : ""}
+                        {p.reversed_by_id ? ` · ${t("payment.reversed")}` : ""}
+                      </p>
+                      <p className="text-sm text-muted">
+                        {t("payment.interest")} {money(p.interest_total)} · {t("payment.principal")} {money(p.principal_total)}
+                        {Number(p.penalty_total) !== 0 && ` · ${t("payment.penalty")} ${money(p.penalty_total)}`}
+                      </p>
+                    </div>
+                    <p className={cn("text-lg font-bold tabular", p.kind === "reversal" ? "text-late" : "text-moneyin", p.reversed_by_id && "line-through")}>
+                      {p.kind === "reversal" ? "−" : ""}{money(p.amount)}
+                    </p>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => void openFile(`/payments/${p.id}/receipt.pdf`)}>
+                      <FileText className="h-4 w-4" aria-hidden />{t("payment.receipt")}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => void shareFile(`/payments/${p.id}/receipt.pdf`)}>
+                      <Share2 className="h-4 w-4" aria-hidden />{t("app.share")}
+                    </Button>
+                    {isOwner && p.kind === "payment" && !p.reversed_by_id && l.stored_status !== "written_off" && (
+                      <Button size="sm" variant="ghost" className="text-late" onClick={() => setReversing(p)}>
+                        <Undo2 className="h-4 w-4" aria-hidden />{t("payment.reverse")}
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
 
       <ConfirmSheet open={!!reversing} onOpenChange={(o) => !o && setReversing(null)} title={t("payment.reverseTitle")}
         body={reversing && <p>{t("payment.reverseIntro")} <b>{reversing.receipt_no} · {money(reversing.amount)}</b></p>}

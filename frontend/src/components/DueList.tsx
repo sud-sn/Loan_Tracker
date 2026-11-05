@@ -37,7 +37,7 @@ export function DueLists({ windowDays }: { windowDays: number }) {
     upcoming: t("dues.emptyUpcoming") }[which];
   const rows = q.data?.items ?? [];
   return (
-    <section aria-labelledby="dues-title" className="space-y-3">
+    <section aria-labelledby="dues-title" className="@container space-y-3">
       <h2 id="dues-title" className="text-xl">{t("home.lists")}</h2>
       <div role="tablist" className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
         {tabs.map((tab) => (
@@ -91,52 +91,59 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
     }
   };
   const late = row.overdue_days > 0;
+  const showOutstanding = which === "long_unpaid" && Number(row.overdue_amount) === 0;
+  const btn = "flex min-h-touch items-center justify-center gap-1.5 rounded-xl px-2 font-semibold @3xl:min-h-[40px] @3xl:px-3 @3xl:text-sm";
+  // Narrow panel: a card (name and amount, then details, then three big buttons).
+  // Wide panel (container 48rem+): one row with columns, like a table.
   return (
-    <article className={cn("card p-3", late && "border-l-4 border-l-late")}>
-      <div className="flex items-start justify-between gap-3">
-        <Link to={`/loans/${row.loan_id}`} className="min-w-0 flex-1">
-          <p className="truncate text-lg font-semibold">{displayName(lang, row.name_en, row.name_ta)}</p>
-          <p className="text-sm text-muted"><span className="whitespace-nowrap">{row.code}</span> · <span className="whitespace-nowrap">{row.loan_no}</span></p>
-        </Link>
-        <div className="shrink-0 text-right">
-          {which === "long_unpaid" && Number(row.overdue_amount) === 0 ? (
-            <>
-              <p className="text-sm text-muted">{t("borrower.outstanding")}</p>
-              <p className="text-lg font-bold tabular">{money(row.outstanding)}</p>
-            </>
-          ) : (
-            <p className="text-lg font-bold tabular">{money(which === "long_unpaid" ? row.overdue_amount : row.amount_due)}</p>
-          )}
-          {late && (
-            <p className="inline-flex items-center gap-1 text-sm font-semibold text-late">
-              <AlertTriangle className="h-4 w-4" aria-hidden />{t("dues.overdueDays", { count: row.overdue_days })}
-            </p>
-          )}
-          {!late && row.due_date && <p className="text-sm text-due">{t("dues.dueOn", { date: dmy(row.due_date) })}</p>}
-        </div>
-      </div>
-      <p className="mt-1 text-sm text-muted">
-        {row.last_payment_on ? t("dues.lastPayment", { date: dmy(row.last_payment_on) }) : t("dues.neverPaid")}
-        {which === "long_unpaid" && ` · ${t("dues.daysSince", { count: row.days_since_last_payment })}`}
-        {Number(row.penalty_due) > 0 && ` · ${t("dues.penalty", { amount: money(row.penalty_due) })}`}
-      </p>
-      {row.multiple_overdue && (
-        <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-late-soft px-2 py-0.5 text-sm font-semibold text-late">
-          <AlertTriangle className="h-4 w-4" aria-hidden />{t("dues.multiOverdue")}
+    <article className={cn(
+      "card grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 p-3 [grid-template-areas:'who_amt''info_info''act_act']",
+      "@3xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(7.5rem,auto)_auto] @3xl:items-center @3xl:gap-x-4 @3xl:py-2",
+      "@3xl:[grid-template-areas:'who_info_amt_act']",
+      late && "border-l-4 border-l-late",
+    )}>
+      <Link to={`/loans/${row.loan_id}`} className="min-w-0 [grid-area:who]">
+        <p className="truncate text-lg font-semibold @3xl:text-base">{displayName(lang, row.name_en, row.name_ta)}</p>
+        <p className="text-sm text-muted"><span className="whitespace-nowrap">{row.code}</span> · <span className="whitespace-nowrap">{row.loan_no}</span></p>
+      </Link>
+      <div className="text-right [grid-area:amt]">
+        {showOutstanding && <p className="text-sm text-muted">{t("borrower.outstanding")}</p>}
+        <p className="text-lg font-bold tabular @3xl:text-base">
+          {money(showOutstanding ? row.outstanding : which === "long_unpaid" ? row.overdue_amount : row.amount_due)}
         </p>
-      )}
-      <div className="mt-3 grid grid-cols-3 gap-2">
+        {late && (
+          <p className="inline-flex items-center gap-1 text-sm font-semibold text-late">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />{t("dues.overdueDays", { count: row.overdue_days })}
+          </p>
+        )}
+        {!late && row.due_date && <p className="text-sm text-due">{t("dues.dueOn", { date: dmy(row.due_date) })}</p>}
+      </div>
+      <div className="min-w-0 text-sm text-muted [grid-area:info]">
+        <p>
+          {row.last_payment_on ? t("dues.lastPayment", { date: dmy(row.last_payment_on) }) : t("dues.neverPaid")}
+          {which === "long_unpaid" && ` · ${t("dues.daysSince", { count: row.days_since_last_payment })}`}
+          {Number(row.penalty_due) > 0 && ` · ${t("dues.penalty", { amount: money(row.penalty_due) })}`}
+        </p>
+        {row.multiple_overdue && (
+          <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-late-soft px-2 py-0.5 font-semibold text-late">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />{t("dues.multiOverdue")}
+          </p>
+        )}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2 [grid-area:act] @3xl:mt-0 @3xl:flex @3xl:gap-1.5">
         <a href={row.phone ? `tel:+91${row.phone}` : undefined} aria-disabled={!row.phone}
-          className="flex min-h-touch items-center justify-center gap-1.5 rounded-xl border border-line font-semibold">
-          <Phone className="h-5 w-5 shrink-0" aria-hidden />{t("dues.call")}
+          className={cn(btn, "border border-line bg-surface hover:bg-sunken")}>
+          <Phone className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />{t("dues.call")}
         </a>
         <button onClick={openWhatsApp} disabled={!row.phone || busy}
-          className="flex min-h-touch items-center justify-center gap-1 rounded-xl border border-line px-1 font-semibold disabled:opacity-50">
-          <MessageCircle className="h-5 w-5 shrink-0" aria-hidden /><span className="min-w-0 leading-tight">{t("dues.whatsapp")}</span>
+          className={cn(btn, "border border-line bg-surface hover:bg-sunken disabled:opacity-50")}>
+          <MessageCircle className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />
+          <span className="min-w-0 leading-tight">{t("dues.whatsapp")}</span>
         </button>
         <button onClick={() => qa.receivePayment(row.loan_id, which === "upcoming" ? undefined : row.amount_due)}
-          className="flex min-h-touch items-center justify-center gap-1.5 rounded-xl bg-paid px-1 font-semibold text-white">
-          <HandCoins className="h-5 w-5 shrink-0" aria-hidden /><span className="leading-tight">{t("dues.recordPayment")}</span>
+          className={cn(btn, "bg-paid text-white hover:bg-paid/90")}>
+          <HandCoins className="h-5 w-5 shrink-0 @3xl:h-4 @3xl:w-4" aria-hidden />
+          <span className="leading-tight">{t("dues.recordPayment")}</span>
         </button>
       </div>
     </article>
