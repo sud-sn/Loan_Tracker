@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { HandCoins, MinusCircle, PlusCircle, UserPlus, Wallet } from "lucide-react";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, lazy, Suspense, useContext, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -10,8 +10,9 @@ import { useDebounced } from "@/hooks/useOnline";
 import { useLang } from "@/i18n";
 import { displayName, money } from "@/lib/format";
 
-import { CashEntrySheet } from "./CashEntrySheet";
-import { RecordPaymentSheet } from "./RecordPaymentSheet";
+// Loaded when first opened, to keep the first screen's script small.
+const CashEntrySheet = lazy(() => import("./CashEntrySheet").then((m) => ({ default: m.CashEntrySheet })));
+const RecordPaymentSheet = lazy(() => import("./RecordPaymentSheet").then((m) => ({ default: m.RecordPaymentSheet })));
 import { Sheet } from "./ui/dialog";
 import { Input } from "./ui/field";
 
@@ -35,6 +36,7 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
       addCash: (direction) => setCash(direction),
     }}>
       {children}
+      <Suspense fallback={null}>
       {payment && !payment.loanId && (
         <LoanPicker onPick={(loanId) => setPayment({ loanId })} onClose={() => setPayment(null)} />
       )}
@@ -42,6 +44,7 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
         <RecordPaymentSheet loanId={payment.loanId} initialAmount={payment.amount} onClose={() => setPayment(null)} />
       )}
       {cash && <CashEntrySheet direction={cash} onClose={() => setCash(null)} />}
+      </Suspense>
     </Ctx.Provider>
   );
 }

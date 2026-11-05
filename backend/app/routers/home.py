@@ -11,7 +11,7 @@ from fastapi import APIRouter, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core import clock, i18n
+from app.core import cache, clock, i18n
 from app.core.errors import AppError
 from app.deps import CtxDep, OwnerCtx, StepUpCtx
 from app.schemas.common import CashMode, Ok, PositiveMoney
@@ -131,7 +131,8 @@ def list_dues(
 
 @router.get("/dashboard")
 def dashboard(ctx: CtxDep) -> dict[str, Any]:
-    return reports.dashboard(ctx.db, ctx.business, clock.today())
+    today = clock.today()
+    return cache.cached(("dashboard", today), lambda: reports.dashboard(ctx.db, ctx.business, today))
 
 
 @router.get("/cash-entries/{entry_id}/history")

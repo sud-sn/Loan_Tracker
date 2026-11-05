@@ -5,12 +5,12 @@ import { AppShell } from "@/components/AppShell";
 import { StepUpProvider } from "@/components/StepUp";
 import { ListSkeleton } from "@/components/ui/states";
 import { useAuth } from "@/hooks/useAuth";
-import { BorrowersPage } from "@/pages/Borrowers";
 import { HomePage } from "@/pages/Home";
 import { LoginPage } from "@/pages/Login";
 import { NotFoundPage } from "@/pages/NotFound";
 
 // Less-used screens load on demand so the first screen stays fast on 4G.
+const BorrowersPage = lazy(() => import("@/pages/Borrowers").then((m) => ({ default: m.BorrowersPage })));
 const BorrowerDetailPage = lazy(() => import("@/pages/BorrowerDetail").then((m) => ({ default: m.BorrowerDetailPage })));
 const BorrowerForm = lazy(() => import("@/pages/BorrowerForm").then((m) => ({ default: m.BorrowerForm })));
 const LoansPage = lazy(() => import("@/pages/Loans").then((m) => ({ default: m.LoansPage })));
@@ -23,9 +23,10 @@ const AuditPage = lazy(() => import("@/pages/Audit").then((m) => ({ default: m.A
 
 function Protected({ children, owner }: { children: ReactNode; owner?: boolean }) {
   const { me, loading, isOwner } = useAuth();
-  if (loading) return <div className="p-6"><ListSkeleton rows={3} /></div>;
-  if (!me) return <Navigate to="/login" replace />;
-  if (owner && !isOwner) return <Navigate to="/" replace />;
+  // The shell renders straight away (no full-page swap, no layout shift); pages show their own
+  // skeletons, and the server still refuses every call until the session is confirmed.
+  if (!loading && !me) return <Navigate to="/login" replace />;
+  if (owner && !loading && !isOwner) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 

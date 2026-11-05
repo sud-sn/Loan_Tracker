@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { api } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
-import { LANGUAGES } from "@/i18n";
+import { LANGUAGES, setLanguage } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 /** EN | தமிழ் — switches every screen at once, no reload; saved to the user (PRD section 9). */
@@ -12,7 +12,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
   const { me } = useAuth();
   const qc = useQueryClient();
   const change = (code: string) => {
-    void i18n.changeLanguage(code);
+    void setLanguage(code);
     if (me) {
       api.put("/auth/language", { language: code }).then(() => qc.invalidateQueries({ queryKey: ["me"] }))
         .catch(() => undefined);

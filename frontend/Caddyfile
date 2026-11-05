@@ -1,0 +1,42 @@
+# Private access only: the site address is your Tailscale name (for example
+# loans.your-tailnet.ts.net) so the phone trusts the certificate. Never forward a router port.
+{$LT_SITE_ADDRESS:localhost} {
+	encode zstd gzip
+
+	@api path /api/* /healthz /readyz
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy no-referrer
+			Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+			Strict-Transport-Security "max-age=31536000"
+		}
+		@immutable path /assets/*
+		header @immutable Cache-Control "public, max-age=31536000, immutable"
+		@shell path /index.html /sw.js /manifest.webmanifest
+		header @shell Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+
+	# Query strings are dropped from the access log so a search can never be written to disk.
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format filter {
+			wrap json
+			fields {
+				request>uri regexp \?.* ""
+			}
+		}
+	}
+}

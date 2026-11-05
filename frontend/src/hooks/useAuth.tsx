@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { ApiError, api, setSignedOutHandler } from "@/api/client";
 import type { Me } from "@/api/types";
+import { setLanguage } from "@/i18n";
 
 interface AuthState {
   me: Me | null;
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const me = query.data ?? null;
   useEffect(() => {
     // The language choice is saved per user and applied on next login (PRD section 9).
-    if (me?.user.language && me.user.language !== i18n.language) void i18n.changeLanguage(me.user.language);
+    if (me?.user.language && me.user.language !== i18n.language) void setLanguage(me.user.language);
   }, [me?.user.language, i18n]);
   return (
     <Ctx.Provider value={{ me, loading: query.isLoading, isOwner: me?.user.role === "owner",

@@ -1,5 +1,5 @@
 import "./index.css";
-import "./i18n";
+import { i18nReady } from "./i18n";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
@@ -36,7 +36,8 @@ const queryClient = new QueryClient({
 
 const updateSW = registerSW({ onNeedRefresh: () => offerUpdate(() => void updateSW(true)) });
 
-createRoot(document.getElementById("root")!).render(
+// Render after the saved language is ready, so the page never redraws in another language.
+void i18nReady.finally(() => createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -49,4 +50,4 @@ createRoot(document.getElementById("root")!).render(
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
-);
+));

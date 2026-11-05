@@ -103,6 +103,8 @@ def waive_on_item(item: ScheduleItem, penalty: int, interest: int, principal: in
 
 def refresh_loan_cache(loan: Loan, items: list[ScheduleItem]) -> None:
     loan.outstanding = sum(max(it.principal_due + it.interest_due, 0) for it in items)
+    loan.principal_outstanding = sum(max(it.principal_due, 0) for it in items)
+    loan.next_unpaid_due = min((it.due_date for it in items if not it.settled), default=None)
 
 
 def last_payment_on(db: Session, loan_id: uuid.UUID) -> date | None:
@@ -152,10 +154,17 @@ def rebuild_item_cache(db: Session, loan_id: uuid.UUID, *, fix: bool = True) -> 
                 it.settled = settled
     if loan is not None:
         want_outstanding = sum(max(it.principal_due + it.interest_due, 0) for it in items)
-        if loan.outstanding != want_outstanding:
-            drift.append(f"loan {loan_id}: outstanding cache {loan.outstanding} != {want_outstanding}")
+        want_principal = sum(max(it.principal_due, 0) for it in items)
+        want_next: date | None = min(
+            (it.due_date for it in items if not (it.principal_due <= 0 and it.interest_due <= 0)), default=None
+        )
+        cached = (loan.outstanding, loan.principal_outstanding, loan.next_unpaid_due)
+        if (want_outstanding, want_principal, want_next) != cached:
+            drift.append(f"loan {loan_id}: cached totals {cached} != {(want_outstanding, want_principal, want_next)}")
             if fix:
                 loan.outstanding = want_outstanding
+                loan.principal_outstanding = want_principal
+                loan.next_unpaid_due = want_next
         want_last = last_payment_on(db, loan_id)
         if loan.last_payment_on != want_last:
             drift.append(f"loan {loan_id}: last_payment_on {loan.last_payment_on} != {want_last}")

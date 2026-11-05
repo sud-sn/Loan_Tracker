@@ -7,7 +7,7 @@ import uuid
 from datetime import date
 from typing import Any, Literal
 
-from sqlalchemy import Select, and_, func, literal, or_, select, text
+from sqlalchemy import func, literal, or_, select, text
 from sqlalchemy.orm import Session
 
 from app.core.text import has_tamil, phonetic_key
@@ -17,7 +17,8 @@ SortKey = Literal["name", "code", "outstanding", "overdue_days"]
 
 
 def loan_totals(today: date) -> Any:
-    """Per-borrower outstanding (cached on loan) and active-loan counts."""
+    """Per-borrower totals from the loan table alone (cached ledger columns, 200k rows not 2.4M)."""
+    overdue = (Loan.status == "active") & (Loan.next_unpaid_due < today)
     return (
         select(
             Loan.borrower_id.label("borrower_id"),
@@ -25,6 +26,8 @@ def loan_totals(today: date) -> Any:
             func.count().filter(Loan.status == "active").label("active_loans"),
             func.count().filter(Loan.status != "active").label("closed_loans"),
             func.max(Loan.last_payment_on).label("last_payment_on"),
+            func.min(Loan.next_unpaid_due).filter(overdue).label("oldest_overdue"),
+            func.count().filter(overdue).label("overdue_loans"),
         )
         .where(Loan.deleted_at.is_(None))
         .group_by(Loan.borrower_id)
@@ -32,71 +35,71 @@ def loan_totals(today: date) -> Any:
     )
 
 
-def overdue_totals(today: date) -> Any:
-    """Overdue amounts from unpaid past-due installments (served by the partial index)."""
+def overdue_amounts(db: Session, borrower_ids: list[uuid.UUID], today: date) -> dict[uuid.UUID, int]:
+    """Unpaid past-due principal + interest for a few borrowers (the rows on screen)."""
+    if not borrower_ids:
+        return {}
     unpaid = (
         ScheduleItem.principal_part + ScheduleItem.interest_part - ScheduleItem.paid_principal
         - ScheduleItem.paid_interest - ScheduleItem.waived_principal - ScheduleItem.waived_interest
     )
-    per_loan = (
-        select(
-            Loan.borrower_id.label("borrower_id"),
-            Loan.id.label("loan_id"),
-            func.sum(unpaid).label("amount"),
-            func.min(ScheduleItem.due_date).label("oldest"),
-        )
-        .join(Loan, Loan.id == ScheduleItem.loan_id)
-        .where(~ScheduleItem.settled, ScheduleItem.due_date < today, Loan.status == "active",
-               Loan.deleted_at.is_(None))
-        .group_by(Loan.borrower_id, Loan.id)
-        .subquery()
+    rows = db.execute(
+        select(Loan.borrower_id, func.sum(unpaid))
+        .join(ScheduleItem, ScheduleItem.loan_id == Loan.id)
+        .where(Loan.borrower_id.in_(borrower_ids), Loan.status == "active", Loan.deleted_at.is_(None),
+               Loan.next_unpaid_due < today, ~ScheduleItem.settled, ScheduleItem.due_date < today)
+        .group_by(Loan.borrower_id)
     )
-    return (
-        select(
-            per_loan.c.borrower_id,
-            func.sum(per_loan.c.amount).label("overdue_amount"),
-            func.min(per_loan.c.oldest).label("oldest_overdue"),
-            func.count().label("overdue_loans"),
-        )
-        .group_by(per_loan.c.borrower_id)
-        .subquery()
-    )
+    return {bid: int(amount) for bid, amount in rows}
 
 
-def list_query(
-    today: date, *, status: str | None, has_overdue: bool | None, has_active_loan: bool | None, sort: SortKey,
-    descending: bool,
-) -> Select[Any]:
-    lt, od = loan_totals(today), overdue_totals(today)
-    overdue_days = func.coalesce(literal(today) - od.c.oldest_overdue, 0)
-    stmt = (
-        select(
-            Borrower,
-            func.coalesce(lt.c.outstanding, 0).label("outstanding"),
-            func.coalesce(od.c.overdue_amount, 0).label("overdue_amount"),
-            overdue_days.label("overdue_days"),
-            func.coalesce(lt.c.active_loans, 0).label("active_loans"),
-            func.coalesce(od.c.overdue_loans, 0).label("overdue_loans"),
-        )
-        .outerjoin(lt, lt.c.borrower_id == Borrower.id)
-        .outerjoin(od, od.c.borrower_id == Borrower.id)
-        .where(Borrower.deleted_at.is_(None))
-    )
-    if status:
-        stmt = stmt.where(Borrower.status == status)
-    if has_overdue is not None:
-        stmt = stmt.where(od.c.overdue_amount.is_not(None) if has_overdue else od.c.overdue_amount.is_(None))
-    if has_active_loan is not None:
-        stmt = stmt.where(lt.c.active_loans > 0 if has_active_loan else func.coalesce(lt.c.active_loans, 0) == 0)
+def list_page(
+    db: Session, today: date, *, status: str | None, has_overdue: bool | None, has_active_loan: bool | None,
+    sort: SortKey, descending: bool, page: int, page_size: int,
+) -> tuple[list[dict[str, Any]], int]:
+    lt = loan_totals(today)
     # Tamil-aware collation from ICU (PRD section 9): Tamil names sort in Tamil alphabet order.
     name_sort = func.coalesce(Borrower.name_en, Borrower.name_ta).collate("ta-IN-x-icu")
-    order = {
-        "name": name_sort,
-        "code": Borrower.code,
-        "outstanding": func.coalesce(lt.c.outstanding, 0),
-        "overdue_days": overdue_days,
-    }[sort]
-    return stmt.order_by(order.desc() if descending else order.asc(), Borrower.code)
+    overdue_days = func.coalesce(literal(today) - lt.c.oldest_overdue, 0)
+    base = select(Borrower).where(Borrower.deleted_at.is_(None))
+    if status:
+        base = base.where(Borrower.status == status)
+    plain = sort in ("name", "code") and has_overdue is None and has_active_loan is None
+    if plain:
+        # Page the borrowers first (indexed), then total up only the rows on screen.
+        order = name_sort if sort == "name" else Borrower.code
+        total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+        borrowers = list(db.scalars(base.order_by(order.desc() if descending else order.asc(), Borrower.code)
+                                    .limit(page_size).offset((page - 1) * page_size)))
+        ids = [b.id for b in borrowers]
+        totals = {r.borrower_id: r for r in db.execute(select(lt).where(lt.c.borrower_id.in_(ids)))} if ids else {}
+        rows = [(b, totals.get(b.id)) for b in borrowers]
+    else:
+        stmt = select(Borrower, lt, func.count().over().label("total")).outerjoin(lt, lt.c.borrower_id == Borrower.id)
+        stmt = stmt.where(Borrower.deleted_at.is_(None))
+        if status:
+            stmt = stmt.where(Borrower.status == status)
+        if has_overdue is not None:
+            stmt = stmt.where(lt.c.overdue_loans > 0 if has_overdue else func.coalesce(lt.c.overdue_loans, 0) == 0)
+        if has_active_loan is not None:
+            stmt = stmt.where(lt.c.active_loans > 0 if has_active_loan else func.coalesce(lt.c.active_loans, 0) == 0)
+        sort_col: Any = {"name": name_sort, "code": Borrower.code, "outstanding": func.coalesce(lt.c.outstanding, 0),
+                         "overdue_days": overdue_days}[sort]
+        result = db.execute(stmt.order_by(sort_col.desc() if descending else sort_col.asc(), Borrower.code)
+                            .limit(page_size).offset((page - 1) * page_size)).all()
+        total = int(result[0].total) if result else 0
+        rows = [(r[0], r) for r in result]
+    amounts = overdue_amounts(db, [b.id for b, _ in rows], today)
+    items = []
+    for b, t in rows:
+        oldest = t.oldest_overdue if t is not None else None
+        items.append({
+            "borrower": b, "outstanding": int(t.outstanding) if t is not None else 0,
+            "overdue_amount": amounts.get(b.id, 0), "overdue_days": (today - oldest).days if oldest else 0,
+            "active_loans": int(t.active_loans) if t is not None else 0,
+            "overdue_loans": int(t.overdue_loans) if t is not None else 0,
+        })
+    return items, int(total)
 
 
 _CODE = re.compile(r"^(?:brw-?)?0*(\d{1,6})$", re.I)
@@ -187,21 +190,15 @@ def search(db: Session, q: str, today: date, limit: int = 20) -> list[tuple[Borr
 
 
 def borrower_totals(db: Session, borrower_id: uuid.UUID, today: date) -> dict[str, Any]:
-    lt, od = loan_totals(today), overdue_totals(today)
-    row = db.execute(
-        select(
-            func.coalesce(lt.c.outstanding, 0), func.coalesce(od.c.overdue_amount, 0), od.c.oldest_overdue,
-            func.coalesce(lt.c.active_loans, 0), func.coalesce(lt.c.closed_loans, 0),
-            func.coalesce(od.c.overdue_loans, 0), lt.c.last_payment_on,
-        )
-        .select_from(Borrower)
-        .outerjoin(lt, lt.c.borrower_id == Borrower.id)
-        .outerjoin(od, and_(od.c.borrower_id == Borrower.id))
-        .where(Borrower.id == borrower_id)
-    ).one()
-    outstanding, overdue, oldest, active, closed, overdue_loans, last = row
+    lt = loan_totals(today)
+    t = db.execute(select(lt).where(lt.c.borrower_id == borrower_id)).first()
+    oldest = t.oldest_overdue if t is not None else None
     return {
-        "outstanding": int(outstanding), "overdue_amount": int(overdue),
-        "overdue_days": (today - oldest).days if oldest else 0, "active_loans": int(active),
-        "closed_loans": int(closed), "overdue_loans": int(overdue_loans), "last_payment_on": last,
+        "outstanding": int(t.outstanding) if t is not None else 0,
+        "overdue_amount": overdue_amounts(db, [borrower_id], today).get(borrower_id, 0),
+        "overdue_days": (today - oldest).days if oldest else 0,
+        "active_loans": int(t.active_loans) if t is not None else 0,
+        "closed_loans": int(t.closed_loans) if t is not None else 0,
+        "overdue_loans": int(t.overdue_loans) if t is not None else 0,
+        "last_payment_on": t.last_payment_on if t is not None else None,
     }

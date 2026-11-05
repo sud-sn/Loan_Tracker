@@ -1,0 +1,161 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: loantracker_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/loantracker_test
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: System libraries for WeasyPrint
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 poppler-utils
+      - name: Install
+        run: pip install -r requirements.lock && pip install -e ".[dev]" pip-audit
+      - name: Lint
+        run: ruff check app tests
+      - name: Type check
+        run: mypy
+      - name: Tests (unit + integration on real PostgreSQL)
+        run: pytest -q
+      - name: Migration check (up, down, up, no drift)
+        env:
+          LT_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/loantracker_test
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/loantracker_test -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+          alembic upgrade head && alembic downgrade base && alembic upgrade head && alembic check
+      - name: OpenAPI is up to date (the typed frontend client is generated from it)
+        run: python -m app.export_openapi > /tmp/openapi.json && diff -q openapi.json /tmp/openapi.json
+      - name: Dependency scan
+        run: pip-audit -r requirements.lock
+
+  frontend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Translations complete in English and Tamil
+        run: npm run i18n:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Typed API client matches the backend
+        run: npx openapi-typescript ../backend/openapi.json -o /tmp/schema.d.ts && diff -q src/api/schema.d.ts /tmp/schema.d.ts
+      - run: npm run build
+      - name: Dependency scan
+        run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: loantracker_e2e
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    env:
+      LT_ENV: development
+      LT_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/loantracker_e2e
+      LT_DATA_DIR: /tmp/lt-data
+      LT_KEYRING_FILE: /tmp/lt-keys/keyring.json
+      LT_COOKIE_SECURE: "false"
+      LT_SCANNER: builtin
+      LT_APP_ORIGIN: http://localhost:4173
+      LT_AADHAAR_HMAC_SECRET: e2e-hmac-secret-only-for-ci-0123456789abcdef
+      LT_SESSION_SECRET: e2e-session-secret-only-for-ci-0123456789abcdef
+      LT_FILE_LINK_SECRET: e2e-file-secret-only-for-ci-0123456789abcdef
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0
+      - name: Start the API
+        working-directory: backend
+        run: |
+          pip install -r requirements.lock && pip install -e .
+          python -c "import json,base64,os; os.makedirs('/tmp/lt-keys',exist_ok=True); open('/tmp/lt-keys/keyring.json','w').write(json.dumps({'active':'k1','keys':{'k1':base64.b64encode(os.urandom(32)).decode()}}))"
+          alembic upgrade head
+          nohup uvicorn app.main:app --port 8000 > /tmp/api.log 2>&1 &
+      - name: Build and serve the PWA
+        working-directory: frontend
+        run: |
+          npm ci && npx playwright install --with-deps chromium && npm run build
+          nohup npx vite preview --port 4173 > /tmp/web.log 2>&1 &
+          sleep 3
+      - name: End-to-end tests (English and Tamil, phone width)
+        working-directory: frontend
+        run: npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            /tmp/api.log
+
+  images:
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t loantracker-api:${{ github.sha }} backend
+      - run: docker build -t loantracker-web:${{ github.sha }} frontend
+      - name: Container scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: loantracker-api:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Publish images (main only; the owner pulls a tag, rollback = previous tag)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for name in api web; do
+            docker tag loantracker-$name:${{ github.sha }} ghcr.io/$owner/loantracker-$name:${{ github.sha }}
+            docker tag loantracker-$name:${{ github.sha }} ghcr.io/$owner/loantracker-$name:latest
+            docker push ghcr.io/$owner/loantracker-$name:${{ github.sha }}
+            docker push ghcr.io/$owner/loantracker-$name:latest
+          done

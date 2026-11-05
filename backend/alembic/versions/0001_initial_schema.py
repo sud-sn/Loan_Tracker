@@ -331,6 +331,8 @@ def upgrade() -> None:
     sa.Column('closed_reason', sa.Text(), nullable=True),
     sa.Column('last_payment_on', sa.Date(), nullable=True),
     sa.Column('outstanding', sa.BigInteger(), server_default='0', nullable=False),
+    sa.Column('principal_outstanding', sa.BigInteger(), server_default='0', nullable=False),
+    sa.Column('next_unpaid_due', sa.Date(), nullable=True),
     sa.Column('purpose', sa.Text(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
     sa.Column('rate_warning_acknowledged', sa.Boolean(), server_default='false', nullable=False),
@@ -363,6 +365,8 @@ def upgrade() -> None:
     op.create_index(op.f('ix_loan_import_batch_id'), 'loan', ['import_batch_id'], unique=False)
     op.create_index(op.f('ix_loan_status'), 'loan', ['status'], unique=False)
     op.create_index('ix_loan_borrower_status', 'loan', ['borrower_id', 'status'], unique=False)
+    op.create_index('ix_loan_active_next_unpaid', 'loan', ['next_unpaid_due'], unique=False,
+                    postgresql_where=sa.text("status = 'active' AND deleted_at IS NULL"))
     op.create_index('ix_loan_active_last_activity', 'loan', [sa.text('(coalesce(last_payment_on, disbursal_date))')],
                     unique=False, postgresql_where=sa.text("status = 'active' AND deleted_at IS NULL"))
     op.create_table('payment',

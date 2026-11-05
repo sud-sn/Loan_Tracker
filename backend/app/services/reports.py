@@ -53,12 +53,13 @@ def interest_earned(db: Session, start: date | None, end: date) -> dict[str, Any
 
 
 def outstanding_by_borrower(db: Session, today: date, limit: int = 5000) -> list[dict[str, Any]]:
-    stmt = borrower_repo.list_query(today, status=None, has_overdue=None, has_active_loan=True, sort="outstanding",
-                                    descending=True).limit(limit)
+    rows, _ = borrower_repo.list_page(db, today, status=None, has_overdue=None, has_active_loan=True,
+                                      sort="outstanding", descending=True, page=1, page_size=limit)
     return [
-        {"code": b.code, "name_en": b.name_en, "name_ta": b.name_ta, "phone": b.phone, "active_loans": int(n),
-         "outstanding": from_paise(int(out)), "overdue_amount": from_paise(int(od)), "overdue_days": int(days)}
-        for b, out, od, days, n, _ in db.execute(stmt).all()
+        {"code": r["borrower"].code, "name_en": r["borrower"].name_en, "name_ta": r["borrower"].name_ta,
+         "phone": r["borrower"].phone, "active_loans": r["active_loans"], "outstanding": from_paise(r["outstanding"]),
+         "overdue_amount": from_paise(r["overdue_amount"]), "overdue_days": r["overdue_days"]}
+        for r in rows
     ]
 
 
@@ -67,13 +68,9 @@ def dashboard(db: Session, business: BusinessSettings, today: date) -> dict[str,
     principal_out = db.scalar(
         select(func.coalesce(func.sum(Loan.principal), 0)).where(Loan.status == "active", Loan.deleted_at.is_(None))
     )
-    from app.models import ScheduleItem
-
     principal_remaining = db.scalar(
-        select(func.coalesce(func.sum(ScheduleItem.principal_part - ScheduleItem.paid_principal
-                                      - ScheduleItem.waived_principal), 0))
-        .join(Loan, Loan.id == ScheduleItem.loan_id)
-        .where(Loan.status == "active", Loan.deleted_at.is_(None))
+        select(func.coalesce(func.sum(Loan.principal_outstanding), 0)).where(Loan.status == "active",
+                                                                             Loan.deleted_at.is_(None))
     )
     to_receive = db.scalar(
         select(func.coalesce(func.sum(Loan.outstanding), 0)).where(Loan.status == "active", Loan.deleted_at.is_(None))

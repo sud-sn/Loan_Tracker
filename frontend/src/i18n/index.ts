@@ -5,7 +5,6 @@ import { ApiError } from "@/api/client";
 import type { Lang } from "@/lib/format";
 
 import en from "./en.json";
-import ta from "./ta.json";
 
 // Adding a language means adding a JSON file here and to the switcher; nothing else changes.
 export const LANGUAGES: { code: Lang; label: string }[] = [
@@ -21,13 +20,33 @@ const stored = (() => {
   }
 })();
 
+// English is bundled (it is also the fallback); Tamil is a separate chunk loaded on demand, so
+// the first screen parses one language, not two.
+export async function loadLanguage(lang: string): Promise<void> {
+  if (lang === "ta" && !i18n.hasResourceBundle("ta", "translation")) {
+    const ta = await import("./ta.json");
+    i18n.addResourceBundle("ta", "translation", ta.default, true, true);
+  }
+}
+
+const initial = stored === "ta" ? "ta" : "en";
 void i18n.use(initReactI18next).init({
-  resources: { en: { translation: en }, ta: { translation: ta } },
-  lng: stored === "ta" ? "ta" : "en",
+  resources: { en: { translation: en } },
+  lng: "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false },
   returnNull: false,
 });
+
+/** Resolves once the saved language is loaded, so the first paint is already in that language. */
+export const i18nReady: Promise<unknown> =
+  initial === "ta" ? loadLanguage("ta").then(() => i18n.changeLanguage("ta")) : Promise.resolve();
+
+/** Change language (loads the file first if needed). */
+export async function setLanguage(lang: string): Promise<void> {
+  await loadLanguage(lang);
+  await i18n.changeLanguage(lang);
+}
 
 function applyLang(lang: string): void {
   document.documentElement.lang = lang;

@@ -7,6 +7,7 @@ deleted more than 30 days ago, and alerts the owner on any failure. It is safe t
 
 from __future__ import annotations
 
+import json
 import logging
 import traceback
 from datetime import datetime
@@ -36,6 +37,24 @@ HEARTBEAT = Path("/tmp/worker-heartbeat")  # noqa: S108 - read by the container 
 def _record(db: Session, name: str, status: str, detail: dict[str, Any]) -> None:
     db.add(JobRun(name=name, run_date=clock.today(), status=status, finished_at=datetime.now(IST), detail=detail))
     db.commit()
+
+
+def check_backup(db: Session) -> str:
+    """A failed or missing backup alerts the owner (PRD section 13)."""
+    path = get_settings().backup_status_file
+    try:
+        status = json.loads(path.read_text())
+        finished = datetime.fromisoformat(status.get("finished_at", ""))
+    except (OSError, ValueError):
+        notify.alert(db, "Backup missing", f"No backup status found at {path}. Check the backup container.")
+        return "missing"
+    if status.get("status") != "ok":
+        notify.alert(db, "Backup failed", str(status.get("detail", "see the backup container log")))
+        return "failed"
+    if (datetime.now(IST) - finished).total_seconds() > 26 * 3600:
+        notify.alert(db, "Backup is late", f"The last backup finished at {finished:%d/%m/%Y %H:%M}.")
+        return "late"
+    return "ok"
 
 
 def nightly() -> None:
@@ -68,6 +87,7 @@ def nightly() -> None:
         detail["daily_log_reconciled"] = r["view_in"] == r["source_in"] and r["view_out"] == r["source_out"]
         detail["documents_purged"] = documents.purge_expired(db)
         detail["counts"] = {k: v for k, v in dues.counts(db, load_business(db), today).items() if k != "ageing"}
+        detail["backup"] = check_backup(db)
         _record(db, "nightly", "ok", detail)
     except Exception as exc:  # noqa: BLE001 - every failure must reach the owner
         db.rollback()

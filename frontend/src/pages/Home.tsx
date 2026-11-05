@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Download, Pencil, Undo2 } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { api, openFile } from "@/api/client";
 import type { AppSettings, Dashboard, Daybook, DaybookEntry } from "@/api/types";
-import { CashEntrySheet } from "@/components/CashEntrySheet";
 import { DueLists } from "@/components/DueList";
 import { QuickAddButtons } from "@/components/QuickActions";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/i18n";
 import { addDays, displayName, dmy, longDate, money, todayIST } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+const CashEntrySheet = lazy(() => import("@/components/CashEntrySheet").then((m) => ({ default: m.CashEntrySheet })));
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -68,11 +69,12 @@ export function HomePage() {
           {b.balance_start_date ? t("home.notTracked", { date: dmy(b.balance_start_date) }) : t("home.setStart")}
         </p>
       )}
-      {b && Object.keys(b.by_mode).length > 0 && (
-        <div>
-          <button className="min-h-touch text-sm font-semibold text-brand underline" onClick={() => setShowModes((s) => !s)}
+      {/* Always rendered so nothing below moves when the day's data arrives. */}
+      <div className="min-h-touch">
+          <button className="min-h-touch text-sm font-semibold text-brand underline disabled:no-underline disabled:opacity-50"
+            onClick={() => setShowModes((s) => !s)} disabled={!b || Object.keys(b.by_mode).length === 0}
             aria-expanded={showModes}>{t("home.byMode")}</button>
-          {showModes && (
+          {showModes && b && (
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {Object.entries(b.by_mode).map(([mode, v]) => (
                 <div key={mode} className="rounded-xl border border-line bg-surface p-3 text-sm">
@@ -83,8 +85,7 @@ export function HomePage() {
               ))}
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       <QuickAddButtons />
 
@@ -135,9 +136,9 @@ export function HomePage() {
         ) : <div className="grid grid-cols-2 gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>}
       </section>
       {editing && editing.source_type === "cash_entry" && (
-        <CashEntrySheet direction={editing.direction} onClose={() => setEditing(null)}
+        <Suspense fallback={null}><CashEntrySheet direction={editing.direction} onClose={() => setEditing(null)}
           existing={{ id: editing.source_id, version: editing.version ?? 1, amount: editing.amount, note: editing.note,
-            mode: editing.mode, entry_date: editing.date }} />
+            mode: editing.mode, entry_date: editing.date }} /></Suspense>
       )}
     </div>
   );
@@ -181,7 +182,9 @@ function EntryList({ title, icon, entries, empty, loading, onEdit }: { title: st
   const lang = useLang();
   const Icon = icon === "in" ? ArrowDownLeft : ArrowUpRight;
   return (
-    <section className="card p-0">
+    // A fixed minimum height keeps whatever comes next below the first screen while the day loads,
+    // so nothing visible jumps when the entries arrive (layout shift).
+    <section className="card min-h-[22rem] p-0">
       <h2 className={cn("flex items-center gap-2 border-b border-line px-4 py-3 text-lg", icon === "in" ? "text-moneyin" : "text-moneyout")}>
         <Icon className="h-5 w-5" aria-hidden />{title}
       </h2>

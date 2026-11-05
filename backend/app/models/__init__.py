@@ -199,6 +199,10 @@ class Loan(Entity):
     last_payment_on: Mapped[date | None] = mapped_column(Date)
     # Cache of unpaid principal + interest (rebuildable from the ledger, see services.ledger).
     outstanding: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    principal_outstanding: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    # Due date of the oldest installment not yet fully paid (None when all are paid). It changes only
+    # when a payment, reversal or waiver is saved, so overdue lists can work per loan, not per item.
+    next_unpaid_due: Mapped[date | None] = mapped_column(Date)
     purpose: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     rate_warning_acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
@@ -224,6 +228,8 @@ class Loan(Entity):
         CheckConstraint("disbursal_mode in ('cash','upi','bank','cheque','other')", name="disbursal_mode"),
         CheckConstraint("first_due_date >= disbursal_date", name="dates"),
         Index("ix_loan_borrower_status", "borrower_id", "status"),
+        Index("ix_loan_active_next_unpaid", "next_unpaid_due",
+              postgresql_where=text("status = 'active' AND deleted_at IS NULL")),
         Index(
             "ix_loan_active_last_activity", text("(coalesce(last_payment_on, disbursal_date))"),
             postgresql_where=text("status = 'active' AND deleted_at IS NULL"),

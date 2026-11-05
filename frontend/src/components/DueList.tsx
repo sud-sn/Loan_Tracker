@@ -95,7 +95,7 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
     <article className={cn("card p-3", late && "border-l-4 border-l-late")}>
       <div className="flex items-start justify-between gap-3">
         <Link to={`/loans/${row.loan_id}`} className="min-w-0 flex-1">
-          <h4 className="truncate text-lg font-semibold">{displayName(lang, row.name_en, row.name_ta)}</h4>
+          <p className="truncate text-lg font-semibold">{displayName(lang, row.name_en, row.name_ta)}</p>
           <p className="text-sm text-muted"><span className="whitespace-nowrap">{row.code}</span> · <span className="whitespace-nowrap">{row.loan_no}</span></p>
         </Link>
         <div className="shrink-0 text-right">

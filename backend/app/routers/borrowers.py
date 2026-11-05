@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from fastapi import APIRouter, Query
 from fastapi.responses import Response
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.core import clock, i18n
 from app.core.errors import AppError
@@ -58,17 +58,17 @@ def list_borrowers(
     page: int = Query(1, ge=1),
     page_size: int = Query(30, ge=1, le=100),
 ) -> dict[str, Any]:
-    stmt = repo.list_query(clock.today(), status=status, has_overdue=has_overdue, has_active_loan=has_active_loan,
-                           sort=sort, descending=desc)
-    total = ctx.db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
-    rows = ctx.db.execute(stmt.limit(page_size).offset((page - 1) * page_size)).all()
+    rows, total = repo.list_page(ctx.db, clock.today(), status=status, has_overdue=has_overdue,
+                                 has_active_loan=has_active_loan, sort=sort, descending=desc, page=page,
+                                 page_size=page_size)
     return {
         "items": [
-            {"id": b.id, "code": b.code, "name_en": b.name_en, "name_ta": b.name_ta, "phone": b.phone,
-             "status": b.status, "outstanding": from_paise(int(out)), "overdue_amount": from_paise(int(od)),
-             "overdue_days": int(days), "active_loans": int(n), "multiple_overdue": int(odl) >= 2,
-             "profile_incomplete": b.aadhaar_hash is None}
-            for b, out, od, days, n, odl in rows
+            {"id": r["borrower"].id, "code": r["borrower"].code, "name_en": r["borrower"].name_en,
+             "name_ta": r["borrower"].name_ta, "phone": r["borrower"].phone, "status": r["borrower"].status,
+             "outstanding": from_paise(r["outstanding"]), "overdue_amount": from_paise(r["overdue_amount"]),
+             "overdue_days": r["overdue_days"], "active_loans": r["active_loans"],
+             "multiple_overdue": r["overdue_loans"] >= 2, "profile_incomplete": r["borrower"].aadhaar_hash is None}
+            for r in rows
         ],
         "total": total, "page": page, "page_size": page_size,
     }

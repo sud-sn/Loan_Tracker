@@ -1,0 +1,17 @@
+# The separate test copy with invented data only (PRD section 13): its own project name, volumes
+# and port, so it can never touch the real data.
+#   cd infra
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml -p loantracker-test --env-file ../.env.test up -d
+#   docker compose -p loantracker-test exec api python -m app.cli seed-demo --borrowers 60
+services:
+  api:
+    environment:
+      LT_ENV: development
+  worker:
+    environment:
+      LT_ENV: development
+  web:
+    ports: !override
+      - "127.0.0.1:8443:443"
+  backup:
+    profiles: ["never"]

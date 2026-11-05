@@ -120,6 +120,8 @@ def create(ctx: Ctx, data: LoanCreateIn, *, import_batch_id: uuid.UUID | None = 
     db.add(loan)
     db.flush()
     loan.outstanding = to_paise(result.total_payable)
+    loan.principal_outstanding = to_paise(t.principal)
+    loan.next_unpaid_due = result.first_due_date
     db.add_all(
         ScheduleItem(
             loan_id=loan.id, seq=row.seq, due_date=row.due_date, installment=to_paise(row.installment),

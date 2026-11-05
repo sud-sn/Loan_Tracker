@@ -1,0 +1,106 @@
+# Loan Tracker on the owner's own computer or home server.
+#   cd infra && docker compose --env-file ../.env up -d
+# Every service restarts by itself after a reboot or power cut.
+name: loantracker
+
+x-app: &app
+  image: ${LT_IMAGE_API:-loantracker-api:local}
+  build: ../backend
+  restart: unless-stopped
+  env_file: ../.env
+  environment:
+    LT_DATABASE_URL: postgresql+psycopg://loantracker:${POSTGRES_PASSWORD}@db:5432/loantracker
+    LT_DATA_DIR: /data
+    LT_KEYRING_FILE: /run/secrets/aadhaar_keyring.json
+    LT_BACKUP_STATUS_FILE: /backups/status.json
+    LT_CLAMD_HOST: clamav
+  volumes:
+    - files:/data
+    - backups:/backups:ro
+    # The master key lives outside the data and backup folders (PRD section 12).
+    - ${LT_KEYRING_PATH:?set LT_KEYRING_PATH to the keyring file}:/run/secrets/aadhaar_keyring.json:ro
+
+services:
+  db:
+    image: postgres:16.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: loantracker
+      POSTGRES_USER: loantracker
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    # fsync and full-page writes stay on (the defaults): safe against a sudden power loss.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loantracker -d loantracker"]
+      interval: 10s
+      retries: 10
+    # No ports: the database is never reachable from outside this compose network.
+
+  api:
+    <<: *app
+    depends_on:
+      db: { condition: service_healthy }
+      clamav: { condition: service_started }
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      db: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "test $$(( $$(date +%s) - $$(date -r /tmp/worker-heartbeat +%s) )) -lt 300"]
+      interval: 60s
+
+  clamav:
+    image: clamav/clamav:1.4.1
+    restart: unless-stopped
+    volumes:
+      - clamdb:/var/lib/clamav
+
+  web:
+    image: ${LT_IMAGE_WEB:-loantracker-web:local}
+    build: ../frontend
+    restart: unless-stopped
+    environment:
+      LT_SITE_ADDRESS: ${LT_SITE_ADDRESS:-localhost}
+    ports:
+      # Bind to the Tailscale address only (docs/runbook.md). Never forward these ports on the router.
+      - "${LT_BIND_ADDRESS:-127.0.0.1}:443:443"
+      - "${LT_BIND_ADDRESS:-127.0.0.1}:80:80"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      # Tailscale hands Caddy a certificate the phone trusts, through its socket.
+      - ${TAILSCALE_SOCKET:-/var/run/tailscale/tailscaled.sock}:/var/run/tailscale/tailscaled.sock
+    depends_on: [api]
+
+  backup:
+    image: postgres:16.6-bookworm
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: loantracker
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: loantracker
+      BACKUP_PASSPHRASE_FILE: /run/secrets/backup_passphrase
+      BACKUP_AT: ${BACKUP_AT:-01:30}
+    entrypoint: ["/bin/bash", "/scripts/backup-loop.sh"]
+    volumes:
+      - ./scripts:/scripts:ro
+      - files:/data:ro
+      - backups:/backups
+      # A second drive for the daily copy, and a folder synced off the machine for the weekly one.
+      - ${BACKUP_SECOND_DRIVE:?set BACKUP_SECOND_DRIVE}:/second-drive
+      - ${BACKUP_OFFSITE_DIR:?set BACKUP_OFFSITE_DIR}:/offsite
+      - ${BACKUP_PASSPHRASE_PATH:?set BACKUP_PASSPHRASE_PATH}:/run/secrets/backup_passphrase:ro
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  files:
+  backups:
+  clamdb:
+  caddy_data:
+  caddy_config:
