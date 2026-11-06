@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from decimal import Decimal
 from typing import Any, Literal
 
 from fastapi import APIRouter, Header, Query
@@ -11,15 +12,19 @@ from sqlalchemy import func, select
 from app.core import clock, i18n
 from app.core.errors import AppError
 from app.deps import CtxDep, LoanCreatorCtx, OwnerCtx, StepUpCtx
+from app.engine.settlement import Rebate
 from app.models import Borrower, Loan, Payment
 from app.schemas.common import Ok, Page
 from app.schemas.loans import (
+    FeeIn,
     LoanCreateIn,
     LoanDetailOut,
     LoanListItem,
     LoanUpdateIn,
     PaymentIn,
     PaymentOut,
+    PrepayIn,
+    PrepayPreviewOut,
     PreviewIn,
     PreviewOut,
     ReminderOut,
@@ -27,11 +32,12 @@ from app.schemas.loans import (
     SettleIn,
     SettlementOut,
     TermsIn,
+    WaiveIn,
     WriteOffIn,
 )
 from app.services import loans as service
 from app.services import payments as payment_service
-from app.services import pdf, reminders
+from app.services import pdf, phase2, reminders
 
 router = APIRouter(tags=["loans"])
 
@@ -152,10 +158,45 @@ def receipt(payment_id: uuid.UUID, ctx: CtxDep, lang: Literal["en", "ta"] | None
 
 
 @router.get("/loans/{loan_id}/settlement", response_model=SettlementOut)
-def settlement(loan_id: uuid.UUID, ctx: CtxDep, on: date | None = None) -> dict[str, Any]:
-    fig = payment_service.settlement_figure(ctx.db, service.get(ctx.db, loan_id), on or clock.today())
-    return {k: getattr(fig, k) for k in ("on", "principal", "interest", "penalty", "credit", "total",
-                                         "interest_waived")}
+def settlement(loan_id: uuid.UUID, ctx: CtxDep, on: date | None = None,
+               rebate: Literal["pro_rata", "rule_of_78", "none"] = "pro_rata",
+               foreclosure_charge: Decimal | None = Query(None, ge=0)) -> dict[str, Any]:
+    c = payment_service.settlement_figure(ctx.db, service.get(ctx.db, loan_id), on or clock.today(), ctx.business,
+                                          Rebate(rebate), foreclosure_charge)
+    out = {k: getattr(c.fig, k) for k in ("on", "principal", "interest", "penalty", "credit", "interest_waived")}
+    return {**out, "rebate": c.rebate.value, "charges": c.fees, "foreclosure_charge": c.foreclosure,
+            "foreclosure_percent": c.foreclosure_percent, "total": c.total}
+
+
+@router.post("/loans/{loan_id}/fees", response_model=LoanDetailOut, status_code=201)
+def add_fee(loan_id: uuid.UUID, data: FeeIn, ctx: OwnerCtx) -> dict[str, Any]:
+    phase2.add_fee(ctx, loan_id, data)
+    return service.serialize(ctx.db, service.get(ctx.db, loan_id), ctx.business, detail=True)
+
+
+@router.post("/fees/{fee_id}/waive", response_model=LoanDetailOut)
+def waive_fee(fee_id: uuid.UUID, data: WaiveIn, ctx: OwnerCtx) -> dict[str, Any]:
+    fee = phase2.waive_fee(ctx, fee_id, data)
+    return service.serialize(ctx.db, service.get(ctx.db, fee.loan_id), ctx.business, detail=True)
+
+
+@router.post("/loans/{loan_id}/waive-late-fee", response_model=LoanDetailOut)
+def waive_late_fee(loan_id: uuid.UUID, data: WaiveIn, ctx: OwnerCtx) -> dict[str, Any]:
+    phase2.waive_late_fee(ctx, loan_id, data)
+    return service.serialize(ctx.db, service.get(ctx.db, loan_id), ctx.business, detail=True)
+
+
+@router.get("/loans/{loan_id}/prepay", response_model=PrepayPreviewOut)
+def prepay_preview(loan_id: uuid.UUID, ctx: CtxDep, amount: Decimal = Query(gt=0, decimal_places=2),
+                   on: date | None = None,
+                   mode: Literal["reduce_emi", "reduce_term"] = "reduce_emi") -> dict[str, Any]:
+    return phase2.preview(ctx, loan_id, amount, on, mode)
+
+
+@router.post("/loans/{loan_id}/prepay", response_model=PaymentOut, status_code=201)
+def prepay(loan_id: uuid.UUID, data: PrepayIn, ctx: OwnerCtx) -> dict[str, Any]:
+    payment = phase2.prepay(ctx, loan_id, data)
+    return payment_service.serialize(ctx.db, payment, with_balance=True)
 
 
 @router.post("/loans/{loan_id}/settle", response_model=PaymentOut)

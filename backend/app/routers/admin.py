@@ -69,6 +69,8 @@ class SettingsIn(BaseModel):
     advance_installments_default: int | None = Field(default=None, ge=0, le=12)
     processing_fee_percent: Decimal | None = Field(default=None, ge=0, le=25, decimal_places=2)
     document_charges_default: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+    bounce_charge_default: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+    foreclosure_charge_percent: Decimal | None = Field(default=None, ge=0, le=25, decimal_places=2)
 
     @field_validator("emi_rounding_default")
     @classmethod
@@ -91,7 +93,8 @@ def get_settings_(ctx: CtxDep) -> dict[str, Any]:
         return {k: out[k] for k in ("due_soon_days", "due_window_days", "long_unpaid_days", "default_language",
                                     "lender_name", "ltv_max_vehicle", "ltv_max_land", "emi_rounding_default",
                                     "broken_period_default", "advance_installments_default",
-                                    "processing_fee_percent", "document_charges_default", "max_rate_monthly")}
+                                    "processing_fee_percent", "document_charges_default", "max_rate_monthly",
+                                    "bounce_charge_default", "foreclosure_charge_percent")}
     return out
 
 

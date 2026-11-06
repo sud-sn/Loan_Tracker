@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.core import clock
@@ -286,9 +286,14 @@ def serialize(db: Session, loan: Loan, business: BusinessSettings, *, detail: bo
 
     today = clock.today()
     items = ledger.load_items(db, loan.id)
+    all_items = ledger.load_items(db, loan.id, include_replaced=True) if detail else items
     states, pen = ledger.item_states(db, loan, items, today)
     s = ledger.summary(db, loan, items, today, business.due_soon_days)
-    paid_total = sum(it.paid_principal + it.paid_interest + it.paid_penalty for it in items)
+    fees = loan.fees
+    fees_due = from_paise(ledger.fees_due(fees))
+    paid_total = (db.scalar(select(func.coalesce(func.sum(
+        ScheduleItem.paid_principal + ScheduleItem.paid_interest + ScheduleItem.paid_penalty), 0))
+        .where(ScheduleItem.loan_id == loan.id)) or 0) + sum(f.paid for f in fees)
     out: dict[str, Any] = {
         "id": loan.id, "loan_no": loan.loan_no, "borrower": borrower_ref(loan.borrower),
         "principal": from_paise(loan.principal), "rate": loan.rate, "rate_basis": loan.rate_basis,
@@ -313,9 +318,11 @@ def serialize(db: Session, loan: Loan, business: BusinessSettings, *, detail: bo
         ],
         "security": [_security_out(c) for c in loan.securities],
         "version": loan.version, "created_at": loan.created_at,
-        "summary": {**s.__dict__, "status": s.status.value, "paid_total": from_paise(paid_total)},
+        "summary": {**s.__dict__, "status": s.status.value, "paid_total": from_paise(int(paid_total)),
+                    "fees_outstanding": fees_due, "total_outstanding": s.total_outstanding + fees_due},
     }
     if detail:
+        state_of = {it.id: st for it, st in zip(items, states, strict=True)}
         out["schedule"] = [
             {
                 "id": it.id, "seq": it.seq, "due_date": it.due_date, "installment": from_paise(it.installment),
@@ -323,12 +330,25 @@ def serialize(db: Session, loan: Loan, business: BusinessSettings, *, detail: bo
                 "closing_balance": from_paise(it.closing_balance), "paid_principal": from_paise(it.paid_principal),
                 "paid_interest": from_paise(it.paid_interest), "paid_penalty": from_paise(it.paid_penalty),
                 "waived": from_paise(it.waived_principal + it.waived_interest + it.waived_penalty),
-                "penalty_due": pen[it.id],
-                "unpaid": from_paise(max(it.principal_due + it.interest_due, 0)),
-                "status": item_status(st, today).value
+                "penalty_due": ZERO if it.replaced else pen[it.id],
+                "unpaid": ZERO if it.replaced else from_paise(max(it.principal_due + it.interest_due, 0)),
+                "status": "rescheduled" if it.replaced else item_status(state_of[it.id], today).value
                 if loan.status == "active" or it.settled else "paid",
             }
-            for it, st in zip(items, states, strict=True)
+            for it in all_items
+        ]
+        out["fees"] = [
+            {"id": f.id, "kind": f.kind, "label": f.label, "amount": from_paise(f.amount), "charged_on": f.charged_on,
+             "paid": from_paise(f.paid), "waived": from_paise(f.waived), "due": from_paise(f.due),
+             "waive_reason": f.waive_reason, "note": f.note}
+            for f in fees
+        ]
+        out["reschedules"] = [
+            {"paid_on": r.paid_on, "extra": from_paise(r.extra), "mode": r.mode,
+             "old_installment": from_paise(r.old_installment), "new_installment": from_paise(r.new_installment),
+             "old_count": r.old_count, "new_count": r.new_count, "old_maturity": r.old_maturity,
+             "new_maturity": r.new_maturity, "interest_saved": from_paise(r.interest_saved)}
+            for r in loan.reschedules
         ]
         pays = db.scalars(
             select(Payment).where(Payment.loan_id == loan.id).order_by(Payment.paid_on.desc(), Payment.created_at.desc())

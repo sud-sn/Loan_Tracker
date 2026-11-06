@@ -67,6 +67,9 @@ class BusinessSettings(Entity):
     advance_installments_default: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     processing_fee_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="0")
     document_charges_default: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    # Phase 2 defaults.
+    bounce_charge_default: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="50000")
+    foreclosure_charge_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="2")
     version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
     __mapper_args__ = {"version_id_col": version}
 
@@ -242,6 +245,8 @@ class Loan(Entity):
     borrower: Mapped[Borrower] = relationship()
     items: Mapped[list[ScheduleItem]] = relationship(back_populates="loan", order_by="ScheduleItem.seq")
     charges: Mapped[list[LoanCharge]] = relationship(order_by="LoanCharge.created_at")
+    fees: Mapped[list[LoanFee]] = relationship(order_by="LoanFee.charged_on, LoanFee.created_at")
+    reschedules: Mapped[list[Reschedule]] = relationship(order_by="Reschedule.created_at")
     securities: Mapped[list[Collateral]] = relationship(order_by="Collateral.created_at")
 
     __table_args__ = (
@@ -345,6 +350,74 @@ class Collateral(Entity):
     )
 
 
+class LoanFee(Entity):
+    """A charge added after the loan was given: a bounced cheque or auto-debit, seizure, legal
+    notice, valuation, insurance paid for the borrower, a foreclosure charge, or another charge.
+    Payments pay these first. ``paid`` and ``waived`` are caches of fee_allocation and the waivers
+    (each waiver is also in the audit log)."""
+
+    __tablename__ = "loan_fee"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    label: Mapped[str | None] = mapped_column(String(80))
+    amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    charged_on: Mapped[date] = mapped_column(Date, nullable=False)
+    paid: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    waived: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    waive_reason: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
+    __mapper_args__ = {"version_id_col": version}
+
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="amount_positive"),
+        CheckConstraint("paid >= 0 and waived >= 0 and paid + waived <= amount", name="paid_waived"),
+        CheckConstraint(
+            "kind in ('bounce','seizure','legal','valuation','insurance','foreclosure','other')", name="kind"
+        ),
+        CheckConstraint("kind <> 'other' or label is not null", name="other_needs_label"),
+    )
+
+    @property
+    def due(self) -> int:
+        return self.amount - self.paid - self.waived
+
+
+class FeeAllocation(Entity):
+    """Part of a payment that paid a charge (negative for a reversal). Append-only."""
+
+    __tablename__ = "fee_allocation"
+
+    payment_id: Mapped[uuid.UUID] = fk("payment.id")
+    fee_id: Mapped[uuid.UUID] = fk("loan_fee.id")
+    amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
+class Reschedule(Entity):
+    """A part-prepayment that replaced the installments not yet due. Append-only."""
+
+    __tablename__ = "reschedule"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    payment_id: Mapped[uuid.UUID] = fk("payment.id")
+    paid_on: Mapped[date] = mapped_column(Date, nullable=False)
+    extra: Mapped[int] = mapped_column(BigInteger, nullable=False)  # paid towards principal
+    mode: Mapped[str] = mapped_column(String(12), nullable=False)
+    old_installment: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    new_installment: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    old_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    new_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    old_maturity: Mapped[date] = mapped_column(Date, nullable=False)
+    new_maturity: Mapped[date] = mapped_column(Date, nullable=False)
+    interest_saved: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
+
+    __table_args__ = (CheckConstraint("mode in ('reduce_emi','reduce_term')", name="mode"),
+                      CheckConstraint("extra > 0", name="extra_positive"))
+
+
 class ScheduleItem(Entity):
     """One installment. Rows are locked once the loan is saved.
 
@@ -369,6 +442,9 @@ class ScheduleItem(Entity):
     waived_interest: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
     waived_penalty: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
     settled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    # Replaced by new installments after a part-prepayment (Phase 2). A replaced row is closed: what
+    # was paid on it stays, nothing more is due on it, and it can never be un-replaced.
+    replaced: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
 
     loan: Mapped[Loan] = relationship(back_populates="items")
 
@@ -454,7 +530,7 @@ class LoanAdjustment(Entity):
     created_by: Mapped[uuid.UUID] = fk("user.id")
 
     __table_args__ = (
-        CheckConstraint("kind in ('settlement_waiver','write_off')", name="kind"),
+        CheckConstraint("kind in ('settlement_waiver','write_off','penalty_waiver')", name="kind"),
         CheckConstraint("principal_part >= 0 and interest_part >= 0 and penalty_part >= 0", name="non_negative"),
     )
 

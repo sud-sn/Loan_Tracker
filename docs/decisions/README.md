@@ -16,3 +16,4 @@ Short records of choices made where the PRD was open, or where two requirements 
 - [0012 · Cached ledger columns](0012-cached-ledger-columns.md)
 - [0013 · Laptop first](0013-laptop-first-layout.md)
 - [0014 · Vehicle and land loans (Phase 1)](0014-vehicle-and-land-loans.md)
+- [0015 · Part payment, charges, waivers, foreclosure (Phase 2)](0015-part-payment-charges-waivers-foreclosure.md)

@@ -1,4 +1,4 @@
-import { AlertTriangle, Ban, CheckCircle2, Circle, Clock, XCircle } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Circle, Clock, RefreshCw, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const STYLES: Record<string, { cls: string; Icon: typeof Clock }> = {
   incomplete: { cls: "bg-due-soft text-due", Icon: AlertTriangle },
   upcoming: { cls: "bg-sunken text-muted", Icon: Circle },
   active: { cls: "bg-brand-soft text-brand", Icon: Circle },
+  rescheduled: { cls: "bg-sunken text-muted", Icon: RefreshCw },
 };
 
 /** Status is never colour alone: always an icon and a word (PRD section 10). */

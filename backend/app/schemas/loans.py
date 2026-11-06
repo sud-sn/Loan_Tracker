@@ -267,7 +267,7 @@ class ScheduleItemOut(Schema):
     waived: Money
     penalty_due: Money
     unpaid: Money
-    status: Literal["upcoming", "due_today", "partially_paid", "overdue", "paid"]
+    status: Literal["upcoming", "due_today", "partially_paid", "overdue", "paid", "rescheduled"]
 
 
 class LoanSummaryOut(Schema):
@@ -281,6 +281,7 @@ class LoanSummaryOut(Schema):
     principal_outstanding: Money
     interest_outstanding: Money
     penalty_outstanding: Money
+    fees_outstanding: Money
     total_outstanding: Money
     days_since_last_payment: int
     paid_total: Money
@@ -340,9 +341,84 @@ class LoanOut(Schema):
     summary: LoanSummaryOut
 
 
+FeeKind = Literal["bounce", "seizure", "legal", "valuation", "insurance", "foreclosure", "other"]
+
+
+class FeeIn(Schema):
+    kind: Literal["bounce", "seizure", "legal", "valuation", "insurance", "other"]
+    label: str | None = Field(default=None, max_length=80)
+    amount: PositiveMoney
+    charged_on: date | None = None
+    note: str | None = Field(default=None, max_length=500)
+
+    @model_validator(mode="after")
+    def _label(self) -> FeeIn:
+        if self.kind == "other" and not (self.label or "").strip():
+            raise ValueError("a label is required for another charge")
+        return self
+
+
+class FeeOut(Schema):
+    id: uuid.UUID
+    kind: FeeKind
+    label: str | None
+    amount: Money
+    charged_on: date
+    paid: Money
+    waived: Money
+    due: Money
+    waive_reason: str | None
+    note: str | None
+
+
+class WaiveIn(Schema):
+    amount: PositiveMoney | None = None  # None = all that is due
+    reason: str = Field(min_length=3, max_length=500)
+
+
+class PrepayIn(Schema):
+    amount: PositiveMoney
+    paid_on: date | None = None
+    mode_of_reschedule: Literal["reduce_emi", "reduce_term"] = "reduce_emi"
+    mode: PaymentMode = "cash"
+    reference: str | None = Field(default=None, max_length=80)
+    idempotency_key: str = Field(min_length=8, max_length=80)
+
+
+class PrepayPreviewOut(Schema):
+    paid_on: date
+    dues: Money  # charges, late fee and installments due by then, paid first
+    extra: Money  # goes to principal
+    principal_before: Money
+    principal_after: Money
+    old_installment: Money
+    new_installment: Money
+    old_count: int
+    new_count: int
+    old_maturity: date
+    new_maturity: date
+    interest_saved: Money
+    rows: list[ScheduleRowOut]
+
+
+class RescheduleOut(Schema):
+    paid_on: date
+    extra: Money
+    mode: Literal["reduce_emi", "reduce_term"]
+    old_installment: Money
+    new_installment: Money
+    old_count: int
+    new_count: int
+    old_maturity: date
+    new_maturity: date
+    interest_saved: Money
+
+
 class LoanDetailOut(LoanOut):
     schedule: list[ScheduleItemOut]
     payments: list[PaymentOut]
+    fees: list[FeeOut]
+    reschedules: list[RescheduleOut]
 
 
 class LoanListItem(Schema):
@@ -374,19 +450,29 @@ class ReverseIn(Schema):
     reason: str = Field(min_length=3, max_length=500)
 
 
+Rebate = Literal["pro_rata", "rule_of_78", "none"]
+
+
 class SettlementOut(Schema):
     on: date
     principal: Money
     interest: Money
     penalty: Money
     credit: Money
-    total: Money
     interest_waived: Money
+    rebate: Rebate
+    charges: Money  # charges after the loan was given, still unpaid
+    foreclosure_charge: Money
+    foreclosure_percent: Decimal
+    total: Money
 
 
 class SettleIn(Schema):
     on: date | None = None
     expected_total: PositiveMoney
+    rebate: Rebate = "pro_rata"
+    # None = the % from Settings; 0 waives it; any other amount replaces it.
+    foreclosure_charge: Money | None = Field(default=None, ge=0)
     mode: PaymentMode = "cash"
     reference: str | None = Field(default=None, max_length=80)
     idempotency_key: str = Field(min_length=8, max_length=80)

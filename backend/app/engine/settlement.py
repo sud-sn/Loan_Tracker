@@ -9,6 +9,14 @@ Settlement on a date = all unpaid principal
 Interest of later periods is waived. This treats every method the same way, including flat
 and fixed-amount loans, whose unearned future interest is not charged. The credit is booked
 as a principal waiver on the last rows, so the ledger stays append-only.
+
+Phase 2 adds two other ways to work out the interest of installments not yet due, which the
+owner chooses when closing early (mostly for flat loans):
+
+* ``RULE_OF_78``: the borrower gets back total interest x k(k+1) / n(n+1), where n is the number
+  of installments and k those after the current period (the period running on the closing day is
+  earned in full, as usual for this rule); the rest of their interest is charged;
+* ``NONE``: no rebate; all their interest is charged.
 """
 
 from __future__ import annotations
@@ -16,8 +24,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, localcontext
+from enum import StrEnum
 
 from app.engine.money import ZERO, q2
+
+
+class Rebate(StrEnum):
+    PRO_RATA = "pro_rata"  # interest to the day for the current period, later interest waived
+    RULE_OF_78 = "rule_of_78"
+    NONE = "none"
 
 
 @dataclass(frozen=True)
@@ -58,11 +73,21 @@ class Settlement:
     lines: tuple[SettlementLine, ...]
 
 
-def settlement(items: list[SettlementItem], on: date) -> Settlement:
+def settlement(items: list[SettlementItem], on: date, rebate: Rebate = Rebate.PRO_RATA) -> Settlement:
     rows: list[list[Decimal]] = []  # [penalty, i_take, i_waive, p_unpaid]
     ordered = sorted(items, key=lambda x: x.seq)
     credit = ZERO
     current_found = False
+    # Interest that may still be charged on installments not yet due (Rule of 78 / no rebate).
+    future = [it for it in ordered if it.due_date > on]
+    keep_left = ZERO
+    if rebate is Rebate.NONE:
+        keep_left = sum((it.interest_part for it in future), ZERO)
+    elif rebate is Rebate.RULE_OF_78:
+        n, k = len(ordered), max(len(future) - 1, 0)
+        total = sum((it.interest_part for it in ordered), ZERO)
+        back = q2(total * k * (k + 1) / (n * (n + 1))) if n else ZERO
+        keep_left = max(sum((it.interest_part for it in future), ZERO) - back, ZERO)
     with localcontext() as ctx:
         ctx.prec = 40
         for it in ordered:
@@ -70,6 +95,12 @@ def settlement(items: list[SettlementItem], on: date) -> Settlement:
             i_unpaid = max(it.interest_part - it.interest_paid - it.waived_interest, ZERO)
             if it.due_date <= on:
                 i_take, i_waive = i_unpaid, ZERO
+            elif rebate is not Rebate.PRO_RATA:
+                allowed = min(keep_left, it.interest_part)
+                keep_left -= allowed
+                i_take = min(max(allowed - it.interest_paid - it.waived_interest, ZERO), i_unpaid)
+                i_waive = i_unpaid - i_take
+                credit += max(it.interest_paid - allowed, ZERO)
             elif not current_found:
                 current_found = True
                 span = max((it.due_date - it.period_start).days, 1)

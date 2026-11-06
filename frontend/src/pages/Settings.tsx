@@ -156,6 +156,12 @@ export function SettingsPage() {
               <Field label={t("settings.documentCharges")}>
                 {(id) => <MoneyInput id={id} value={form.document_charges_default} onChange={(v) => set("document_charges_default", v || "0")} />}
               </Field>
+              <Field label={t("settings.bounceDefault")}>
+                {(id) => <MoneyInput id={id} value={form.bounce_charge_default} onChange={(v) => set("bounce_charge_default", v || "0")} />}
+              </Field>
+              <Field label={t("settings.foreclosurePercent")}>
+                {(id) => <Input id={id} inputMode="decimal" value={form.foreclosure_charge_percent} onChange={(e) => set("foreclosure_charge_percent", e.target.value.replace(/[^\d.]/g, ""))} />}
+              </Field>
             </div>
           </Card>
           <Card>

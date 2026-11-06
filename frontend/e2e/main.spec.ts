@@ -16,6 +16,8 @@ const T = {
     amountReceived: "Amount received", savePayment: "Save payment", interest: "Interest", principal: "Principal",
     overdueTab: "Overdue", daysLate: "10 days late", collapse: "Collapse menu", expand: "Expand menu",
     vehicle: "Vehicle", reg: "Registration no.", price: "On-road price", down: "Down payment", addCharge: "Add a charge",
+    partPayment: "Part payment", amountReceivedPart: "Amount received", finishSooner: "Finish sooner",
+    addFee: "Add a charge", feesTitle: "Charges after the loan was given", rescheduled: "Rescheduled",
     amount: "Amount", ltvAck: "I still want to give this loan", handedOver: "Handed over on the day",
   },
   ta: {
@@ -27,6 +29,8 @@ const T = {
     amountReceived: "பெற்ற தொகை", savePayment: "கட்டணத்தைச் சேமி", interest: "வட்டி", principal: "அசல்",
     overdueTab: "தவறியவை", daysLate: "10 நாள் தாமதம்", collapse: "மெனுவைச் சுருக்கு", expand: "மெனுவை விரி",
     vehicle: "வாகனம்", reg: "பதிவு எண்", price: "ஆன்-ரோடு விலை", down: "முன்பணம்", addCharge: "கட்டணம் சேர்",
+    partPayment: "பகுதி செலுத்தல்", amountReceivedPart: "பெற்ற தொகை", finishSooner: "சீக்கிரம் முடியும்",
+    addFee: "கட்டணம் சேர்", feesTitle: "கடனுக்குப் பிறகு கட்டணங்கள்", rescheduled: "மாற்றியமைக்கப்பட்டது",
     amount: "தொகை", ltvAck: "இருந்தாலும் இந்தக் கடனைக் கொடுக்கிறேன்", handedOver: "அன்று கையில் கொடுத்தது",
   },
 } as const;
@@ -225,6 +229,43 @@ for (const lang of ["en", "ta"] as const) {
     await expect(page.locator("main")).toContainText("TN 59 AB 1234");
     await expect(page.locator("main")).toContainText(t.handedOver);
     await expect(page.locator("main")).toContainText("₹98,000.00");
+    await noOverflowOrRawKeys(page);
+    expect(errors).toEqual([]);
+  });
+
+  test(`part payment to finish sooner, then a bounce charge (${lang})`, async ({ page }) => {
+    const t = T[lang];
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    await signIn(page, lang);
+    const csrf = (await page.context().cookies()).find((c) => c.name === "lt_csrf")?.value ?? "";
+    const headers = { "X-CSRF-Token": csrf };
+    const id = unique();
+    const b = await (await page.request.post("/api/v1/borrowers", { headers, data: {
+      name_en: `Part Payer ${id}`, phone: `6${id.padStart(9, "4")}`, aadhaar: aadhaar(`8${id.padStart(10, "6")}`),
+      address: "x", consent: { given: true } } })).json();
+    const today = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
+    const given = new Date(today.getTime() - 5 * 86400000).toISOString().slice(0, 10);
+    const loan = await (await page.request.post("/api/v1/loans", { headers, data: {
+      borrower_id: b.id, idempotency_key: `e2e-part-${id}-${lang}`,
+      terms: { principal: "100000", rate: "2", term_value: 12, disbursal_date: given } } })).json();
+    await page.goto(`/loans/${loan.id}`);
+
+    await page.getByRole("button", { name: t.partPayment, exact: true }).click();
+    const sheet = page.getByRole("dialog");
+    await sheet.getByLabel(t.amountReceivedPart).fill("30000");
+    await sheet.getByText(t.finishSooner).click();
+    await expect(sheet).toContainText("₹70,000.00"); // principal after: 1,00,000 − 30,000
+    await expect(sheet).toContainText("12 → ");
+    await noOverflowOrRawKeys(page);
+    await sheet.getByRole("button").last().click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("main")).toContainText(t.rescheduled);
+
+    await page.getByRole("button", { name: t.addFee, exact: true }).first().click();
+    await page.getByRole("dialog").getByRole("button").last().click();
+    await expect(page.locator("main")).toContainText(t.feesTitle);
+    await expect(page.locator("main")).toContainText("₹500.00");
     await noOverflowOrRawKeys(page);
     expect(errors).toEqual([]);
   });

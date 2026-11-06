@@ -58,3 +58,17 @@ words (PRD section 9). **To be reviewed by a native speaker before launch.**
 | Advance installment | முன்கூட்டிய தவணை |
 | True cost | உண்மையான செலவு |
 | Loan to value | மதிப்புக்கு கடன் |
+
+## Part payment, charges and closing early
+
+| English | தமிழ் |
+| --- | --- |
+| Part payment | பகுதி செலுத்தல் |
+| Lower installment / finish sooner | தவணை குறையும் / சீக்கிரம் முடியும் |
+| Rescheduled | மாற்றியமைக்கப்பட்டது |
+| Cheque / auto-debit bounce | காசோலை / ஆட்டோ-டெபிட் திரும்பியது |
+| Seizure | பறிமுதல் |
+| Legal notice | சட்ட நோட்டீஸ் |
+| Waive | தள்ளுபடி |
+| Foreclosure charge | முன்கூட்டியே முடிக்கும் கட்டணம் |
+| Rule of 78 | 78 விதி |

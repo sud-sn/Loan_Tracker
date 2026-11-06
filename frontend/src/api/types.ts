@@ -134,6 +134,8 @@ export interface AppSettings {
   advance_installments_default: number;
   processing_fee_percent: string;
   document_charges_default: string;
+  bounce_charge_default: string;
+  foreclosure_charge_percent: string;
 }
 
 export interface ImportSummary {

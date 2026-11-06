@@ -18,14 +18,29 @@ from sqlalchemy.orm import Session, aliased
 from app.engine.money import ZERO, from_paise
 from app.engine.penalty import PaidEvent, PenaltyItem, PenaltyMode, PenaltyRule, accrued_penalty
 from app.engine.status import ItemState, LoanSummary, summarize
-from app.models import Loan, LoanAdjustment, Payment, PaymentAllocation, ScheduleItem
+from app.models import FeeAllocation, Loan, LoanAdjustment, LoanFee, Payment, PaymentAllocation, ScheduleItem
 
 
-def load_items(db: Session, loan_id: uuid.UUID, *, lock: bool = False) -> list[ScheduleItem]:
+def load_items(db: Session, loan_id: uuid.UUID, *, lock: bool = False, include_replaced: bool = False) -> list[ScheduleItem]:
+    """The loan's current installments. Rows replaced by a reschedule are left out unless asked
+    for (they are closed: shown in the history, never due)."""
     stmt = select(ScheduleItem).where(ScheduleItem.loan_id == loan_id).order_by(ScheduleItem.seq)
+    if not include_replaced:
+        stmt = stmt.where(ScheduleItem.replaced.is_(False))
     if lock:
         stmt = stmt.with_for_update()
     return list(db.scalars(stmt))
+
+
+def load_fees(db: Session, loan_id: uuid.UUID, *, lock: bool = False) -> list[LoanFee]:
+    stmt = select(LoanFee).where(LoanFee.loan_id == loan_id).order_by(LoanFee.charged_on, LoanFee.created_at)
+    if lock:
+        stmt = stmt.with_for_update()
+    return list(db.scalars(stmt))
+
+
+def fees_due(fees: list[LoanFee], as_of: date | None = None) -> int:
+    return sum(f.due for f in fees if as_of is None or f.charged_on <= as_of)
 
 
 def lock_loan(db: Session, loan_id: uuid.UUID) -> Loan | None:
@@ -118,7 +133,7 @@ def last_payment_on(db: Session, loan_id: uuid.UUID) -> date | None:
 
 def rebuild_item_cache(db: Session, loan_id: uuid.UUID, *, fix: bool = True) -> list[str]:
     """Recompute paid/waived columns from the ledger. Returns a description of any drift."""
-    items = load_items(db, loan_id, lock=fix)
+    items = load_items(db, loan_id, lock=fix, include_replaced=True)
     paid: dict[uuid.UUID, list[int]] = defaultdict(lambda: [0, 0, 0])
     for item_id, pen, intr, prin in db.execute(
         select(PaymentAllocation.schedule_item_id, func.sum(PaymentAllocation.penalty_part),
@@ -147,11 +162,23 @@ def rebuild_item_cache(db: Session, loan_id: uuid.UUID, *, fix: bool = True) -> 
             if fix:
                 (it.paid_penalty, it.paid_interest, it.paid_principal, it.waived_penalty, it.waived_interest,
                  it.waived_principal) = want
-        settled = it.principal_due <= 0 and it.interest_due <= 0
+        settled = it.replaced or (it.principal_due <= 0 and it.interest_due <= 0)
         if settled != it.settled:
             drift.append(f"loan {loan_id} item {it.seq}: settled flag {it.settled} != {settled}")
             if fix:
                 it.settled = settled
+    fee_paid = dict(db.execute(
+        select(FeeAllocation.fee_id, func.sum(FeeAllocation.amount))
+        .join(LoanFee, LoanFee.id == FeeAllocation.fee_id).where(LoanFee.loan_id == loan_id)
+        .group_by(FeeAllocation.fee_id)
+    ).all())
+    for fee in load_fees(db, loan_id, lock=fix):
+        want_paid = int(fee_paid.get(fee.id) or 0)
+        if want_paid != fee.paid:
+            drift.append(f"loan {loan_id} charge {fee.id}: paid {fee.paid} != ledger {want_paid}")
+            if fix:
+                fee.paid = want_paid
+    items = [it for it in items if not it.replaced]
     if loan is not None:
         want_outstanding = sum(max(it.principal_due + it.interest_due, 0) for it in items)
         want_principal = sum(max(it.principal_due, 0) for it in items)

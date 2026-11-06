@@ -22,10 +22,11 @@ EDITABLE = (
     "penalty_default_value", "penalty_grace_days", "staff_enabled", "staff_can_create_loans", "daily_summary_time",
     "retention_years", "max_upload_mb", "max_files_per_owner", "ltv_max_vehicle", "ltv_max_land",
     "emi_rounding_default", "broken_period_default", "advance_installments_default", "processing_fee_percent",
-    "document_charges_default",
+    "document_charges_default", "bounce_charge_default", "foreclosure_charge_percent",
 )
-MONEY = ("opening_balance", "document_charges_default")  # stored in paise
-TWO_DECIMALS = ("ltv_max_vehicle", "ltv_max_land", "emi_rounding_default", "processing_fee_percent")
+MONEY = ("opening_balance", "document_charges_default", "bounce_charge_default")  # stored in paise
+TWO_DECIMALS = ("ltv_max_vehicle", "ltv_max_land", "emi_rounding_default", "processing_fee_percent",
+                "foreclosure_charge_percent")
 
 
 def serialize(b: BusinessSettings) -> dict[str, Any]:

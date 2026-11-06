@@ -9,15 +9,17 @@ import type { AppSettings, LoanDetail, Payment, Reminder, Settlement } from "@/a
 import { ConfirmSheet } from "@/components/Confirm";
 import { Documents } from "@/components/Documents";
 import { LoanSummaryExtras, SecurityCard } from "@/components/LoanExtras";
+import { FeeSheet, FeesCard, PrepaySheet, ReschedulesCard, WaiveSheet } from "@/components/LoanPhase2";
 import { DateInput } from "@/components/DateInput";
 import { MoneyInput } from "@/components/MoneyInput";
 import { ScheduleList } from "@/components/ScheduleList";
 import { useQuickActions } from "@/components/QuickActions";
 import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/dialog";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, Select } from "@/components/ui/field";
 import { Card, ErrorState, KeyValue, ListSkeleton } from "@/components/ui/states";
 import { StatusBadge } from "@/components/ui/status";
+import { useDebounced } from "@/hooks/useOnline";
 import { useAuth } from "@/hooks/useAuth";
 import { errorMessage, useLang } from "@/i18n";
 import { displayName, dmy, money, todayIST } from "@/lib/format";
@@ -33,6 +35,9 @@ export function LoanDetailPage() {
   const navigate = useNavigate();
   const [reversing, setReversing] = useState<Payment | null>(null);
   const [settling, setSettling] = useState(false);
+  const [prepaying, setPrepaying] = useState(false);
+  const [addingFee, setAddingFee] = useState(false);
+  const [waiving, setWaiving] = useState<{ feeId?: string; due: string } | null>(null);
   const [writingOff, setWritingOff] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const loan = useQuery({ queryKey: ["loan", id], queryFn: () => api.get<LoanDetail>(`/loans/${id}`) });
@@ -99,6 +104,8 @@ export function LoanDetailPage() {
             </dl>
           </Card>
           <SecurityCard security={l.security} />
+          <FeesCard fees={l.fees} canWaive={!!isOwner && active} onWaive={(f) => setWaiving({ feeId: f.id, due: f.due })} />
+          <ReschedulesCard items={l.reschedules} />
           <div className="flex flex-wrap gap-2 lg:grid lg:grid-cols-2">
             {l.borrower.phone && (
               <>
@@ -120,7 +127,12 @@ export function LoanDetailPage() {
             <Card>
               <h2 className="mb-2 text-lg">{t("loan.actions")}</h2>
               <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setPrepaying(true)}>{t("prepay.button")}</Button>
                 <Button variant="secondary" onClick={() => setSettling(true)}>{t("loan.settle")}</Button>
+                <Button variant="outline" onClick={() => setAddingFee(true)}>{t("fee.add")}</Button>
+                {Number(s.penalty_outstanding) > 0 && (
+                  <Button variant="outline" onClick={() => setWaiving({ due: s.penalty_outstanding })}>{t("fee.waiveLate")}</Button>
+                )}
                 <Button variant="outline" onClick={() => setWritingOff(true)}>{t("loan.writeOff")}</Button>
                 {l.payments.length === 0 && <Button variant="ghost" className="text-late" onClick={() => setDeleting(true)}>{t("app.delete")}</Button>}
               </div>
@@ -184,6 +196,9 @@ export function LoanDetailPage() {
           await qc.invalidateQueries();
         }} />
       {settling && <SettleSheet loanId={id} onClose={() => setSettling(false)} />}
+      {prepaying && l && <PrepaySheet loanId={id} interestOnly={l.method === "interest_only"} onClose={() => setPrepaying(false)} />}
+      {addingFee && <FeeSheet loanId={id} settings={settings.data} onClose={() => setAddingFee(false)} />}
+      {waiving && <WaiveSheet loanId={id} feeId={waiving.feeId} due={waiving.due} onClose={() => setWaiving(null)} />}
       {writingOff && <WriteOffSheet loanId={id} onClose={() => setWritingOff(false)} />}
       <ConfirmSheet open={deleting} onOpenChange={setDeleting} title={t("app.delete")} body={t("loan.deleteConfirm")}
         confirmLabel={t("app.delete")} danger onConfirm={async () => {
@@ -199,10 +214,15 @@ function SettleSheet({ loanId, onClose }: { loanId: string; onClose: () => void 
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [on, setOn] = useState(todayIST());
+  const [rebate, setRebate] = useState<"pro_rata" | "rule_of_78" | "none">("pro_rata");
+  const [charge, setCharge] = useState<string | null>(null); // null = the % from Settings
   const [key] = useState(() => newKey("settle"));
-  const fig = useQuery({ queryKey: ["settlement", loanId, on], queryFn: () => api.get<Settlement>(`/loans/${loanId}/settlement`, { on }) });
+  const debouncedCharge = useDebounced(charge, 250);
+  const params = { on, rebate, ...(debouncedCharge !== null && debouncedCharge !== "" ? { foreclosure_charge: debouncedCharge } : {}) };
+  const fig = useQuery({ queryKey: ["settlement", loanId, params], queryFn: () => api.get<Settlement>(`/loans/${loanId}/settlement`, params) });
   const settle = useMutation({
-    mutationFn: () => api.post(`/loans/${loanId}/settle`, { on, expected_total: fig.data?.total, idempotency_key: key }),
+    mutationFn: () => api.post(`/loans/${loanId}/settle`, { on, rebate, foreclosure_charge: fig.data?.foreclosure_charge,
+      expected_total: fig.data?.total, idempotency_key: key }),
     onSuccess: async () => {
       await qc.invalidateQueries();
       onClose();
@@ -220,6 +240,16 @@ function SettleSheet({ loanId, onClose }: { loanId: string; onClose: () => void 
         <Field label={t("loan.settleDate")}>
           {(id) => <DateInput id={id} max={todayIST()} value={on} onChange={setOn} />}
         </Field>
+        <Field label={t("settle.rebate")} hint={t(`settle.rebate_${rebate}_hint`)}>
+          {(id, d) => (
+            <Select id={id} aria-describedby={d} value={rebate} onChange={(e) => setRebate(e.target.value as typeof rebate)}>
+              {(["pro_rata", "rule_of_78", "none"] as const).map((r) => <option key={r} value={r}>{t(`settle.rebate_${r}`)}</option>)}
+            </Select>
+          )}
+        </Field>
+        <Field label={t("settle.foreclosure")} hint={fig.data ? t("settle.foreclosureHint", { percent: fig.data.foreclosure_percent }) : undefined}>
+          {(id, d) => <MoneyInput id={id} describedBy={d} value={charge ?? fig.data?.foreclosure_charge ?? ""} onChange={(v) => setCharge(v)} />}
+        </Field>
         {fig.error && <p className="field-error">{errorMessage(fig.error)}</p>}
         {fig.data && (
           <dl>
@@ -227,6 +257,8 @@ function SettleSheet({ loanId, onClose }: { loanId: string; onClose: () => void 
             <KeyValue label={t("payment.interest")} value={money(fig.data.interest)} />
             {Number(fig.data.penalty) > 0 && <KeyValue label={t("payment.penalty")} value={money(fig.data.penalty)} />}
             <KeyValue label={t("loan.settleWaived")} value={money(fig.data.interest_waived)} />
+            {Number(fig.data.charges) > 0 && <KeyValue label={t("fee.title")} value={money(fig.data.charges)} />}
+            <KeyValue label={t("settle.foreclosure")} value={money(fig.data.foreclosure_charge)} />
             <KeyValue label={t("loan.settleTotal")} value={money(fig.data.total)} strong />
           </dl>
         )}

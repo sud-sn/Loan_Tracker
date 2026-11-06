@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -20,10 +21,19 @@ from sqlalchemy.orm import Session
 from app.core import clock
 from app.core.errors import AppError
 from app.deps import Ctx
-from app.engine import from_paise, to_paise
+from app.engine import from_paise, q2, to_paise
 from app.engine.allocation import OpenItem, allocate
-from app.engine.settlement import Settlement, SettlementItem, settlement
-from app.models import Loan, LoanAdjustment, Payment, PaymentAllocation, ScheduleItem
+from app.engine.settlement import Rebate, Settlement, SettlementItem, settlement
+from app.models import (
+    BusinessSettings,
+    FeeAllocation,
+    Loan,
+    LoanAdjustment,
+    LoanFee,
+    Payment,
+    PaymentAllocation,
+    ScheduleItem,
+)
 from app.repositories import counters
 from app.schemas.loans import PaymentIn, SettleIn, WriteOffIn
 from app.security.tokens import now
@@ -59,8 +69,22 @@ def _check_date(loan: Loan, on: date) -> None:
         raise AppError("DATE_BEFORE_DISBURSAL", 422)
 
 
+def _fee_lines(fees: list[LoanFee], amount: int, on: date) -> list[tuple[LoanFee, int]]:
+    """Charges are paid first, oldest first (only those charged on or before the payment date)."""
+    lines: list[tuple[LoanFee, int]] = []
+    left = amount
+    for fee in fees:
+        if left <= 0:
+            break
+        if fee.charged_on <= on and fee.due > 0:
+            take = min(left, fee.due)
+            lines.append((fee, take))
+            left -= take
+    return lines
+
+
 def _maybe_close(db: Session, loan: Loan, items: list[ScheduleItem], on: date, reason: str) -> None:
-    if all(it.settled for it in items):
+    if all(it.settled for it in items) and ledger.fees_due(ledger.load_fees(db, loan.id)) <= 0:
         pen = ledger.penalty_due(db, loan, items, clock.today())
         if all(v <= 0 for v in pen.values()):
             loan.status = "closed"
@@ -72,7 +96,7 @@ def _maybe_close(db: Session, loan: Loan, items: list[ScheduleItem], on: date, r
 def _post(
     ctx: Ctx, loan: Loan, items: list[ScheduleItem], *, kind: str, amount: Decimal, on: date, mode: str,
     reference: str | None, note: str | None, key: str, request_hash: str,
-    lines: list[tuple[ScheduleItem, int, int, int]],
+    lines: list[tuple[ScheduleItem, int, int, int]], fee_lines: list[tuple[LoanFee, int]] | None = None,
 ) -> Payment:
     payment = Payment(
         receipt_no=counters.next_receipt_no(ctx.db, on.year), loan_id=loan.id, kind=kind,
@@ -85,6 +109,9 @@ def _post(
         ctx.db.add(PaymentAllocation(payment_id=payment.id, schedule_item_id=item.id, penalty_part=pen,
                                      interest_part=intr, principal_part=prin))
         ledger.apply_to_item(item, pen, intr, prin)
+    for fee, amount_paid in fee_lines or []:
+        ctx.db.add(FeeAllocation(payment_id=payment.id, fee_id=fee.id, amount=amount_paid))
+        fee.paid += amount_paid
     if loan.last_payment_on is None or on > loan.last_payment_on:
         loan.last_payment_on = on
     ledger.refresh_loan_cache(loan, items)
@@ -105,6 +132,7 @@ def record(ctx: Ctx, loan_id: uuid.UUID, data: PaymentIn, *, commit: bool = True
         return hit, True
     _check_date(loan, on)
     items = ledger.load_items(db, loan.id, lock=True)
+    fees = ledger.load_fees(db, loan.id, lock=True)
     pen = ledger.penalty_due(db, loan, items, on)
     by_id = {str(it.id): it for it in items}
     open_items = [
@@ -112,12 +140,15 @@ def record(ctx: Ctx, loan_id: uuid.UUID, data: PaymentIn, *, commit: bool = True
                  from_paise(max(it.principal_due, 0)))
         for it in items
     ]
-    lines = allocate(data.amount, open_items)
+    fee_lines = _fee_lines(fees, to_paise(data.amount), on)
+    rest = data.amount - from_paise(sum(a for _, a in fee_lines))
+    lines = allocate(rest, open_items) if rest > 0 else []
     payment = _post(
         ctx, loan, items, kind="payment", amount=data.amount, on=on, mode=data.mode, reference=data.reference,
         note=data.note, key=data.idempotency_key, request_hash=request_hash,
         lines=[(by_id[ln.item_id], to_paise(ln.penalty_part), to_paise(ln.interest_part),
                 to_paise(ln.principal_part)) for ln in lines],
+        fee_lines=fee_lines,
     )
     _maybe_close(db, loan, items, on, "paid")
     audit.from_ctx(ctx, "payment.recorded", "payment", payment.id, {
@@ -153,6 +184,12 @@ def reverse(ctx: Ctx, payment_id: uuid.UUID, reason: str) -> Payment:
         raise AppError("ALREADY_REVERSED", 409)
     items = {it.id: it for it in ledger.load_items(db, loan.id, lock=True)}
     allocations = db.scalars(select(PaymentAllocation).where(PaymentAllocation.payment_id == original.id)).all()
+    if any(a.schedule_item_id not in items for a in allocations):
+        # Part of it sits on installments a part-prepayment has since replaced: undoing it would
+        # break the new schedule. Record a correction as a new entry instead.
+        raise AppError("PAYMENT_LOCKED_BY_RESCHEDULE", 409)
+    fee_allocations = db.scalars(select(FeeAllocation).where(FeeAllocation.payment_id == original.id)).all()
+    fees = {f.id: f for f in ledger.load_fees(db, loan.id, lock=True)}
     today = clock.today()
     reversal = Payment(
         receipt_no=counters.next_receipt_no(db, today.year), loan_id=loan.id, kind="reversal",
@@ -167,6 +204,9 @@ def reverse(ctx: Ctx, payment_id: uuid.UUID, reason: str) -> Payment:
                                  penalty_part=-a.penalty_part, interest_part=-a.interest_part,
                                  principal_part=-a.principal_part))
         ledger.apply_to_item(items[a.schedule_item_id], -a.penalty_part, -a.interest_part, -a.principal_part)
+    for fa in fee_allocations:
+        db.add(FeeAllocation(payment_id=reversal.id, fee_id=fa.fee_id, amount=-fa.amount))
+        fees[fa.fee_id].paid -= fa.amount
     db.flush()
     loan.last_payment_on = ledger.last_payment_on(db, loan.id)
     ledger.refresh_loan_cache(loan, list(items.values()))
@@ -196,33 +236,67 @@ def _settlement_items(db: Session, loan: Loan, items: list[ScheduleItem], on: da
     return out
 
 
-def settlement_figure(db: Session, loan: Loan, on: date) -> Settlement:
+@dataclass(frozen=True)
+class Closing:
+    """What closing the loan early costs on a date: the schedule part, charges still unpaid, and
+    the foreclosure charge (a % of the principal being repaid, which the owner can change)."""
+
+    fig: Settlement
+    rebate: Rebate
+    fees: Decimal
+    foreclosure: Decimal
+    foreclosure_percent: Decimal
+
+    @property
+    def total(self) -> Decimal:
+        return self.fig.total + self.fees + self.foreclosure
+
+
+def closing_figure(db: Session, loan: Loan, items: list[ScheduleItem], fees: list[LoanFee], on: date,
+                   business: BusinessSettings, rebate: Rebate = Rebate.PRO_RATA,
+                   foreclosure: Decimal | None = None) -> Closing:
     _check_date(loan, on)
     if loan.last_payment_on and on < loan.last_payment_on:
         raise AppError("DATE_BEFORE_LAST_PAYMENT", 422)
-    return settlement(_settlement_items(db, loan, ledger.load_items(db, loan.id), on), on)
+    fig = settlement(_settlement_items(db, loan, items, on), on, rebate)
+    percent = Decimal(business.foreclosure_charge_percent)
+    charge = q2(fig.principal * percent / 100) if foreclosure is None else q2(foreclosure)
+    return Closing(fig, rebate, from_paise(ledger.fees_due(fees)), charge, percent)
+
+
+def settlement_figure(db: Session, loan: Loan, on: date, business: BusinessSettings,
+                      rebate: Rebate = Rebate.PRO_RATA, foreclosure: Decimal | None = None) -> Closing:
+    return closing_figure(db, loan, ledger.load_items(db, loan.id), ledger.load_fees(db, loan.id), on, business,
+                          rebate, foreclosure)
 
 
 def settle(ctx: Ctx, loan_id: uuid.UUID, data: SettleIn) -> Payment:
     db = ctx.db
     on = data.on or clock.today()
-    request_hash = _request_hash({"settle": str(loan_id), "on": on.isoformat(), "total": str(data.expected_total)})
+    request_hash = _request_hash({"settle": str(loan_id), "on": on.isoformat(), "total": str(data.expected_total),
+                                  "rebate": data.rebate, "foreclosure": str(data.foreclosure_charge)})
     if (hit := _replay(db, data.idempotency_key, request_hash)) is not None:
         return hit
     loan = _active_loan(db, loan_id)
     items = ledger.load_items(db, loan.id, lock=True)
-    _check_date(loan, on)
-    if loan.last_payment_on and on < loan.last_payment_on:
-        raise AppError("DATE_BEFORE_LAST_PAYMENT", 422)
-    fig = settlement(_settlement_items(db, loan, items, on), on)
-    if fig.total != data.expected_total:
-        raise AppError("SETTLEMENT_CHANGED", 409, total=str(fig.total))
+    fees = ledger.load_fees(db, loan.id, lock=True)
+    closing = closing_figure(db, loan, items, fees, on, ctx.business, Rebate(data.rebate), data.foreclosure_charge)
+    fig = closing.fig
+    if closing.total != data.expected_total:
+        raise AppError("SETTLEMENT_CHANGED", 409, total=str(closing.total))
+    if closing.foreclosure > 0:
+        fee = LoanFee(loan_id=loan.id, kind="foreclosure", amount=to_paise(closing.foreclosure), charged_on=on,
+                      created_by=ctx.user.id)
+        db.add(fee)
+        db.flush()
+        fees.append(fee)
     by_id = {str(it.id): it for it in items}
     payment = _post(
-        ctx, loan, items, kind="settlement", amount=fig.total, on=on, mode=data.mode, reference=data.reference,
+        ctx, loan, items, kind="settlement", amount=closing.total, on=on, mode=data.mode, reference=data.reference,
         note=None, key=data.idempotency_key, request_hash=request_hash,
         lines=[(by_id[ln.item_id], to_paise(ln.penalty), to_paise(ln.interest), to_paise(ln.principal))
                for ln in fig.lines if ln.penalty or ln.interest or ln.principal],
+        fee_lines=[(f, f.due) for f in fees if f.due > 0],
     )
     for ln in fig.lines:
         if ln.interest_waived or ln.principal_waived:
@@ -236,7 +310,8 @@ def settle(ctx: Ctx, loan_id: uuid.UUID, data: SettleIn) -> Payment:
     ledger.refresh_loan_cache(loan, items)
     loan.status, loan.closed_at, loan.closed_on, loan.closed_reason = "closed", now(), on, "settled_early"
     audit.from_ctx(ctx, "loan.settled", "loan", loan.id, {
-        "loan_no": loan.loan_no, "total": str(fig.total), "interest_waived": str(fig.interest_waived),
+        "loan_no": loan.loan_no, "total": str(closing.total), "interest_waived": str(fig.interest_waived),
+        "rebate": data.rebate, "foreclosure_charge": str(closing.foreclosure), "charges": str(closing.fees),
         "receipt_no": payment.receipt_no,
     })
     db.commit()

@@ -609,6 +609,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/fees/{fee_id}/waive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Waive Fee */
+        post: operations["waive_fee_api_v1_fees__fee_id__waive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/files/{token}": {
         parameters: {
             query?: never;
@@ -731,6 +748,23 @@ export interface paths {
         patch: operations["update_loan_api_v1_loans__loan_id__patch"];
         trace?: never;
     };
+    "/api/v1/loans/{loan_id}/fees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Fee */
+        post: operations["add_fee_api_v1_loans__loan_id__fees_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loans/{loan_id}/payments": {
         parameters: {
             query?: never;
@@ -742,6 +776,24 @@ export interface paths {
         put?: never;
         /** Record Payment */
         post: operations["record_payment_api_v1_loans__loan_id__payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/prepay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prepay Preview */
+        get: operations["prepay_preview_api_v1_loans__loan_id__prepay_get"];
+        put?: never;
+        /** Prepay */
+        post: operations["prepay_api_v1_loans__loan_id__prepay_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -810,6 +862,23 @@ export interface paths {
         get: operations["loan_summary_pdf_api_v1_loans__loan_id__summary_pdf_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/waive-late-fee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Waive Late Fee */
+        post: operations["waive_late_fee_api_v1_loans__loan_id__waive_late_fee_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1655,6 +1724,54 @@ export interface components {
             /** Size */
             size: number;
         };
+        /** FeeIn */
+        FeeIn: {
+            /** Amount */
+            amount: number | string;
+            /** Charged On */
+            charged_on?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bounce" | "seizure" | "legal" | "valuation" | "insurance" | "other";
+            /** Label */
+            label?: string | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** FeeOut */
+        FeeOut: {
+            /** Amount */
+            amount: string;
+            /**
+             * Charged On
+             * Format: date
+             */
+            charged_on: string;
+            /** Due */
+            due: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bounce" | "seizure" | "legal" | "valuation" | "insurance" | "foreclosure" | "other";
+            /** Label */
+            label: string | null;
+            /** Note */
+            note: string | null;
+            /** Paid */
+            paid: string;
+            /** Waive Reason */
+            waive_reason: string | null;
+            /** Waived */
+            waived: string;
+        };
         /** GuarantorIn */
         GuarantorIn: {
             /** Name */
@@ -1778,6 +1895,8 @@ export interface components {
             disbursal_mode: "cash" | "upi" | "bank" | "cheque" | "other";
             /** Emi Rounding */
             emi_rounding: string;
+            /** Fees */
+            fees: components["schemas"]["FeeOut"][];
             /**
              * First Due Date
              * Format: date
@@ -1841,6 +1960,8 @@ export interface components {
              * @enum {string}
              */
             rate_basis: "month" | "year";
+            /** Reschedules */
+            reschedules: components["schemas"]["RescheduleOut"][];
             /** Schedule */
             schedule: components["schemas"]["ScheduleItemOut"][];
             /** Security */
@@ -1919,6 +2040,8 @@ export interface components {
             days_since_last_payment: number;
             /** Due Today Amount */
             due_today_amount: string;
+            /** Fees Outstanding */
+            fees_outstanding: string;
             /** Interest Outstanding */
             interest_outstanding: string;
             /** Next Due Amount */
@@ -2110,6 +2233,67 @@ export interface components {
              */
             value: number | string;
         };
+        /** PrepayIn */
+        PrepayIn: {
+            /** Amount */
+            amount: number | string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Mode
+             * @default cash
+             * @enum {string}
+             */
+            mode: "cash" | "upi" | "bank" | "cheque" | "other";
+            /**
+             * Mode Of Reschedule
+             * @default reduce_emi
+             * @enum {string}
+             */
+            mode_of_reschedule: "reduce_emi" | "reduce_term";
+            /** Paid On */
+            paid_on?: string | null;
+            /** Reference */
+            reference?: string | null;
+        };
+        /** PrepayPreviewOut */
+        PrepayPreviewOut: {
+            /** Dues */
+            dues: string;
+            /** Extra */
+            extra: string;
+            /** Interest Saved */
+            interest_saved: string;
+            /** New Count */
+            new_count: number;
+            /** New Installment */
+            new_installment: string;
+            /**
+             * New Maturity
+             * Format: date
+             */
+            new_maturity: string;
+            /** Old Count */
+            old_count: number;
+            /** Old Installment */
+            old_installment: string;
+            /**
+             * Old Maturity
+             * Format: date
+             */
+            old_maturity: string;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+            /** Principal After */
+            principal_after: string;
+            /** Principal Before */
+            principal_before: string;
+            /** Rows */
+            rows: components["schemas"]["ScheduleRowOut"][];
+        };
         /**
          * PreviewIn
          * @description Terms plus what is collected when the loan is given and what it is given against, so the
@@ -2281,6 +2465,41 @@ export interface components {
             /** Whatsapp Url */
             whatsapp_url: string | null;
         };
+        /** RescheduleOut */
+        RescheduleOut: {
+            /** Extra */
+            extra: string;
+            /** Interest Saved */
+            interest_saved: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "reduce_emi" | "reduce_term";
+            /** New Count */
+            new_count: number;
+            /** New Installment */
+            new_installment: string;
+            /**
+             * New Maturity
+             * Format: date
+             */
+            new_maturity: string;
+            /** Old Count */
+            old_count: number;
+            /** Old Installment */
+            old_installment: string;
+            /**
+             * Old Maturity
+             * Format: date
+             */
+            old_maturity: string;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+        };
         /** RevealOut */
         RevealOut: {
             /** Aadhaar */
@@ -2325,7 +2544,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "upcoming" | "due_today" | "partially_paid" | "overdue" | "paid";
+            status: "upcoming" | "due_today" | "partially_paid" | "overdue" | "paid" | "rescheduled";
             /** Unpaid */
             unpaid: string;
             /** Waived */
@@ -2538,6 +2757,8 @@ export interface components {
             advance_installments_default?: number | null;
             /** Balance Start Date */
             balance_start_date?: string | null;
+            /** Bounce Charge Default */
+            bounce_charge_default?: number | string | null;
             /** Broken Period Default */
             broken_period_default?: ("none" | "first_installment" | "upfront") | null;
             /** Daily Summary Time */
@@ -2552,6 +2773,8 @@ export interface components {
             due_window_days?: number | null;
             /** Emi Rounding Default */
             emi_rounding_default?: number | string | null;
+            /** Foreclosure Charge Percent */
+            foreclosure_charge_percent?: number | string | null;
             /** Lender Address */
             lender_address?: string | null;
             /** Lender Name */
@@ -2593,6 +2816,8 @@ export interface components {
         SettleIn: {
             /** Expected Total */
             expected_total: number | string;
+            /** Foreclosure Charge */
+            foreclosure_charge?: number | string | null;
             /** Idempotency Key */
             idempotency_key: string;
             /**
@@ -2603,13 +2828,25 @@ export interface components {
             mode: "cash" | "upi" | "bank" | "cheque" | "other";
             /** On */
             on?: string | null;
+            /**
+             * Rebate
+             * @default pro_rata
+             * @enum {string}
+             */
+            rebate: "pro_rata" | "rule_of_78" | "none";
             /** Reference */
             reference?: string | null;
         };
         /** SettlementOut */
         SettlementOut: {
+            /** Charges */
+            charges: string;
             /** Credit */
             credit: string;
+            /** Foreclosure Charge */
+            foreclosure_charge: string;
+            /** Foreclosure Percent */
+            foreclosure_percent: string;
             /** Interest */
             interest: string;
             /** Interest Waived */
@@ -2623,6 +2860,11 @@ export interface components {
             penalty: string;
             /** Principal */
             principal: string;
+            /**
+             * Rebate
+             * @enum {string}
+             */
+            rebate: "pro_rata" | "rule_of_78" | "none";
             /** Total */
             total: string;
         };
@@ -2812,6 +3054,13 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WaiveIn */
+        WaiveIn: {
+            /** Amount */
+            amount?: number | string | null;
+            /** Reason */
+            reason: string;
         };
         /** WriteOffIn */
         WriteOffIn: {
@@ -4099,6 +4348,41 @@ export interface operations {
             };
         };
     };
+    waive_fee_api_v1_fees__fee_id__waive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fee_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaiveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     serve_file_api_v1_files__token__get: {
         parameters: {
             query?: never;
@@ -4417,6 +4701,41 @@ export interface operations {
             };
         };
     };
+    add_fee_api_v1_loans__loan_id__fees_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     record_payment_api_v1_loans__loan_id__payments_post: {
         parameters: {
             query?: never;
@@ -4431,6 +4750,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PaymentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prepay_preview_api_v1_loans__loan_id__prepay_get: {
+        parameters: {
+            query: {
+                amount: number | string;
+                on?: string | null;
+                mode?: "reduce_emi" | "reduce_term";
+            };
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrepayPreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prepay_api_v1_loans__loan_id__prepay_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepayIn"];
             };
         };
         responses: {
@@ -4524,6 +4913,8 @@ export interface operations {
         parameters: {
             query?: {
                 on?: string | null;
+                rebate?: "pro_rata" | "rule_of_78" | "none";
+                foreclosure_charge?: number | string | null;
             };
             header?: never;
             path: {
@@ -4573,6 +4964,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    waive_late_fee_api_v1_loans__loan_id__waive_late_fee_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaiveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
                 };
             };
             /** @description Validation Error */

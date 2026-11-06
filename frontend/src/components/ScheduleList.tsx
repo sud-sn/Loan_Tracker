@@ -27,7 +27,7 @@ export function ScheduleList({ rows }: { rows: ScheduleRowView[] }) {
     <>
       <ol className="space-y-2 sm:hidden">
         {rows.map((r) => (
-          <li key={r.seq} className={cn("rounded-xl border border-line bg-surface p-3", r.status === "overdue" && "border-l-4 border-l-late")}>
+          <li key={r.seq} className={cn("rounded-xl border border-line bg-surface p-3", r.status === "overdue" && "border-l-4 border-l-late", r.status === "rescheduled" && "opacity-60")}>
             <div className="flex items-start justify-between gap-2">
               <span className="font-semibold">#{r.seq} · {dmy(r.due_date)}</span>
               <span className="text-lg font-bold tabular">{money(r.installment)}</span>
@@ -63,7 +63,7 @@ export function ScheduleList({ rows }: { rows: ScheduleRowView[] }) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.seq} className={cn("border-t border-line", r.status === "overdue" && "bg-late-soft/50")}>
+              <tr key={r.seq} className={cn("border-t border-line", r.status === "overdue" && "bg-late-soft/50", r.status === "rescheduled" && "text-muted opacity-60")}>
                 <td className="px-2 py-2">{r.seq}</td>
                 <td className="px-2 py-2">{dmy(r.due_date)}</td>
                 <td className="px-2 py-2 text-right font-semibold tabular">{money(r.installment)}</td>

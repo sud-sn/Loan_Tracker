@@ -1550,6 +1550,166 @@
     "title": "DocumentOut",
     "type": "object"
    },
+   "FeeIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "charged_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Charged On"
+     },
+     "kind": {
+      "enum": [
+       "bounce",
+       "seizure",
+       "legal",
+       "valuation",
+       "insurance",
+       "other"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "kind",
+     "amount"
+    ],
+    "title": "FeeIn",
+    "type": "object"
+   },
+   "FeeOut": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "charged_on": {
+      "format": "date",
+      "title": "Charged On",
+      "type": "string"
+     },
+     "due": {
+      "title": "Due",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "bounce",
+       "seizure",
+       "legal",
+       "valuation",
+       "insurance",
+       "foreclosure",
+       "other"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "paid": {
+      "title": "Paid",
+      "type": "string"
+     },
+     "waive_reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Waive Reason"
+     },
+     "waived": {
+      "title": "Waived",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "kind",
+     "label",
+     "amount",
+     "charged_on",
+     "paid",
+     "waived",
+     "due",
+     "waive_reason",
+     "note"
+    ],
+    "title": "FeeOut",
+    "type": "object"
+   },
    "GuarantorIn": {
     "properties": {
      "name": {
@@ -1862,6 +2022,13 @@
       "title": "Emi Rounding",
       "type": "string"
      },
+     "fees": {
+      "items": {
+       "$ref": "#/components/schemas/FeeOut"
+      },
+      "title": "Fees",
+      "type": "array"
+     },
      "first_due_date": {
       "format": "date",
       "title": "First Due Date",
@@ -2022,6 +2189,13 @@
       "title": "Rate Basis",
       "type": "string"
      },
+     "reschedules": {
+      "items": {
+       "$ref": "#/components/schemas/RescheduleOut"
+      },
+      "title": "Reschedules",
+      "type": "array"
+     },
      "schedule": {
       "items": {
        "$ref": "#/components/schemas/ScheduleItemOut"
@@ -2142,7 +2316,9 @@
      "created_at",
      "summary",
      "schedule",
-     "payments"
+     "payments",
+     "fees",
+     "reschedules"
     ],
     "title": "LoanDetailOut",
     "type": "object"
@@ -2246,6 +2422,10 @@
       "title": "Due Today Amount",
       "type": "string"
      },
+     "fees_outstanding": {
+      "title": "Fees Outstanding",
+      "type": "string"
+     },
      "interest_outstanding": {
       "title": "Interest Outstanding",
       "type": "string"
@@ -2317,6 +2497,7 @@
      "principal_outstanding",
      "interest_outstanding",
      "penalty_outstanding",
+     "fees_outstanding",
      "total_outstanding",
      "days_since_last_payment",
      "paid_total"
@@ -2797,6 +2978,158 @@
      }
     },
     "title": "PenaltyIn",
+    "type": "object"
+   },
+   "PrepayIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "mode_of_reschedule": {
+      "default": "reduce_emi",
+      "enum": [
+       "reduce_emi",
+       "reduce_term"
+      ],
+      "title": "Mode Of Reschedule",
+      "type": "string"
+     },
+     "paid_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Paid On"
+     },
+     "reference": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reference"
+     }
+    },
+    "required": [
+     "amount",
+     "idempotency_key"
+    ],
+    "title": "PrepayIn",
+    "type": "object"
+   },
+   "PrepayPreviewOut": {
+    "properties": {
+     "dues": {
+      "title": "Dues",
+      "type": "string"
+     },
+     "extra": {
+      "title": "Extra",
+      "type": "string"
+     },
+     "interest_saved": {
+      "title": "Interest Saved",
+      "type": "string"
+     },
+     "new_count": {
+      "title": "New Count",
+      "type": "integer"
+     },
+     "new_installment": {
+      "title": "New Installment",
+      "type": "string"
+     },
+     "new_maturity": {
+      "format": "date",
+      "title": "New Maturity",
+      "type": "string"
+     },
+     "old_count": {
+      "title": "Old Count",
+      "type": "integer"
+     },
+     "old_installment": {
+      "title": "Old Installment",
+      "type": "string"
+     },
+     "old_maturity": {
+      "format": "date",
+      "title": "Old Maturity",
+      "type": "string"
+     },
+     "paid_on": {
+      "format": "date",
+      "title": "Paid On",
+      "type": "string"
+     },
+     "principal_after": {
+      "title": "Principal After",
+      "type": "string"
+     },
+     "principal_before": {
+      "title": "Principal Before",
+      "type": "string"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/ScheduleRowOut"
+      },
+      "title": "Rows",
+      "type": "array"
+     }
+    },
+    "required": [
+     "paid_on",
+     "dues",
+     "extra",
+     "principal_before",
+     "principal_after",
+     "old_installment",
+     "new_installment",
+     "old_count",
+     "new_count",
+     "old_maturity",
+     "new_maturity",
+     "interest_saved",
+     "rows"
+    ],
+    "title": "PrepayPreviewOut",
     "type": "object"
    },
    "PreviewIn": {
@@ -3311,6 +3644,71 @@
     "title": "ReminderOut",
     "type": "object"
    },
+   "RescheduleOut": {
+    "properties": {
+     "extra": {
+      "title": "Extra",
+      "type": "string"
+     },
+     "interest_saved": {
+      "title": "Interest Saved",
+      "type": "string"
+     },
+     "mode": {
+      "enum": [
+       "reduce_emi",
+       "reduce_term"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "new_count": {
+      "title": "New Count",
+      "type": "integer"
+     },
+     "new_installment": {
+      "title": "New Installment",
+      "type": "string"
+     },
+     "new_maturity": {
+      "format": "date",
+      "title": "New Maturity",
+      "type": "string"
+     },
+     "old_count": {
+      "title": "Old Count",
+      "type": "integer"
+     },
+     "old_installment": {
+      "title": "Old Installment",
+      "type": "string"
+     },
+     "old_maturity": {
+      "format": "date",
+      "title": "Old Maturity",
+      "type": "string"
+     },
+     "paid_on": {
+      "format": "date",
+      "title": "Paid On",
+      "type": "string"
+     }
+    },
+    "required": [
+     "paid_on",
+     "extra",
+     "mode",
+     "old_installment",
+     "new_installment",
+     "old_count",
+     "new_count",
+     "old_maturity",
+     "new_maturity",
+     "interest_saved"
+    ],
+    "title": "RescheduleOut",
+    "type": "object"
+   },
    "RevealOut": {
     "properties": {
      "aadhaar": {
@@ -3393,7 +3791,8 @@
        "due_today",
        "partially_paid",
        "overdue",
-       "paid"
+       "paid",
+       "rescheduled"
       ],
       "title": "Status",
       "type": "string"
@@ -4334,6 +4733,21 @@
       ],
       "title": "Balance Start Date"
      },
+     "bounce_charge_default": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bounce Charge Default"
+     },
      "broken_period_default": {
       "anyOf": [
        {
@@ -4432,6 +4846,22 @@
        }
       ],
       "title": "Emi Rounding Default"
+     },
+     "foreclosure_charge_percent": {
+      "anyOf": [
+       {
+        "maximum": 25.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Foreclosure Charge Percent"
      },
      "lender_address": {
       "anyOf": [
@@ -4690,6 +5120,21 @@
       ],
       "title": "Expected Total"
      },
+     "foreclosure_charge": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Foreclosure Charge"
+     },
      "idempotency_key": {
       "maxLength": 80,
       "minLength": 8,
@@ -4720,6 +5165,16 @@
       ],
       "title": "On"
      },
+     "rebate": {
+      "default": "pro_rata",
+      "enum": [
+       "pro_rata",
+       "rule_of_78",
+       "none"
+      ],
+      "title": "Rebate",
+      "type": "string"
+     },
      "reference": {
       "anyOf": [
        {
@@ -4742,8 +5197,20 @@
    },
    "SettlementOut": {
     "properties": {
+     "charges": {
+      "title": "Charges",
+      "type": "string"
+     },
      "credit": {
       "title": "Credit",
+      "type": "string"
+     },
+     "foreclosure_charge": {
+      "title": "Foreclosure Charge",
+      "type": "string"
+     },
+     "foreclosure_percent": {
+      "title": "Foreclosure Percent",
       "type": "string"
      },
      "interest": {
@@ -4767,6 +5234,15 @@
       "title": "Principal",
       "type": "string"
      },
+     "rebate": {
+      "enum": [
+       "pro_rata",
+       "rule_of_78",
+       "none"
+      ],
+      "title": "Rebate",
+      "type": "string"
+     },
      "total": {
       "title": "Total",
       "type": "string"
@@ -4778,8 +5254,12 @@
      "interest",
      "penalty",
      "credit",
-     "total",
-     "interest_waived"
+     "interest_waived",
+     "rebate",
+     "charges",
+     "foreclosure_charge",
+     "foreclosure_percent",
+     "total"
     ],
     "title": "SettlementOut",
     "type": "object"
@@ -5301,6 +5781,36 @@
      "type"
     ],
     "title": "ValidationError",
+    "type": "object"
+   },
+   "WaiveIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Amount"
+     },
+     "reason": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Reason",
+      "type": "string"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "WaiveIn",
     "type": "object"
    },
    "WriteOffIn": {
@@ -7251,6 +7761,59 @@
     ]
    }
   },
+  "/api/v1/fees/{fee_id}/waive": {
+   "post": {
+    "operationId": "waive_fee_api_v1_fees__fee_id__waive_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "fee_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Fee Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WaiveIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Waive Fee",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
   "/api/v1/files/{token}": {
    "get": {
     "operationId": "serve_file_api_v1_files__token__get",
@@ -7705,6 +8268,59 @@
     ]
    }
   },
+  "/api/v1/loans/{loan_id}/fees": {
+   "post": {
+    "operationId": "add_fee_api_v1_loans__loan_id__fees_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FeeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Add Fee",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
   "/api/v1/loans/{loan_id}/payments": {
    "post": {
     "operationId": "record_payment_api_v1_loans__loan_id__payments_post",
@@ -7769,6 +8385,148 @@
      }
     },
     "summary": "Record Payment",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/prepay": {
+   "get": {
+    "operationId": "prepay_preview_api_v1_loans__loan_id__prepay_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "amount",
+      "required": true,
+      "schema": {
+       "anyOf": [
+        {
+         "exclusiveMinimum": 0.0,
+         "type": "number"
+        },
+        {
+         "type": "string"
+        }
+       ],
+       "title": "Amount"
+      }
+     },
+     {
+      "in": "query",
+      "name": "on",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "format": "date",
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "On"
+      }
+     },
+     {
+      "in": "query",
+      "name": "mode",
+      "required": false,
+      "schema": {
+       "default": "reduce_emi",
+       "enum": [
+        "reduce_emi",
+        "reduce_term"
+       ],
+       "title": "Mode",
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PrepayPreviewOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Prepay Preview",
+    "tags": [
+     "loans"
+    ]
+   },
+   "post": {
+    "operationId": "prepay_api_v1_loans__loan_id__prepay_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PrepayIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PaymentOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Prepay",
     "tags": [
      "loans"
     ]
@@ -7900,6 +8658,41 @@
        ],
        "title": "On"
       }
+     },
+     {
+      "in": "query",
+      "name": "rebate",
+      "required": false,
+      "schema": {
+       "default": "pro_rata",
+       "enum": [
+        "pro_rata",
+        "rule_of_78",
+        "none"
+       ],
+       "title": "Rebate",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "foreclosure_charge",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "minimum": 0.0,
+         "type": "number"
+        },
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Foreclosure Charge"
+      }
      }
     ],
     "responses": {
@@ -7986,6 +8779,59 @@
      }
     },
     "summary": "Loan Summary Pdf",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/waive-late-fee": {
+   "post": {
+    "operationId": "waive_late_fee_api_v1_loans__loan_id__waive_late_fee_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WaiveIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Waive Late Fee",
     "tags": [
      "loans"
     ]

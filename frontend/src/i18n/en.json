@@ -96,7 +96,8 @@
     "closed": "Closed",
     "written_off": "Written off",
     "blocked": "Blocked",
-    "incomplete": "Details missing"
+    "incomplete": "Details missing",
+    "rescheduled": "Rescheduled"
   },
   "mode": {
     "cash": "Cash",
@@ -539,7 +540,9 @@
     "ltvVehicle": "Highest loan-to-value for a vehicle (%)",
     "ltvLand": "Highest loan-to-value for land (%)",
     "processingFee": "Processing fee (% of the loan)",
-    "documentCharges": "Document charges"
+    "documentCharges": "Document charges",
+    "bounceDefault": "Bounce charge",
+    "foreclosurePercent": "Foreclosure charge (% of principal repaid)"
   },
   "import": {
     "title": "Notebook import",
@@ -666,7 +669,15 @@
     "ADVANCE_INVALID": "Advance installments must be between 0 and {{max}}.",
     "ROUNDING_INVALID": "Round to ₹1, ₹5, ₹10, ₹50 or ₹100.",
     "ROUNDING_TOO_LARGE": "The rounding is too large for this loan amount.",
-    "FIRST_DUE_TOO_SOON": "The first due date is too close to the day the loan is given."
+    "FIRST_DUE_TOO_SOON": "The first due date is too close to the day the loan is given.",
+    "PREPAY_LESS_THAN_DUES": "{{dues}} is due today; a part payment must be more than that.",
+    "PREPAY_USE_SETTLEMENT": "This pays off the whole loan ({{owed}} principal): use Close early instead.",
+    "PREPAY_NOT_FOR_METHOD": "Part payment is not available for this kind of loan.",
+    "NOTHING_TO_RESCHEDULE": "No installments are left to work out again.",
+    "RESCHEDULE_MODE_NOT_FOR_METHOD": "An interest-only loan can only lower the installment.",
+    "PAYMENT_LOCKED_BY_RESCHEDULE": "This payment cannot be reversed: the installments it paid were worked out again after a part payment.",
+    "WAIVER_TOO_LARGE": "You can waive at most {{due}}.",
+    "FEE_NOT_FOUND": "That charge was not found."
   },
   "security": {
     "question": "What is the loan given against?",
@@ -786,5 +797,57 @@
     "ltvValue": "{{ltv}}% (limit {{max}}%)",
     "ltvWarning": "The loan is {{ltv}}% of the security's value ({{value}}); your limit is {{max}}%.",
     "ltvAck": "I still want to give this loan"
+  },
+  "prepay": {
+    "button": "Part payment",
+    "title": "Part payment",
+    "intro": "Anything due today is paid first; the rest reduces the principal and the installments not yet due are worked out again.",
+    "amount": "Amount received",
+    "confirm": "Receive {{amount}}",
+    "reduceEmi": "Lower installment",
+    "reduceEmiHint": "Same number of months",
+    "reduceTerm": "Finish sooner",
+    "reduceTermHint": "Same installment, fewer months",
+    "dues": "Due today, paid first",
+    "extra": "Towards principal",
+    "principal": "Principal still owed",
+    "saved": "Interest saved",
+    "history": "Part payments"
+  },
+  "fee": {
+    "title": "Charges after the loan was given",
+    "add": "Add a charge",
+    "addTitle": "Add a charge",
+    "addIntro": "It is owed from today; payments pay charges first.",
+    "bounce": "Cheque / auto-debit bounce",
+    "seizure": "Seizure / towing",
+    "legal": "Legal notice",
+    "valuation": "Valuation",
+    "insurance": "Insurance paid for the borrower",
+    "foreclosure": "Foreclosure charge",
+    "other": "Other",
+    "note": "Note",
+    "paid": "{{amount}} paid",
+    "waived": "{{amount}} waived",
+    "due": "{{amount}} due",
+    "waive": "Waive",
+    "waiveLate": "Waive late fee",
+    "waiveTitle": "Waive a charge",
+    "waiveLateTitle": "Waive the late fee",
+    "waiveIntro": "{{amount}} is due now. Waive all or part of it.",
+    "waiveAmount": "Amount to waive",
+    "reason": "Reason",
+    "waiveConfirm": "Waive {{amount}}"
+  },
+  "settle": {
+    "rebate": "Interest for the months not yet due",
+    "rebate_pro_rata": "Interest to today only (fairest)",
+    "rebate_pro_rata_hint": "This month's interest for the days so far; later interest is not charged.",
+    "rebate_rule_of_78": "Rule of 78",
+    "rebate_rule_of_78_hint": "Common for flat loans: more interest is earned in the early months.",
+    "rebate_none": "No rebate: all remaining interest",
+    "rebate_none_hint": "The borrower pays all the interest of the loan.",
+    "foreclosure": "Foreclosure charge",
+    "foreclosureHint": "{{percent}}% of the principal being repaid (Settings). Type 0 to waive."
   }
 }
