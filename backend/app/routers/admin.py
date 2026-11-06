@@ -265,3 +265,22 @@ def readyz(db: DB) -> dict[str, Any]:
     storage = get_settings().storage_dir
     return {"status": "ready", "database": "ok", "storage": "ok" if storage.exists() else "missing",
             "engine": get_engine().dialect.name, "zero": str(from_paise(0))}
+
+
+@router.get("/analytics/status")
+def analytics_status(ctx: OwnerCtx) -> dict[str, Any]:
+    """When the analytics star schema was last rebuilt, and how many rows each table has."""
+    from app.services import analytics
+
+    return analytics.status(ctx.db)
+
+
+@router.post("/analytics/refresh")
+def analytics_refresh(ctx: OwnerCtx) -> dict[str, Any]:
+    """Rebuild the analytics star schema now (it is also rebuilt every night)."""
+    from app.services import analytics
+
+    out = analytics.refresh(ctx.db)
+    audit.from_ctx(ctx, "analytics.refreshed", None, None, {"rows": sum(out["rows"].values())})
+    ctx.db.commit()
+    return out

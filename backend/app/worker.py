@@ -88,6 +88,10 @@ def nightly() -> None:
         detail["documents_purged"] = documents.purge_expired(db)
         detail["counts"] = {k: v for k, v in dues.counts(db, load_business(db), today).items() if k != "ageing"}
         detail["backup"] = check_backup(db)
+        # Rebuild the analytics star schema for the next day's charts and queries.
+        from app.services import analytics
+
+        detail["analytics_rows"] = sum(analytics.refresh(db)["rows"].values())
         _record(db, "nightly", "ok", detail)
     except Exception as exc:  # noqa: BLE001 - every failure must reach the owner
         db.rollback()

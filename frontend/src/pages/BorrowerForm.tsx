@@ -35,6 +35,7 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
   const [altPhone, setAltPhone] = useState("");
   const [aadhaar, setAadhaar] = useState("");
   const [address, setAddress] = useState("");
+  const [profile, setProfile] = useState({ occupation: "", town: "", district: "", pincode: "" });
   const [language, setLanguage] = useState<"en" | "ta">("ta");
   const [status, setStatus] = useState("active");
   const [notes, setNotes] = useState("");
@@ -53,6 +54,7 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
     setPhone(b.phone ?? "");
     setAltPhone(b.alt_phone ?? "");
     setAddress(b.address ?? "");
+    setProfile({ occupation: b.occupation ?? "", town: b.town ?? "", district: b.district ?? "", pincode: b.pincode ?? "" });
     setLanguage(b.preferred_language);
     setStatus(b.status);
     setNotes(b.notes ?? "");
@@ -79,6 +81,8 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
       const common = {
         name_en: names.nameEn || null, name_ta: names.nameTa || null, relation_name: relation || null, phone,
         alt_phone: altPhone || null, address, preferred_language: language, notes: notes || null,
+        occupation: profile.occupation || null, town: profile.town || null, district: profile.district || null,
+        pincode: profile.pincode || null,
         guarantors: guarantors.filter((g) => g.name.trim()).map((g) => ({ name: g.name, phone: g.phone || null,
           relation: g.relation || null })),
         confirm_duplicate: confirmDuplicate,
@@ -146,6 +150,16 @@ export function BorrowerForm({ onSaved, inline }: { onSaved?: (b: Borrower) => v
           <Field label={t("borrower.address")} error={show(errors.address)}>
             {(fid, d) => <Textarea id={fid} aria-describedby={d} value={address} onChange={(e) => setAddress(e.target.value)} />}
           </Field>
+          {/* Plain details used for reports by place and occupation (never Aadhaar or phone). */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(["town", "district", "occupation", "pincode"] as const).map((k) => (
+              <Field key={k} label={t(`borrower.${k}`)} optional={t("app.optional")}>
+                {(fid) => <Input id={fid} value={profile[k]} inputMode={k === "pincode" ? "numeric" : undefined}
+                  maxLength={k === "pincode" ? 6 : 80}
+                  onChange={(e) => setProfile({ ...profile, [k]: k === "pincode" ? e.target.value.replace(/\D/g, "") : e.target.value })} />}
+              </Field>
+            ))}
+          </div>
         </div>
         <div className="min-w-0 space-y-5">
           <Segmented label={t("borrower.language")} value={language} onChange={setLanguage}

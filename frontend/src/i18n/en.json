@@ -288,7 +288,11 @@
     "eraseConfirm": "Erase this borrower's personal details? Loan records are kept as the law requires.",
     "deleteConfirm": "Delete this borrower? This is only possible if they never had a loan.",
     "count_one": "{{count}} borrower",
-    "count_other": "{{count}} borrowers"
+    "count_other": "{{count}} borrowers",
+    "town": "Village / town",
+    "district": "District",
+    "occupation": "Occupation",
+    "pincode": "PIN code"
   },
   "consentText": {
     "en": "We record your name, phone, address, Aadhaar number and documents only to give and manage your loan and to contact you about payments. They are stored securely on the lender's own computer, are not shared, and are kept for {{years}} years after your loan closes. You can ask to see, correct or remove your details.",

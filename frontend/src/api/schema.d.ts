@@ -38,6 +38,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analytics Refresh
+         * @description Rebuild the analytics star schema now (it is also rebuilt every night).
+         */
+        post: operations["analytics_refresh_api_v1_analytics_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Analytics Status
+         * @description When the analytics star schema was last rebuilt, and how many rows each table has.
+         */
+        get: operations["analytics_status_api_v1_analytics_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/audit": {
         parameters: {
             query?: never;
@@ -1429,6 +1469,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** District */
+            district?: string | null;
             /** Guarantors */
             guarantors: components["schemas"]["GuarantorOut"][];
             /**
@@ -1442,8 +1484,12 @@ export interface components {
             name_ta: string | null;
             /** Notes */
             notes: string | null;
+            /** Occupation */
+            occupation?: string | null;
             /** Phone */
             phone: string | null;
+            /** Pincode */
+            pincode?: string | null;
             /**
              * Preferred Language
              * @enum {string}
@@ -1459,6 +1505,8 @@ export interface components {
              */
             status: "active" | "blocked" | "closed";
             totals: components["schemas"]["BorrowerTotals"];
+            /** Town */
+            town?: string | null;
             /** Version */
             version: number;
         };
@@ -1476,6 +1524,8 @@ export interface components {
              */
             confirm_duplicate: boolean;
             consent: components["schemas"]["ConsentIn"];
+            /** District */
+            district?: string | null;
             /** Guarantors */
             guarantors?: components["schemas"]["GuarantorIn"][];
             /** Name En */
@@ -1484,8 +1534,12 @@ export interface components {
             name_ta?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Occupation */
+            occupation?: string | null;
             /** Phone */
             phone: string;
+            /** Pincode */
+            pincode?: string | null;
             /**
              * Preferred Language
              * @default ta
@@ -1494,6 +1548,8 @@ export interface components {
             preferred_language: "en" | "ta";
             /** Relation Name */
             relation_name?: string | null;
+            /** Town */
+            town?: string | null;
         };
         /** BorrowerListItem */
         BorrowerListItem: {
@@ -1543,6 +1599,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** District */
+            district?: string | null;
             /** Guarantors */
             guarantors: components["schemas"]["GuarantorOut"][];
             /**
@@ -1556,8 +1614,12 @@ export interface components {
             name_ta: string | null;
             /** Notes */
             notes: string | null;
+            /** Occupation */
+            occupation?: string | null;
             /** Phone */
             phone: string | null;
+            /** Pincode */
+            pincode?: string | null;
             /**
              * Preferred Language
              * @enum {string}
@@ -1572,6 +1634,8 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "blocked" | "closed";
+            /** Town */
+            town?: string | null;
             /** Version */
             version: number;
         };
@@ -1626,6 +1690,8 @@ export interface components {
              * @default false
              */
             confirm_duplicate: boolean;
+            /** District */
+            district?: string | null;
             /** Guarantors */
             guarantors?: components["schemas"]["GuarantorIn"][] | null;
             /** Name En */
@@ -1634,14 +1700,20 @@ export interface components {
             name_ta?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Occupation */
+            occupation?: string | null;
             /** Phone */
             phone?: string | null;
+            /** Pincode */
+            pincode?: string | null;
             /** Preferred Language */
             preferred_language?: ("en" | "ta") | null;
             /** Relation Name */
             relation_name?: string | null;
             /** Status */
             status?: ("active" | "blocked" | "closed") | null;
+            /** Town */
+            town?: string | null;
             /** Version */
             version: number;
         };
@@ -3544,6 +3616,50 @@ export interface operations {
         };
     };
     readyz_api_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    analytics_refresh_api_v1_analytics_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    analytics_status_api_v1_analytics_status_get: {
         parameters: {
             query?: never;
             header?: never;

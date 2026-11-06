@@ -160,6 +160,17 @@
       "title": "Created At",
       "type": "string"
      },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
      "guarantors": {
       "items": {
        "$ref": "#/components/schemas/GuarantorOut"
@@ -205,6 +216,17 @@
       ],
       "title": "Notes"
      },
+     "occupation": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Occupation"
+     },
      "phone": {
       "anyOf": [
        {
@@ -215,6 +237,17 @@
        }
       ],
       "title": "Phone"
+     },
+     "pincode": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pincode"
      },
      "preferred_language": {
       "enum": [
@@ -250,6 +283,17 @@
      },
      "totals": {
       "$ref": "#/components/schemas/BorrowerTotals"
+     },
+     "town": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Town"
      },
      "version": {
       "title": "Version",
@@ -313,6 +357,18 @@
      "consent": {
       "$ref": "#/components/schemas/ConsentIn"
      },
+     "district": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
      "guarantors": {
       "items": {
        "$ref": "#/components/schemas/GuarantorIn"
@@ -357,11 +413,35 @@
       ],
       "title": "Notes"
      },
+     "occupation": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Occupation"
+     },
      "phone": {
       "maxLength": 16,
       "minLength": 10,
       "title": "Phone",
       "type": "string"
+     },
+     "pincode": {
+      "anyOf": [
+       {
+        "pattern": "^\\d{6}$",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pincode"
      },
      "preferred_language": {
       "default": "ta",
@@ -383,6 +463,18 @@
        }
       ],
       "title": "Relation Name"
+     },
+     "town": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Town"
      }
     },
     "required": [
@@ -533,6 +625,17 @@
       "title": "Created At",
       "type": "string"
      },
+     "district": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
      "guarantors": {
       "items": {
        "$ref": "#/components/schemas/GuarantorOut"
@@ -578,6 +681,17 @@
       ],
       "title": "Notes"
      },
+     "occupation": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Occupation"
+     },
      "phone": {
       "anyOf": [
        {
@@ -588,6 +702,17 @@
        }
       ],
       "title": "Phone"
+     },
+     "pincode": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pincode"
      },
      "preferred_language": {
       "enum": [
@@ -620,6 +745,17 @@
       ],
       "title": "Status",
       "type": "string"
+     },
+     "town": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Town"
      },
      "version": {
       "title": "Version",
@@ -805,6 +941,18 @@
       "title": "Confirm Duplicate",
       "type": "boolean"
      },
+     "district": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
      "guarantors": {
       "anyOf": [
        {
@@ -856,6 +1004,18 @@
       ],
       "title": "Notes"
      },
+     "occupation": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Occupation"
+     },
      "phone": {
       "anyOf": [
        {
@@ -867,6 +1027,18 @@
        }
       ],
       "title": "Phone"
+     },
+     "pincode": {
+      "anyOf": [
+       {
+        "pattern": "^\\d{6}$",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Pincode"
      },
      "preferred_language": {
       "anyOf": [
@@ -910,6 +1082,18 @@
        }
       ],
       "title": "Status"
+     },
+     "town": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Town"
      },
      "version": {
       "title": "Version",
@@ -6761,6 +6945,54 @@
     "summary": "Readyz",
     "tags": [
      "health"
+    ]
+   }
+  },
+  "/api/v1/analytics/refresh": {
+   "post": {
+    "description": "Rebuild the analytics star schema now (it is also rebuilt every night).",
+    "operationId": "analytics_refresh_api_v1_analytics_refresh_post",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Analytics Refresh Api V1 Analytics Refresh Post",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Analytics Refresh",
+    "tags": [
+     "admin"
+    ]
+   }
+  },
+  "/api/v1/analytics/status": {
+   "get": {
+    "description": "When the analytics star schema was last rebuilt, and how many rows each table has.",
+    "operationId": "analytics_status_api_v1_analytics_status_get",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "title": "Response Analytics Status Api V1 Analytics Status Get",
+         "type": "object"
+        }
+       }
+      },
+      "description": "Successful Response"
+     }
+    },
+    "summary": "Analytics Status",
+    "tags": [
+     "admin"
     ]
    }
   },

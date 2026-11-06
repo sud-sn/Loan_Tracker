@@ -288,7 +288,11 @@
     "eraseConfirm": "இவரின் தனிப்பட்ட விவரங்களை அழிக்கவா? சட்டப்படி கடன் பதிவுகள் வைக்கப்படும்.",
     "deleteConfirm": "இவரை நீக்கவா? இவருக்கு ஒருபோதும் கடன் இல்லாவிட்டால் மட்டுமே முடியும்.",
     "count_one": "{{count}} நபர்",
-    "count_other": "{{count}} நபர்கள்"
+    "count_other": "{{count}} நபர்கள்",
+    "town": "கிராமம் / ஊர்",
+    "district": "மாவட்டம்",
+    "occupation": "தொழில்",
+    "pincode": "அஞ்சல் குறியீடு"
   },
   "consentText": {
     "en": "We record your name, phone, address, Aadhaar number and documents only to give and manage your loan and to contact you about payments. They are stored securely on the lender's own computer, are not shared, and are kept for {{years}} years after your loan closes. You can ask to see, correct or remove your details.",

@@ -128,6 +128,11 @@ class Borrower(Entity):
     aadhaar_hash: Mapped[bytes | None] = mapped_column(LargeBinary, index=True)
     aadhaar_last4: Mapped[str | None] = mapped_column(String(4), index=True)
     address: Mapped[str | None] = mapped_column(Text)
+    # Profile for analytics (Phase 4): optional, plain details; never Aadhaar or phone.
+    occupation: Mapped[str | None] = mapped_column(String(80))
+    town: Mapped[str | None] = mapped_column(String(80))  # village or town
+    district: Mapped[str | None] = mapped_column(String(60))
+    pincode: Mapped[str | None] = mapped_column(String(6))
     preferred_language: Mapped[str] = mapped_column(String(5), nullable=False, server_default="ta")
     status: Mapped[str] = mapped_column(String(10), nullable=False, server_default="active")
     notes: Mapped[str | None] = mapped_column(Text)

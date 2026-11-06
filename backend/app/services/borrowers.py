@@ -86,6 +86,7 @@ def create(ctx: Ctx, data: BorrowerIn) -> Borrower:
         code=counters.next_borrower_code(db),
         name_en=nfc(data.name_en), name_ta=nfc(data.name_ta), relation_name=nfc(data.relation_name),
         phone=phone, alt_phone=_phone(data.alt_phone, "alt_phone"), address=nfc(data.address),
+        occupation=nfc(data.occupation), town=nfc(data.town), district=nfc(data.district), pincode=data.pincode,
         preferred_language=data.preferred_language, notes=data.notes, created_by=ctx.user.id,
     )
     b.name_latin = search_key(b.name_en, b.name_ta)
@@ -123,7 +124,7 @@ def update(ctx: Ctx, borrower_id: uuid.UUID, data: BorrowerUpdateIn) -> Borrower
         raise AppError("BORROWER_ERASED", 409)
     changes: dict[str, Any] = {}
     fields = data.model_fields_set
-    for name in ("name_en", "name_ta", "relation_name", "address"):
+    for name in ("name_en", "name_ta", "relation_name", "address", "occupation", "town", "district", "pincode"):
         if name in fields:
             value = nfc(getattr(data, name))
             if value != getattr(b, name):
@@ -166,7 +167,8 @@ def serialize(b: Borrower) -> dict[str, Any]:
     return {
         "id": b.id, "code": b.code, "name_en": b.name_en, "name_ta": b.name_ta, "relation_name": b.relation_name,
         "phone": b.phone, "alt_phone": b.alt_phone, "aadhaar_masked": mask_aadhaar(b.aadhaar_last4),
-        "address": b.address, "preferred_language": b.preferred_language, "status": b.status, "notes": b.notes,
+        "address": b.address, "occupation": b.occupation, "town": b.town, "district": b.district,
+        "pincode": b.pincode, "preferred_language": b.preferred_language, "status": b.status, "notes": b.notes,
         "profile_incomplete": b.aadhaar_hash is None, "version": b.version, "created_at": b.created_at,
         "guarantors": [{"id": g.id, "name": g.name, "phone": g.phone, "relation": g.relation} for g in b.guarantors],
     }
@@ -246,6 +248,7 @@ def erase(ctx: Ctx, borrower_id: uuid.UUID) -> None:
                        until=(keep_until + timedelta(days=365 * ctx.business.retention_years)).isoformat())
     b.name_en, b.name_ta, b.relation_name, b.name_latin = "[erased]", None, None, ""
     b.phone = b.alt_phone = b.address = b.notes = None
+    b.occupation = b.town = b.district = b.pincode = None
     b.aadhaar_encrypted = b.aadhaar_hash = None
     b.aadhaar_last4 = None
     b.erased_at = now()

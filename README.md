@@ -46,7 +46,8 @@ on a phone.
 backend/    FastAPI + SQLAlchemy + Alembic (Python 3.12). app/engine is the pure interest engine.
 frontend/   React + TypeScript + Vite PWA, Tailwind design tokens, i18next (en.json, ta.json).
 infra/      Docker Compose, Caddy, backup / restore / health scripts.
-docs/       Runbook, architecture, decisions, acceptance status, Tamil glossary, privacy notice.
+docs/       Runbook, architecture, decisions, acceptance status, Tamil glossary, privacy notice,
+            analytics (star schema for reports and charts).
 ```
 
 ## Run it at home (production)

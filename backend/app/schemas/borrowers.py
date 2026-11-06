@@ -36,6 +36,10 @@ class BorrowerIn(Schema):
     alt_phone: str | None = Field(default=None, max_length=16)
     aadhaar: str = Field(min_length=12, max_length=14, repr=False)
     address: str = Field(min_length=1, max_length=1000)
+    occupation: str | None = Field(default=None, max_length=80)
+    town: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=60)
+    pincode: str | None = Field(default=None, pattern=r"^\d{6}$")
     preferred_language: Lang = "ta"
     notes: str | None = Field(default=None, max_length=4000)
     guarantors: list[GuarantorIn] = Field(default_factory=list, max_length=5)
@@ -60,6 +64,10 @@ class BorrowerUpdateIn(Schema):
     alt_phone: str | None = Field(default=None, max_length=16)
     aadhaar: str | None = Field(default=None, max_length=14, repr=False)
     address: str | None = Field(default=None, max_length=1000)
+    occupation: str | None = Field(default=None, max_length=80)
+    town: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=60)
+    pincode: str | None = Field(default=None, pattern=r"^\d{6}$")
     preferred_language: Lang | None = None
     status: BorrowerStatus | None = None
     notes: str | None = Field(default=None, max_length=4000)
@@ -86,6 +94,10 @@ class BorrowerOut(Schema):
     alt_phone: str | None
     aadhaar_masked: str | None
     address: str | None
+    occupation: str | None = None
+    town: str | None = None
+    district: str | None = None
+    pincode: str | None = None
     preferred_language: Lang
     status: BorrowerStatus
     notes: str | None
