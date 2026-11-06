@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { ApiError, api } from "@/api/client";
-import type { AppSettings, Borrower, BorrowerDetail, LoanDetail, Preview, SearchResult, TermsIn } from "@/api/types";
+import type { AppSettings, Borrower, BorrowerDetail, LoanDetail, LoanListItem, Preview, SearchResult, TermsIn } from "@/api/types";
 import { DateInput } from "@/components/DateInput";
 import { Documents } from "@/components/Documents";
 import {
@@ -26,7 +26,7 @@ import { cn, newKey } from "@/lib/utils";
 
 import { BorrowerForm } from "./BorrowerForm";
 
-type Frequency = "monthly" | "weekly" | "daily" | "single";
+type Frequency = "monthly" | "weekly" | "daily" | "single" | "quarterly" | "half_yearly" | "yearly";
 type FixedMode = "period" | "amount" | "split";
 type Style = "flat" | "reducing";
 
@@ -113,6 +113,10 @@ export function NewLoanPage() {
   const [charges, setCharges] = useState<ChargeRow[]>([]);
   const [opts, setOpts] = useState<OptionsState>({ rounding: "10", advance: "0", brokenPeriod: "first_installment" });
   const [defaultsApplied, setDefaultsApplied] = useState(false);
+  const [topup, setTopup] = useState("");
+  const borrowerLoans = useQuery({ queryKey: ["borrower-loans", borrowerId], enabled: !!borrowerId,
+    queryFn: () => api.get<LoanListItem[]>(`/borrowers/${borrowerId}/loans`) });
+  const activeLoans = (borrowerLoans.data ?? []).filter((x) => x.stored_status === "active");
   const [key] = useState(() => newKey("loan"));
   const [saved, setSaved] = useState<LoanDetail | null>(null);
   const set = <K extends keyof TermsState>(k: K, v: TermsState[K]) => setS((prev) => ({ ...prev, [k]: v }));
@@ -132,8 +136,8 @@ export function NewLoanPage() {
   const terms = useMemo(() => toTerms(s, opts), [s, opts]);
   const chargesIn = useMemo(() => chargesPayload(charges, s.principal, settings.data), [charges, s.principal, settings.data]);
   const securityIn = useMemo(() => securityPayload(sec), [sec]);
-  const previewBody = useMemo(() => (terms ? { ...terms, charges: chargesIn, security: securityIn } : null),
-    [terms, chargesIn, securityIn]);
+  const previewBody = useMemo(() => (terms ? { ...terms, charges: chargesIn, security: securityIn, topup_of: topup || null } : null),
+    [terms, chargesIn, securityIn, topup]);
   const debouncedTerms = useDebounced(previewBody, 120);
   const preview = useQuery({
     queryKey: ["preview", debouncedTerms],
@@ -146,7 +150,7 @@ export function NewLoanPage() {
     mutationFn: () => api.post<LoanDetail>("/loans", {
       borrower_id: borrowerId, terms, disbursal_mode: s.disbursalMode, purpose: s.purpose || null, notes: s.notes || null,
       penalty: { mode: s.penaltyMode, value: s.penaltyValue || "0", grace_days: Number(s.graceDays || 0) },
-      charges: chargesIn, security: securityIn,
+      charges: chargesIn, security: securityIn, topup_of: topup || null,
       acknowledge_rate_warning: ack, acknowledge_ltv_warning: ltvAck, idempotency_key: key,
     }),
     onSuccess: (loan) => {
@@ -233,8 +237,10 @@ export function NewLoanPage() {
           <Segmented label={t("loan.frequency")} value={s.frequency} columns={4}
             onChange={(v) => setS((prev) => ({ ...prev, frequency: v, rows: null,
               termUnit: v === "single" || v === "daily" ? "days" : v === "weekly" ? "installments" : "months",
-              termValue: v === "single" ? "90" : v === "daily" ? "100" : v === "weekly" ? "12" : prev.termValue }))}
-            options={(["monthly", "weekly", "daily", "single"] as const).map((f) => ({ value: f, label: t(`frequency.${f}`) }))} />
+              termValue: v === "single" ? "90" : v === "daily" ? "100" : v === "weekly" ? "12"
+                : v === "yearly" ? "36" : v === "half_yearly" ? "24" : prev.termValue }))}
+            options={(["monthly", "weekly", "daily", "single", "quarterly", "half_yearly", "yearly"] as const)
+              .map((f) => ({ value: f, label: t(`frequency.${f}`) }))} />
 
           {s.frequency !== "single" && (
             <Switch checked={s.fixedOn} onCheckedChange={(v) => setS((prev) => ({ ...prev, fixedOn: v, rows: null }))}
@@ -321,6 +327,16 @@ export function NewLoanPage() {
             </Field>
           </div>
 
+          {activeLoans.length > 0 && (
+            <Field label={t("topup.label")} hint={t("topup.hint")}>
+              {(id, d) => (
+                <Select id={id} aria-describedby={d} value={topup} onChange={(e) => setTopup(e.target.value)}>
+                  <option value="">{t("topup.none")}</option>
+                  {activeLoans.map((x) => <option key={x.id} value={x.id}>{x.loan_no} · {money(x.outstanding)}</option>)}
+                </Select>
+              )}
+            </Field>
+          )}
           <ChargesCard rows={charges} onChange={setCharges} principal={s.principal} settings={settings.data} />
           {s.frequency !== "single" && (
             <LoanOptions o={opts} onChange={setOpts} amortizing={amortizing} oddFirst={!!s.firstDueDate} />

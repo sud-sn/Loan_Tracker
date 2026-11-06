@@ -6,6 +6,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { api, openFile } from "@/api/client";
 import type { AppSettings, Dashboard, Daybook, DaybookEntry } from "@/api/types";
+import { InsuranceCard } from "@/components/LoanPhase3";
 import { DueLists } from "@/components/DueList";
 import { QuickAddButtons } from "@/components/QuickActions";
 import { Button } from "@/components/ui/button";
@@ -128,6 +129,7 @@ export function HomePage() {
       <div className="space-y-6">
       {/* Who has to pay: full width, so each row lays out as one line on a laptop. */}
       <DueLists windowDays={settings.data?.due_window_days ?? 7} />
+      <InsuranceCard />
 
       <section aria-labelledby="cards" className="space-y-3">
         <h2 id="cards" className="text-xl">{t("home.cards")}</h2>

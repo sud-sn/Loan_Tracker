@@ -72,3 +72,16 @@ words (PRD section 9). **To be reviewed by a native speaker before launch.**
 | Waive | தள்ளுபடி |
 | Foreclosure charge | முன்கூட்டியே முடிக்கும் கட்டணம் |
 | Rule of 78 | 78 விதி |
+
+## Phase 3
+
+| English | தமிழ் |
+| --- | --- |
+| Restructure | கடனை மாற்றியமை |
+| Installments to skip (EMI holiday) | தள்ளிவைக்கும் தவணைகள் |
+| Seize vehicle / record sale | வாகனத்தைப் பறிமுதல் செய் / விற்பனையைப் பதிவு செய் |
+| Given back to the borrower | வாடிக்கையாளருக்குத் திருப்பியது |
+| No-dues certificate | நிலுவை இல்லாச் சான்று |
+| Top-up | டாப்-அப் |
+| Cheque bounced / cleared | காசோலை திரும்பியது / பணம் வந்தது |
+| Every 3 / 6 months, yearly | 3 / 6 மாதத்துக்கு ஒருமுறை, வருடம் ஒருமுறை |

@@ -62,6 +62,7 @@ class Figures:
     result: ScheduleResult
     rate_above: bool
     loan_amount: Decimal  # as entered, before charges added to it
+    topup_closing: Decimal
     financed: Decimal  # the schedule's principal: loan amount + charges added
     charges_added: Decimal
     charges_deducted: Decimal  # includes extra days' interest collected up front
@@ -75,14 +76,15 @@ class Figures:
 
 
 def figures(terms: TermsIn, charges: Sequence[ChargeIn], security: Sequence[SecurityIn],
-            business: BusinessSettings) -> Figures:
+            business: BusinessSettings, topup_closing: Decimal = ZERO) -> Figures:
     added = sum((c.amount for c in charges if c.treatment == "added"), ZERO)
     deducted = sum((c.amount for c in charges if c.treatment == "deducted"), ZERO)
     financed = terms.principal + added
     result = build_schedule(to_terms(terms, principal=financed))
     above = business.max_rate_monthly is not None and result.monthly_rate_equivalent > Decimal(business.max_rate_monthly)
     collected = deducted + result.broken_period_upfront
-    handed_over = terms.principal - collected - result.advance_amount
+    # A top-up closes the earlier loan from this one: what it owes is not handed over.
+    handed_over = terms.principal - collected - result.advance_amount - topup_closing
     if handed_over <= 0:
         raise AppError("HANDED_OVER_NOT_POSITIVE", 422, handed_over=str(handed_over))
     # The borrower receives the loan amount less what is taken out; advance installments are
@@ -104,6 +106,7 @@ def figures(terms: TermsIn, charges: Sequence[ChargeIn], security: Sequence[Secu
         ltv_above = financed > allowed
     return Figures(
         result=result, rate_above=above, loan_amount=q2(terms.principal), financed=q2(financed),
+        topup_closing=q2(topup_closing),
         charges_added=q2(added), charges_deducted=q2(collected), handed_over=q2(handed_over),
         true_cost_monthly=cost.monthly_percent if cost else None, true_cost_yearly=cost.yearly_percent if cost else None,
         security_value=q2(total_value) if total_value > 0 else None, ltv_percent=ltv, ltv_maximum=ltv_max,
@@ -127,7 +130,7 @@ def preview_out(f: Figures, business: BusinessSettings) -> dict[str, Any]:
         "odd_period_upfront": result.broken_period_upfront, "amount_handed_over": f.handed_over,
         "true_cost_monthly": f.true_cost_monthly, "true_cost_yearly": f.true_cost_yearly,
         "security_value": f.security_value, "ltv_percent": f.ltv_percent, "ltv_maximum": f.ltv_maximum,
-        "ltv_above_maximum": f.ltv_above,
+        "ltv_above_maximum": f.ltv_above, "topup_closing": f.topup_closing,
         "rows": [row.__dict__ for row in result.rows],
     }
 
@@ -172,7 +175,13 @@ def create(ctx: Ctx, data: LoanCreateIn, *, import_batch_id: uuid.UUID | None = 
     if data.terms.disbursal_date > clock.today():
         raise AppError("DATE_IN_FUTURE", 422)
 
-    f = figures(data.terms, data.charges, data.security, ctx.business)
+    old: Loan | None = None
+    closing_total = ZERO
+    if data.topup_of is not None:
+        old = topup_source(db, data.topup_of, borrower.id)
+        closing_total = topup_closing(db, old, data.terms.disbursal_date, ctx.business)
+    security = list(data.security) or ([_security_in(c) for c in old.securities] if old else [])
+    f = figures(data.terms, data.charges, security, ctx.business, closing_total)
     result, above = f.result, f.rate_above
     if above and not data.acknowledge_rate_warning:
         raise AppError("RATE_ABOVE_MAXIMUM", 409, rate=str(result.monthly_rate_equivalent),
@@ -216,7 +225,8 @@ def create(ctx: Ctx, data: LoanCreateIn, *, import_batch_id: uuid.UUID | None = 
         broken_period_interest=to_paise(result.broken_period_interest),
         amount_handed_over=to_paise(f.handed_over),
         true_cost_monthly=f.true_cost_monthly,
-        security_kind=_security_kind(data.security),
+        security_kind=_security_kind(security),
+        topup_of_id=old.id if old else None,
         ltv_percent=f.ltv_percent,
         ltv_warning_acknowledged=f.ltv_above,
         idempotency_key=data.idempotency_key,
@@ -244,7 +254,7 @@ def create(ctx: Ctx, data: LoanCreateIn, *, import_batch_id: uuid.UUID | None = 
     if result.broken_period_upfront > 0:
         db.add(LoanCharge(loan_id=loan.id, kind="odd_period_interest", amount=to_paise(result.broken_period_upfront),
                           treatment="deducted"))
-    db.add_all(_collateral(loan.id, sec) for sec in data.security)
+    db.add_all(_collateral(loan.id, sec) for sec in security)
     db.flush()
     audit.from_ctx(ctx, "loan.created", "loan", loan.id, {
         "loan_no": loan.loan_no, "borrower": borrower.code, "principal": str(f.financed), "method": t.method,
@@ -262,9 +272,38 @@ def create(ctx: Ctx, data: LoanCreateIn, *, import_batch_id: uuid.UUID | None = 
             amount=result.advance_amount, paid_on=t.disbursal_date, mode=data.disbursal_mode,
             idempotency_key=f"{data.idempotency_key}:advance",
         ), commit=False)
+    if old is not None:
+        # Close the earlier loan with this one, on the day it is given (interest to that day, no
+        # foreclosure charge); the settlement shows as a payment on the earlier loan.
+        from app.schemas.loans import SettleIn
+        from app.services import payments
+
+        db.flush()
+        payments.settle(ctx, old.id, SettleIn(on=t.disbursal_date, expected_total=closing_total,
+                                              foreclosure_charge=ZERO, mode=data.disbursal_mode,
+                                              reference=loan.loan_no, idempotency_key=f"{data.idempotency_key}:topup"))
     if commit:
         db.commit()
     return loan
+
+
+def topup_source(db: Session, loan_id: uuid.UUID, borrower_id: uuid.UUID) -> Loan:
+    old = db.get(Loan, loan_id)
+    if old is None or old.borrower_id != borrower_id or old.status != "active":
+        raise AppError("TOPUP_LOAN_INVALID", 422)
+    return old
+
+
+def topup_closing(db: Session, old: Loan, on: Any, business: BusinessSettings) -> Decimal:
+    from app.engine.settlement import Rebate
+    from app.services import payments
+
+    return payments.settlement_figure(db, old, on, business, Rebate.PRO_RATA, ZERO).total
+
+
+def _security_in(c: Collateral) -> SecurityIn:
+    out = _security_out(c)
+    return SecurityIn.model_validate({k: out[k] for k in SecurityIn.model_fields})
 
 
 def get(db: Session, loan_id: uuid.UUID) -> Loan:
@@ -317,6 +356,9 @@ def serialize(db: Session, loan: Loan, business: BusinessSettings, *, detail: bo
             for c in loan.charges
         ],
         "security": [_security_out(c) for c in loan.securities],
+        "current_rate": _current_rate(loan), "recovery_status": loan.recovery_status, "seized_on": loan.seized_on,
+        "seizure_note": loan.seizure_note,
+        "topup_of": db.scalar(select(Loan.loan_no).where(Loan.id == loan.topup_of_id)) if loan.topup_of_id else None,
         "version": loan.version, "created_at": loan.created_at,
         "summary": {**s.__dict__, "status": s.status.value, "paid_total": from_paise(int(paid_total)),
                     "fees_outstanding": fees_due, "total_outstanding": s.total_outstanding + fees_due},
@@ -343,8 +385,17 @@ def serialize(db: Session, loan: Loan, business: BusinessSettings, *, detail: bo
              "waive_reason": f.waive_reason, "note": f.note}
             for f in fees
         ]
+        out["cheques"] = [
+            {"id": c.id, "cheque_no": c.cheque_no, "bank": c.bank, "amount": from_paise(c.amount),
+             "cheque_date": c.cheque_date, "status": c.status, "status_on": c.status_on, "note": c.note,
+             "version": c.version}
+            for c in loan.cheques
+        ]
+        out["refunds"] = [{"amount": from_paise(r.amount), "refunded_on": r.refunded_on, "mode": r.mode,
+                           "reason": r.reason} for r in loan.refunds]
         out["reschedules"] = [
-            {"paid_on": r.paid_on, "extra": from_paise(r.extra), "mode": r.mode,
+            {"paid_on": r.paid_on, "extra": from_paise(r.extra), "mode": r.mode, "kind": r.kind,
+             "new_rate": r.new_rate, "holiday_months": r.holiday_months, "reason": r.reason,
              "old_installment": from_paise(r.old_installment), "new_installment": from_paise(r.new_installment),
              "old_count": r.old_count, "new_count": r.new_count, "old_maturity": r.old_maturity,
              "new_maturity": r.new_maturity, "interest_saved": from_paise(r.interest_saved)}
@@ -391,4 +442,10 @@ def _security_out(c: Collateral) -> dict[str, Any]:
     out = {name: getattr(c, name) for name in SecurityIn.model_fields}
     for name in ("value", "on_road_price", "down_payment", "guideline_value", "market_value"):
         out[name] = from_paise(out[name]) if out[name] is not None else None
-    return {**out, "id": c.id, "version": c.version}
+    return {**out, "id": c.id, "version": c.version, "released_on": c.released_on, "released_to": c.released_to}
+
+
+def _current_rate(loan: Loan) -> Decimal:
+    from app.services.phase2 import current_rate
+
+    return current_rate(loan)

@@ -193,7 +193,7 @@ class Loan(Entity):
     rate_basis: Mapped[str] = mapped_column(String(5), nullable=False)
     term_value: Mapped[int | None] = mapped_column(Integer)
     term_unit: Mapped[str] = mapped_column(String(12), nullable=False)
-    frequency: Mapped[str] = mapped_column(String(8), nullable=False)
+    frequency: Mapped[str] = mapped_column(String(12), nullable=False)
     method: Mapped[str] = mapped_column(String(14), nullable=False)
     fixed_style: Mapped[str | None] = mapped_column(String(8))
     fixed_installment: Mapped[int | None] = mapped_column(BigInteger)
@@ -235,6 +235,11 @@ class Loan(Entity):
     security_kind: Mapped[str] = mapped_column(String(8), nullable=False, server_default="none")
     ltv_percent: Mapped[Decimal | None] = mapped_column(Numeric(9, 2))
     ltv_warning_acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    # Phase 3: vehicle seized / sold, and the loan a top-up closed.
+    recovery_status: Mapped[str] = mapped_column(String(8), nullable=False, server_default="none")
+    seized_on: Mapped[date | None] = mapped_column(Date)
+    seizure_note: Mapped[str | None] = mapped_column(Text)
+    topup_of_id: Mapped[uuid.UUID | None] = fk("loan.id", nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(80), unique=True)
     created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
     import_batch_id: Mapped[uuid.UUID | None] = fk("import_batch.id", nullable=True)
@@ -247,6 +252,8 @@ class Loan(Entity):
     charges: Mapped[list[LoanCharge]] = relationship(order_by="LoanCharge.created_at")
     fees: Mapped[list[LoanFee]] = relationship(order_by="LoanFee.charged_on, LoanFee.created_at")
     reschedules: Mapped[list[Reschedule]] = relationship(order_by="Reschedule.created_at")
+    cheques: Mapped[list[Cheque]] = relationship(order_by="Cheque.cheque_date")
+    refunds: Mapped[list[Refund]] = relationship(order_by="Refund.created_at")
     securities: Mapped[list[Collateral]] = relationship(order_by="Collateral.created_at")
 
     __table_args__ = (
@@ -254,7 +261,10 @@ class Loan(Entity):
         CheckConstraint("rate >= 0", name="rate_non_negative"),
         CheckConstraint("status in ('active','closed','written_off')", name="status"),
         CheckConstraint("rate_basis in ('month','year')", name="rate_basis"),
-        CheckConstraint("frequency in ('monthly','weekly','daily','single')", name="frequency"),
+        CheckConstraint(
+            "frequency in ('monthly','weekly','daily','single','quarterly','half_yearly','yearly')", name="frequency"
+        ),
+        CheckConstraint("recovery_status in ('none','seized','sold')", name="recovery_status"),
         CheckConstraint(
             "method in ('reducing','flat','interest_only','simple_days','fixed_amount','custom')", name="method"
         ),
@@ -336,6 +346,9 @@ class Collateral(Entity):
     # Both
     originals_held: Mapped[list[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
     notes: Mapped[str | None] = mapped_column(Text)
+    # Returned to the borrower when the loan is closed (Phase 3).
+    released_on: Mapped[date | None] = mapped_column(Date)
+    released_to: Mapped[str | None] = mapped_column(String(120))
     version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
     __mapper_args__ = {"version_id_col": version}
 
@@ -401,10 +414,15 @@ class Reschedule(Entity):
     __tablename__ = "reschedule"
 
     loan_id: Mapped[uuid.UUID] = fk("loan.id")
-    payment_id: Mapped[uuid.UUID] = fk("payment.id")
+    payment_id: Mapped[uuid.UUID | None] = fk("payment.id", nullable=True)
     paid_on: Mapped[date] = mapped_column(Date, nullable=False)
-    extra: Mapped[int] = mapped_column(BigInteger, nullable=False)  # paid towards principal
+    extra: Mapped[int] = mapped_column(BigInteger, nullable=False)  # paid towards principal (0 for a restructure)
     mode: Mapped[str] = mapped_column(String(12), nullable=False)
+    # Phase 3: a restructure (EMI holiday, longer term, new rate) uses the same record.
+    kind: Mapped[str] = mapped_column(String(12), nullable=False, server_default="prepayment")
+    new_rate: Mapped[Decimal | None] = mapped_column(Numeric(9, 4))
+    holiday_months: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    reason: Mapped[str | None] = mapped_column(Text)
     old_installment: Mapped[int] = mapped_column(BigInteger, nullable=False)
     new_installment: Mapped[int] = mapped_column(BigInteger, nullable=False)
     old_count: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -414,8 +432,49 @@ class Reschedule(Entity):
     interest_saved: Mapped[int] = mapped_column(BigInteger, nullable=False)
     created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
 
-    __table_args__ = (CheckConstraint("mode in ('reduce_emi','reduce_term')", name="mode"),
-                      CheckConstraint("extra > 0", name="extra_positive"))
+    __table_args__ = (CheckConstraint("mode in ('reduce_emi','reduce_term','restructure')", name="mode"),
+                      CheckConstraint("kind in ('prepayment','restructure')", name="kind"),
+                      CheckConstraint("extra >= 0", name="extra_positive"))
+
+
+class Cheque(Entity):
+    """A post-dated cheque (or auto-debit mandate) held for a loan. Marking it bounced adds the
+    bounce charge to the loan."""
+
+    __tablename__ = "cheque"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    cheque_no: Mapped[str] = mapped_column(String(20), nullable=False)
+    bank: Mapped[str | None] = mapped_column(String(80))
+    amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    cheque_date: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[str] = mapped_column(String(10), nullable=False, server_default="held")
+    status_on: Mapped[date | None] = mapped_column(Date)
+    note: Mapped[str | None] = mapped_column(Text)
+    fee_id: Mapped[uuid.UUID | None] = fk("loan_fee.id", nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
+    __mapper_args__ = {"version_id_col": version}
+
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="amount_positive"),
+        CheckConstraint("status in ('held','presented','cleared','bounced','returned')", name="status"),
+    )
+
+
+class Refund(Entity):
+    """Money given back to the borrower: the surplus after a seized vehicle is sold. Money out on
+    the daily log. Append-only."""
+
+    __tablename__ = "refund"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    refunded_on: Mapped[date] = mapped_column(Date, nullable=False)
+    mode: Mapped[str] = mapped_column(String(8), nullable=False, server_default="cash")
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
+
+    __table_args__ = (CheckConstraint("amount > 0", name="amount_positive"),)
 
 
 class ScheduleItem(Entity):

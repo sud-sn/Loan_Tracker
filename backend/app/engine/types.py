@@ -22,6 +22,13 @@ class Frequency(StrEnum):
     WEEKLY = "weekly"
     DAILY = "daily"
     SINGLE = "single"
+    QUARTERLY = "quarterly"  # every 3 months (Phase 3)
+    HALF_YEARLY = "half_yearly"  # every 6 months
+    YEARLY = "yearly"
+
+
+# Months in one installment period for the month-based frequencies.
+MONTHS_PER_PERIOD = {Frequency.MONTHLY: 1, Frequency.QUARTERLY: 3, Frequency.HALF_YEARLY: 6, Frequency.YEARLY: 12}
 
 
 class Method(StrEnum):

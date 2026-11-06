@@ -120,6 +120,14 @@ class Plan:
     interest_saved: Decimal
 
 
+def current_rate(loan: Loan) -> Decimal:
+    """The rate in force: the latest restructure's new rate, else the loan's own (Phase 3)."""
+    for r in reversed(loan.reschedules):
+        if r.new_rate is not None:
+            return Decimal(r.new_rate)
+    return Decimal(loan.rate)
+
+
 def _style(loan: Loan) -> Style:
     if loan.method == "fixed_amount":
         return Style.REDUCING if loan.fixed_style == "reducing" else Style.FLAT
@@ -149,7 +157,7 @@ def plan(db: Any, loan: Loan, items: list[ScheduleItem], fees: list[LoanFee], am
     period_start = earlier[-1].due_date if earlier else loan.disbursal_date
     try:
         result = reschedule(
-            balance=owed - extra, rate=periodic_rate(Decimal(loan.rate), RateBasis(loan.rate_basis), Frequency(loan.frequency)),
+            balance=owed - extra, rate=periodic_rate(current_rate(loan), RateBasis(loan.rate_basis), Frequency(loan.frequency)),
             style=style, mode=mode, dates=[it.due_date for it in future],
             old_installment=from_paise(loan.installment_amount), old_first_interest=from_paise(future[0].interest_part),
             period_start=period_start, paid_on=on, step=Decimal(loan.emi_rounding),

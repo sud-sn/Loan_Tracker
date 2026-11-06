@@ -27,7 +27,17 @@ from decimal import ROUND_CEILING, Decimal, localcontext
 from app.engine.dates import add_months, due_dates, one_period_after
 from app.engine.errors import EngineError
 from app.engine.money import CENT, ZERO, q2
-from app.engine.types import BrokenPeriod, CustomRow, FixedStyle, Frequency, LoanTerms, Method, RateBasis, TermUnit
+from app.engine.types import (
+    MONTHS_PER_PERIOD,
+    BrokenPeriod,
+    CustomRow,
+    FixedStyle,
+    Frequency,
+    LoanTerms,
+    Method,
+    RateBasis,
+    TermUnit,
+)
 
 MAX_INSTALLMENTS = 3660  # ten years of daily collection
 MAX_PRINCIPAL = Decimal("100000000000")  # ₹1,000 crore: anything above is a typo
@@ -78,8 +88,9 @@ def periodic_rate(rate_percent: Decimal, basis: RateBasis, frequency: Frequency)
     rate / 365 and one month = rate / 12. A week is seven days.
     """
     r = rate_percent / Decimal(100)
-    if frequency is Frequency.MONTHLY:
-        return r if basis is RateBasis.MONTH else r / 12
+    if frequency in MONTHS_PER_PERIOD:
+        months = MONTHS_PER_PERIOD[frequency]
+        return r * months if basis is RateBasis.MONTH else r * months / 12
     if frequency is Frequency.WEEKLY:
         return r * 7 / 30 if basis is RateBasis.MONTH else r * 7 / 365
     if frequency is Frequency.DAILY:
@@ -98,8 +109,9 @@ def installment_count(terms: LoanTerms) -> int:
     unit, freq = terms.term_unit, terms.frequency
     if unit is TermUnit.INSTALLMENTS:
         n = value
-    elif freq is Frequency.MONTHLY:
-        n = value if unit is TermUnit.MONTHS else math.ceil(value / 30)
+    elif freq in MONTHS_PER_PERIOD:
+        months = value if unit is TermUnit.MONTHS else math.ceil(value / 30)
+        n = math.ceil(months / MONTHS_PER_PERIOD[freq])
     elif freq is Frequency.WEEKLY:
         n = math.ceil((value if unit is TermUnit.DAYS else value * 30) / 7)
     else:  # DAILY

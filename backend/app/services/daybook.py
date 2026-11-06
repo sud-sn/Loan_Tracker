@@ -18,7 +18,17 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Session
 
 from app.engine import from_paise
-from app.models import Borrower, BusinessSettings, CashEntry, Category, Loan, LoanCharge, Payment, PaymentAllocation
+from app.models import (
+    Borrower,
+    BusinessSettings,
+    CashEntry,
+    Category,
+    Loan,
+    LoanCharge,
+    Payment,
+    PaymentAllocation,
+    Refund,
+)
 
 # How a charge collected when a loan is given is named on the daily log and in exports.
 CHARGE_NAMES = {
@@ -127,6 +137,19 @@ def entries(db: Session, start: date, end: date) -> list[dict[str, Any]]:
             "principal": None, "interest": None, "penalty": None, "category_en": en, "category_ta": ta,
             "note": ch.label if ch.kind != "other" else None, "treatment": ch.treatment, "created_at": ch.created_at,
         })
+    # A sale surplus: received from the buyer and given back to the borrower (both lines show).
+    for r, ln, code, name_en, name_ta in db.execute(
+        select(Refund, Loan, Borrower.code, Borrower.name_en, Borrower.name_ta)
+        .join(Loan, Loan.id == Refund.loan_id).join(Borrower, Borrower.id == Loan.borrower_id)
+        .where(Refund.refunded_on.between(start, end)).order_by(Refund.refunded_on, Refund.created_at)
+    ):
+        for direction, kind in (("in", "sale_surplus"), ("out", "refund")):
+            out.append({
+                "date": r.refunded_on, "direction": direction, "source_type": kind, "source_id": r.id, "kind": kind,
+                "amount": from_paise(r.amount), "mode": r.mode, "loan_id": ln.id, "loan_no": ln.loan_no, "code": code,
+                "name_en": name_en, "name_ta": name_ta, "receipt_no": None, "principal": None, "interest": None,
+                "penalty": None, "category_en": None, "category_ta": None, "note": r.reason, "created_at": r.created_at,
+            })
     for c, cat in db.execute(
         select(CashEntry, Category).join(Category, Category.id == CashEntry.category_id)
         .where(CashEntry.entry_date.between(start, end), CashEntry.deleted_at.is_(None))

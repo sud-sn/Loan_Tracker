@@ -10,7 +10,7 @@ from pydantic import Field, model_validator
 from app.schemas.common import Money, PaymentMode, PositiveMoney, Schema
 
 Method = Literal["reducing", "flat", "interest_only", "simple_days", "fixed_amount", "custom"]
-Frequency = Literal["monthly", "weekly", "daily", "single"]
+Frequency = Literal["monthly", "weekly", "daily", "single", "quarterly", "half_yearly", "yearly"]
 TermUnit = Literal["months", "days", "installments"]
 RateBasis = Literal["month", "year"]
 PenaltyMode = Literal["off", "per_day", "pct_month"]
@@ -138,6 +138,26 @@ class SecurityIn(Schema):
 class SecurityOut(SecurityIn):
     id: uuid.UUID
     version: int
+    released_on: date | None = None
+    released_to: str | None = None
+
+
+class SecurityUpdateIn(Schema):
+    """Details that change during a loan: a renewed insurance policy, the registration number
+    once it is issued, notes."""
+
+    version: int
+    registration_no: str | None = Field(default=None, max_length=20)
+    insurer: str | None = Field(default=None, max_length=80)
+    insurance_policy_no: str | None = Field(default=None, max_length=60)
+    insurance_expiry: date | None = None
+    lien_noted_on_rc: bool | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class ReleaseIn(Schema):
+    released_on: date | None = None
+    released_to: str = Field(min_length=2, max_length=120)
 
 
 class ChargeOut(Schema):
@@ -148,6 +168,7 @@ class ChargeOut(Schema):
 
 
 class PreviewIn(TermsIn):
+    topup_of: uuid.UUID | None = None  # an active loan of the same borrower this loan closes
     """Terms plus what is collected when the loan is given and what it is given against, so the
     preview can show the amount handed over, the true cost and the loan-to-value check.
     ``principal`` is the loan amount before any charge added to it."""
@@ -200,6 +221,7 @@ class PreviewOut(Schema):
     ltv_percent: Decimal | None
     ltv_maximum: Decimal | None
     ltv_above_maximum: bool
+    topup_closing: Money  # what closing the earlier loan costs on the day (0 when not a top-up)
     rows: list[ScheduleRowOut]
 
 
@@ -209,6 +231,9 @@ class LoanCreateIn(Schema):
     charges: list[ChargeIn] = Field(default_factory=list, max_length=10)
     security: list[SecurityIn] = Field(default_factory=list, max_length=5)
     acknowledge_ltv_warning: bool = False
+    # Top-up: this loan closes an active loan of the same borrower; what is owed on it is taken out
+    # of the amount handed over. Its security moves to this loan when none is given.
+    topup_of: uuid.UUID | None = None
     penalty: PenaltyIn = PenaltyIn()
     disbursal_mode: PaymentMode = "cash"
     purpose: str | None = Field(default=None, max_length=500)
@@ -401,10 +426,106 @@ class PrepayPreviewOut(Schema):
     rows: list[ScheduleRowOut]
 
 
+class RestructureIn(Schema):
+    """Give the borrower relief: skip some installments (an EMI holiday; their interest is spread
+    over the new installments), add installments to lower the EMI, and/or change the rate."""
+
+    holiday: int = Field(default=0, ge=0, le=12)
+    extra_installments: int = Field(default=0, ge=0, le=120)
+    new_rate: Decimal | None = Field(default=None, ge=0, le=100, max_digits=9, decimal_places=4)
+    reason: str = Field(min_length=3, max_length=500)
+    on: date | None = None
+    version: int | None = None
+
+
+class RestructurePreviewOut(Schema):
+    on: date
+    principal: Money
+    carried_interest: Money  # overdue interest + interest for the skipped installments
+    old_installment: Money
+    new_installment: Money
+    old_count: int
+    new_count: int
+    old_maturity: date
+    new_maturity: date
+    rate: Decimal
+    interest_change: Money  # positive: the borrower pays more interest in total
+    rows: list[ScheduleRowOut]
+
+
+class SeizeIn(Schema):
+    on: date | None = None
+    note: str | None = Field(default=None, max_length=500)
+    charge: Money | None = Field(default=None, ge=0)  # towing / yard charges
+
+
+class SellIn(Schema):
+    on: date | None = None
+    sale_price: PositiveMoney
+    expenses: Money = Field(default=Decimal("0"), ge=0)
+    mode: PaymentMode = "cash"
+    note: str | None = Field(default=None, max_length=500)
+    idempotency_key: str = Field(min_length=8, max_length=80)
+
+
+class SellOut(Schema):
+    closed: bool
+    paid_to_loan: Money
+    refund: Money  # surplus given back to the borrower
+    shortfall: Money  # still owed
+
+
+class ChequeIn(Schema):
+    cheque_no: str = Field(min_length=1, max_length=20)
+    bank: str | None = Field(default=None, max_length=80)
+    amount: PositiveMoney
+    cheque_date: date
+    note: str | None = Field(default=None, max_length=500)
+
+
+class ChequeStatusIn(Schema):
+    status: Literal["held", "presented", "cleared", "bounced", "returned"]
+    on: date | None = None
+    version: int
+
+
+class ChequeOut(Schema):
+    id: uuid.UUID
+    cheque_no: str
+    bank: str | None
+    amount: Money
+    cheque_date: date
+    status: Literal["held", "presented", "cleared", "bounced", "returned"]
+    status_on: date | None
+    note: str | None
+    version: int
+
+
+class RefundOut(Schema):
+    amount: Money
+    refunded_on: date
+    mode: PaymentMode
+    reason: str
+
+
+class InsuranceDue(Schema):
+    loan_id: uuid.UUID
+    loan_no: str
+    borrower: BorrowerRef
+    registration_no: str | None
+    insurer: str | None
+    insurance_expiry: date
+    expired: bool
+
+
 class RescheduleOut(Schema):
     paid_on: date
     extra: Money
-    mode: Literal["reduce_emi", "reduce_term"]
+    mode: Literal["reduce_emi", "reduce_term", "restructure"]
+    kind: Literal["prepayment", "restructure"] = "prepayment"
+    new_rate: Decimal | None = None
+    holiday_months: int = 0
+    reason: str | None = None
     old_installment: Money
     new_installment: Money
     old_count: int
@@ -419,6 +540,13 @@ class LoanDetailOut(LoanOut):
     payments: list[PaymentOut]
     fees: list[FeeOut]
     reschedules: list[RescheduleOut]
+    cheques: list[ChequeOut]
+    refunds: list[RefundOut]
+    current_rate: Decimal
+    recovery_status: Literal["none", "seized", "sold"]
+    seized_on: date | None
+    seizure_note: str | None
+    topup_of: str | None  # loan number of the loan this one closed
 
 
 class LoanListItem(Schema):

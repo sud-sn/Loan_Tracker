@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ t("nodues.title") }}{% endblock %}
+{% block head_right %}
+  <h1>{{ t("nodues.title") }}</h1>
+  <div>{{ t("receipt.loan") }}: <b>{{ loan.loan_no }}</b> · {{ date(loan.closed_on) }}</div>
+{% endblock %}
+{% block body %}
+<p style="font-size: 13pt; line-height: 1.7; margin: 18pt 0;">
+  {{ t("nodues.body", name=borrower_name, code=loan.borrower.code, loan_no=loan.loan_no, amount=money(loan.principal),
+       given=date(loan.disbursal_date), closed=date(loan.closed_on)) }}
+</p>
+{% for sec in loan.security %}
+<p>{% if sec.kind == "vehicle" %}{{ t("nodues.vehicle", reg=sec.registration_no or "—") }}{% else %}{{ t("nodues.land", survey=sec.survey_no or "—") }}{% endif %}</p>
+{% endfor %}
+<p style="margin-top: 48pt;">______________________________<br>{{ t("nodues.signature") }}</p>
+{% endblock %}

@@ -84,7 +84,7 @@ def export_daybook(ctx: StepUpCtx, start: date, end: date, fmt: Literal["csv", "
                t("receipt.mode"), t("receipt.principal"), t("receipt.interest"), t("report.amount")]
     kinds = {"payment": "daybook.payment", "reversal": "daybook.reversal", "settlement": "daybook.settlement",
              "loan": "daybook.loan", "income": "daybook.income", "expense": "daybook.expense",
-             "charge": "daybook.charge"}
+             "charge": "daybook.charge", "refund": "daybook.refund", "sale_surplus": "daybook.sale_surplus"}
     rows = []
     for e in lines:
         who = i18n.name(language, e["name_en"], e["name_ta"]) if e["code"] else (

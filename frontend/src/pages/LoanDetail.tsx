@@ -10,6 +10,10 @@ import { ConfirmSheet } from "@/components/Confirm";
 import { Documents } from "@/components/Documents";
 import { LoanSummaryExtras, SecurityCard } from "@/components/LoanExtras";
 import { FeeSheet, FeesCard, PrepaySheet, ReschedulesCard, WaiveSheet } from "@/components/LoanPhase2";
+import {
+  ChequeSheet, ChequesCard, ClosedLoanCard, EditSecuritySheet, RecoveryBanner, ReleaseSheet, RestructureSheet, SeizeSheet,
+  SellSheet,
+} from "@/components/LoanPhase3";
 import { DateInput } from "@/components/DateInput";
 import { MoneyInput } from "@/components/MoneyInput";
 import { ScheduleList } from "@/components/ScheduleList";
@@ -38,6 +42,9 @@ export function LoanDetailPage() {
   const [prepaying, setPrepaying] = useState(false);
   const [addingFee, setAddingFee] = useState(false);
   const [waiving, setWaiving] = useState<{ feeId?: string; due: string } | null>(null);
+  const [sheet, setSheet] = useState<"restructure" | "seize" | "sell" | "cheque" | null>(null);
+  const [editingSec, setEditingSec] = useState<LoanDetail["security"][number] | null>(null);
+  const [releasing, setReleasing] = useState<LoanDetail["security"][number] | null>(null);
   const [writingOff, setWritingOff] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const loan = useQuery({ queryKey: ["loan", id], queryFn: () => api.get<LoanDetail>(`/loans/${id}`) });
@@ -82,6 +89,7 @@ export function LoanDetailPage() {
         <Card><p className="text-sm text-muted">{t("loan.paid")}</p><p className="text-lg font-bold tabular">{money(s.paid_total)}</p></Card>
       </div>
 
+      <RecoveryBanner loan={l} />
       {/* Laptop: details and actions on the left (stays in view), schedule and payments on the right. */}
       <div className="grid items-start gap-6 lg:grid-cols-[clamp(19rem,32%,34rem)_minmax(0,1fr)]">
         <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-1">
@@ -104,6 +112,8 @@ export function LoanDetailPage() {
             </dl>
           </Card>
           <SecurityCard security={l.security} />
+          <ClosedLoanCard loan={l} canEdit={!!isOwner} onRelease={setReleasing} />
+          <ChequesCard cheques={l.cheques} canEdit={!!isOwner && active} />
           <FeesCard fees={l.fees} canWaive={!!isOwner && active} onWaive={(f) => setWaiving({ feeId: f.id, due: f.due })} />
           <ReschedulesCard items={l.reschedules} />
           <div className="flex flex-wrap gap-2 lg:grid lg:grid-cols-2">
@@ -130,6 +140,15 @@ export function LoanDetailPage() {
                 <Button variant="secondary" onClick={() => setPrepaying(true)}>{t("prepay.button")}</Button>
                 <Button variant="secondary" onClick={() => setSettling(true)}>{t("loan.settle")}</Button>
                 <Button variant="outline" onClick={() => setAddingFee(true)}>{t("fee.add")}</Button>
+                <Button variant="outline" onClick={() => setSheet("restructure")}>{t("restructure.button")}</Button>
+                <Button variant="outline" onClick={() => setSheet("cheque")}>{t("cheque.add")}</Button>
+                {l.security.slice(0, 1).map((sec) => (
+                  <Button key={sec.id} variant="outline" onClick={() => setEditingSec(sec)}>{t("security.edit")}</Button>
+                ))}
+                {l.security.some((x) => x.kind === "vehicle") && l.recovery_status === "none" && (
+                  <Button variant="outline" className="text-late" onClick={() => setSheet("seize")}>{t("recovery.seize")}</Button>
+                )}
+                {l.recovery_status === "seized" && <Button variant="secondary" onClick={() => setSheet("sell")}>{t("recovery.sell")}</Button>}
                 {Number(s.penalty_outstanding) > 0 && (
                   <Button variant="outline" onClick={() => setWaiving({ due: s.penalty_outstanding })}>{t("fee.waiveLate")}</Button>
                 )}
@@ -198,6 +217,12 @@ export function LoanDetailPage() {
       {settling && <SettleSheet loanId={id} onClose={() => setSettling(false)} />}
       {prepaying && l && <PrepaySheet loanId={id} interestOnly={l.method === "interest_only"} onClose={() => setPrepaying(false)} />}
       {addingFee && <FeeSheet loanId={id} settings={settings.data} onClose={() => setAddingFee(false)} />}
+      {sheet === "restructure" && l && <RestructureSheet loan={l} onClose={() => setSheet(null)} />}
+      {sheet === "seize" && <SeizeSheet loanId={id} onClose={() => setSheet(null)} />}
+      {sheet === "sell" && <SellSheet loanId={id} onClose={() => setSheet(null)} />}
+      {sheet === "cheque" && <ChequeSheet loanId={id} onClose={() => setSheet(null)} />}
+      {editingSec && <EditSecuritySheet sec={editingSec} onClose={() => setEditingSec(null)} />}
+      {releasing && <ReleaseSheet sec={releasing} onClose={() => setReleasing(null)} />}
       {waiving && <WaiveSheet loanId={id} feeId={waiving.feeId} due={waiving.due} onClose={() => setWaiving(null)} />}
       {writingOff && <WriteOffSheet loanId={id} onClose={() => setWritingOff(false)} />}
       <ConfirmSheet open={deleting} onOpenChange={setDeleting} title={t("app.delete")} body={t("loan.deleteConfirm")}

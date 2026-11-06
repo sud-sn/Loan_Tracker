@@ -354,7 +354,7 @@ export function LoanOptions({ o, onChange, amortizing, oddFirst }:
 export function PreviewExtras({ p }: { p: Preview }) {
   const { t } = useTranslation();
   const bpi = Number(p.broken_period_interest);
-  const handedDiffers = p.amount_handed_over !== p.loan_amount;
+  const handedDiffers = p.amount_handed_over !== p.loan_amount || Number(p.topup_closing) > 0;
   return (
     <dl className="mt-1">
       {p.unrounded_installment && <KeyValue label={t("result.roundedFrom")} value={money(p.unrounded_installment)} />}
@@ -367,6 +367,7 @@ export function PreviewExtras({ p }: { p: Preview }) {
       {p.advance_installments > 0 && (
         <KeyValue label={t("result.advance", { count: p.advance_installments })} value={money(p.advance_amount)} />
       )}
+      {Number(p.topup_closing) > 0 && <KeyValue label={t("topup.closing")} value={money(p.topup_closing)} />}
       {Number(p.charges_added) > 0 && <KeyValue label={t("result.chargesAdded")} value={money(p.charges_added)} />}
       {Number(p.charges_deducted) > 0 && <KeyValue label={t("result.chargesDeducted")} value={money(p.charges_deducted)} />}
       {handedDiffers && <KeyValue label={t("result.handedOver")} value={money(p.amount_handed_over)} strong />}

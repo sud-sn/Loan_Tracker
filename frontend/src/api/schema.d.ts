@@ -469,6 +469,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cheques/{cheque_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cheque Status */
+        post: operations["cheque_status_api_v1_cheques__cheque_id__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboard": {
         parameters: {
             query?: never;
@@ -694,6 +711,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/insurance/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Insurance Due */
+        get: operations["insurance_due_api_v1_insurance_due_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loans": {
         parameters: {
             query?: never;
@@ -748,6 +782,23 @@ export interface paths {
         patch: operations["update_loan_api_v1_loans__loan_id__patch"];
         trace?: never;
     };
+    "/api/v1/loans/{loan_id}/cheques": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Cheque */
+        post: operations["add_cheque_api_v1_loans__loan_id__cheques_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loans/{loan_id}/fees": {
         parameters: {
             query?: never;
@@ -759,6 +810,23 @@ export interface paths {
         put?: never;
         /** Add Fee */
         post: operations["add_fee_api_v1_loans__loan_id__fees_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/no-dues.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** No Dues Pdf */
+        get: operations["no_dues_pdf_api_v1_loans__loan_id__no_dues_pdf_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -811,6 +879,74 @@ export interface paths {
         get: operations["reminder_api_v1_loans__loan_id__reminder_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/restructure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restructure */
+        post: operations["restructure_api_v1_loans__loan_id__restructure_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/restructure/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restructure Preview */
+        post: operations["restructure_preview_api_v1_loans__loan_id__restructure_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/seize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Seize */
+        post: operations["seize_api_v1_loans__loan_id__seize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loans/{loan_id}/sell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sell */
+        post: operations["sell_api_v1_loans__loan_id__sell_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1083,6 +1219,40 @@ export interface paths {
         get: operations["search_api_v1_search_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/securities/{security_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Security */
+        patch: operations["update_security_api_v1_securities__security_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/securities/{security_id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release Security */
+        post: operations["release_security_api_v1_securities__security_id__release_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1638,6 +1808,64 @@ export interface components {
              */
             treatment: "deducted" | "added";
         };
+        /** ChequeIn */
+        ChequeIn: {
+            /** Amount */
+            amount: number | string;
+            /** Bank */
+            bank?: string | null;
+            /**
+             * Cheque Date
+             * Format: date
+             */
+            cheque_date: string;
+            /** Cheque No */
+            cheque_no: string;
+            /** Note */
+            note?: string | null;
+        };
+        /** ChequeOut */
+        ChequeOut: {
+            /** Amount */
+            amount: string;
+            /** Bank */
+            bank: string | null;
+            /**
+             * Cheque Date
+             * Format: date
+             */
+            cheque_date: string;
+            /** Cheque No */
+            cheque_no: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "held" | "presented" | "cleared" | "bounced" | "returned";
+            /** Status On */
+            status_on: string | null;
+            /** Version */
+            version: number;
+        };
+        /** ChequeStatusIn */
+        ChequeStatusIn: {
+            /** On */
+            on?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "held" | "presented" | "cleared" | "bounced" | "returned";
+            /** Version */
+            version: number;
+        };
         /** ConsentIn */
         ConsentIn: {
             /** Given */
@@ -1800,6 +2028,28 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InsuranceDue */
+        InsuranceDue: {
+            borrower: components["schemas"]["BorrowerRef"];
+            /** Expired */
+            expired: boolean;
+            /**
+             * Insurance Expiry
+             * Format: date
+             */
+            insurance_expiry: string;
+            /** Insurer */
+            insurer: string | null;
+            /**
+             * Loan Id
+             * Format: uuid
+             */
+            loan_id: string;
+            /** Loan No */
+            loan_no: string;
+            /** Registration No */
+            registration_no: string | null;
+        };
         /** LanguageIn */
         LanguageIn: {
             /**
@@ -1855,6 +2105,8 @@ export interface components {
             /** Security */
             security?: components["schemas"]["SecurityIn"][];
             terms: components["schemas"]["TermsIn"];
+            /** Topup Of */
+            topup_of?: string | null;
         };
         /** LoanDetailOut */
         LoanDetailOut: {
@@ -1874,6 +2126,8 @@ export interface components {
             broken_period_interest: string;
             /** Charges */
             charges: components["schemas"]["ChargeOut"][];
+            /** Cheques */
+            cheques: components["schemas"]["ChequeOut"][];
             /** Closed On */
             closed_on: string | null;
             /** Closed Reason */
@@ -1883,6 +2137,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Current Rate */
+            current_rate: string;
             /**
              * Disbursal Date
              * Format: date
@@ -1910,7 +2166,7 @@ export interface components {
              * Frequency
              * @enum {string}
              */
-            frequency: "monthly" | "weekly" | "daily" | "single";
+            frequency: "monthly" | "weekly" | "daily" | "single" | "quarterly" | "half_yearly" | "yearly";
             /**
              * Id
              * Format: uuid
@@ -1960,6 +2216,13 @@ export interface components {
              * @enum {string}
              */
             rate_basis: "month" | "year";
+            /**
+             * Recovery Status
+             * @enum {string}
+             */
+            recovery_status: "none" | "seized" | "sold";
+            /** Refunds */
+            refunds: components["schemas"]["RefundOut"][];
             /** Reschedules */
             reschedules: components["schemas"]["RescheduleOut"][];
             /** Schedule */
@@ -1971,6 +2234,10 @@ export interface components {
              * @enum {string}
              */
             security_kind: "none" | "vehicle" | "land" | "both";
+            /** Seized On */
+            seized_on: string | null;
+            /** Seizure Note */
+            seizure_note: string | null;
             /**
              * Stored Status
              * @enum {string}
@@ -1984,6 +2251,8 @@ export interface components {
             term_unit: "months" | "days" | "installments";
             /** Term Value */
             term_value: number | null;
+            /** Topup Of */
+            topup_of: string | null;
             /** Total Interest */
             total_interest: string;
             /** True Cost Monthly */
@@ -2003,7 +2272,7 @@ export interface components {
              * Frequency
              * @enum {string}
              */
-            frequency: "monthly" | "weekly" | "daily" | "single";
+            frequency: "monthly" | "weekly" | "daily" | "single" | "quarterly" | "half_yearly" | "yearly";
             /**
              * Id
              * Format: uuid
@@ -2294,12 +2563,7 @@ export interface components {
             /** Rows */
             rows: components["schemas"]["ScheduleRowOut"][];
         };
-        /**
-         * PreviewIn
-         * @description Terms plus what is collected when the loan is given and what it is given against, so the
-         *     preview can show the amount handed over, the true cost and the loan-to-value check.
-         *     ``principal`` is the loan amount before any charge added to it.
-         */
+        /** PreviewIn */
         PreviewIn: {
             /**
              * Advance Installments
@@ -2345,7 +2609,7 @@ export interface components {
              * @default monthly
              * @enum {string}
              */
-            frequency: "monthly" | "weekly" | "daily" | "single";
+            frequency: "monthly" | "weekly" | "daily" | "single" | "quarterly" | "half_yearly" | "yearly";
             /**
              * Method
              * @default reducing
@@ -2372,6 +2636,8 @@ export interface components {
             term_unit: "months" | "days" | "installments";
             /** Term Value */
             term_value?: number | null;
+            /** Topup Of */
+            topup_of?: string | null;
         };
         /** PreviewOut */
         PreviewOut: {
@@ -2427,6 +2693,8 @@ export interface components {
             rows: components["schemas"]["ScheduleRowOut"][];
             /** Security Value */
             security_value: string | null;
+            /** Topup Closing */
+            topup_closing: string;
             /** Total Interest */
             total_interest: string;
             /** Total Payable */
@@ -2449,6 +2717,30 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** RefundOut */
+        RefundOut: {
+            /** Amount */
+            amount: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "cash" | "upi" | "bank" | "cheque" | "other";
+            /** Reason */
+            reason: string;
+            /**
+             * Refunded On
+             * Format: date
+             */
+            refunded_on: string;
+        };
+        /** ReleaseIn */
+        ReleaseIn: {
+            /** Released On */
+            released_on?: string | null;
+            /** Released To */
+            released_to: string;
+        };
         /** ReminderOut */
         ReminderOut: {
             /**
@@ -2469,13 +2761,83 @@ export interface components {
         RescheduleOut: {
             /** Extra */
             extra: string;
+            /**
+             * Holiday Months
+             * @default 0
+             */
+            holiday_months: number;
             /** Interest Saved */
             interest_saved: string;
+            /**
+             * Kind
+             * @default prepayment
+             * @enum {string}
+             */
+            kind: "prepayment" | "restructure";
             /**
              * Mode
              * @enum {string}
              */
-            mode: "reduce_emi" | "reduce_term";
+            mode: "reduce_emi" | "reduce_term" | "restructure";
+            /** New Count */
+            new_count: number;
+            /** New Installment */
+            new_installment: string;
+            /**
+             * New Maturity
+             * Format: date
+             */
+            new_maturity: string;
+            /** New Rate */
+            new_rate?: string | null;
+            /** Old Count */
+            old_count: number;
+            /** Old Installment */
+            old_installment: string;
+            /**
+             * Old Maturity
+             * Format: date
+             */
+            old_maturity: string;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * RestructureIn
+         * @description Give the borrower relief: skip some installments (an EMI holiday; their interest is spread
+         *     over the new installments), add installments to lower the EMI, and/or change the rate.
+         */
+        RestructureIn: {
+            /**
+             * Extra Installments
+             * @default 0
+             */
+            extra_installments: number;
+            /**
+             * Holiday
+             * @default 0
+             */
+            holiday: number;
+            /** New Rate */
+            new_rate?: number | string | null;
+            /** On */
+            on?: string | null;
+            /** Reason */
+            reason: string;
+            /** Version */
+            version?: number | null;
+        };
+        /** RestructurePreviewOut */
+        RestructurePreviewOut: {
+            /** Carried Interest */
+            carried_interest: string;
+            /** Interest Change */
+            interest_change: string;
             /** New Count */
             new_count: number;
             /** New Installment */
@@ -2495,10 +2857,16 @@ export interface components {
              */
             old_maturity: string;
             /**
-             * Paid On
+             * On
              * Format: date
              */
-            paid_on: string;
+            on: string;
+            /** Principal */
+            principal: string;
+            /** Rate */
+            rate: string;
+            /** Rows */
+            rows: components["schemas"]["ScheduleRowOut"][];
         };
         /** RevealOut */
         RevealOut: {
@@ -2732,6 +3100,10 @@ export interface components {
             patta_no?: string | null;
             /** Registration No */
             registration_no?: string | null;
+            /** Released On */
+            released_on?: string | null;
+            /** Released To */
+            released_to?: string | null;
             /** Sub Registrar Office */
             sub_registrar_office?: string | null;
             /** Survey No */
@@ -2750,6 +3122,69 @@ export interface components {
             village?: string | null;
             /** Year */
             year?: number | null;
+        };
+        /**
+         * SecurityUpdateIn
+         * @description Details that change during a loan: a renewed insurance policy, the registration number
+         *     once it is issued, notes.
+         */
+        SecurityUpdateIn: {
+            /** Insurance Expiry */
+            insurance_expiry?: string | null;
+            /** Insurance Policy No */
+            insurance_policy_no?: string | null;
+            /** Insurer */
+            insurer?: string | null;
+            /** Lien Noted On Rc */
+            lien_noted_on_rc?: boolean | null;
+            /** Notes */
+            notes?: string | null;
+            /** Registration No */
+            registration_no?: string | null;
+            /** Version */
+            version: number;
+        };
+        /** SeizeIn */
+        SeizeIn: {
+            /** Charge */
+            charge?: number | string | null;
+            /** Note */
+            note?: string | null;
+            /** On */
+            on?: string | null;
+        };
+        /** SellIn */
+        SellIn: {
+            /**
+             * Expenses
+             * @default 0
+             */
+            expenses: number | string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Mode
+             * @default cash
+             * @enum {string}
+             */
+            mode: "cash" | "upi" | "bank" | "cheque" | "other";
+            /** Note */
+            note?: string | null;
+            /** On */
+            on?: string | null;
+            /** Sale Price */
+            sale_price: number | string;
+        };
+        /** SellOut */
+        SellOut: {
+            /** Closed */
+            closed: boolean;
+            /** Paid To Loan */
+            paid_to_loan: string;
+            /** Refund */
+            refund: string;
+            /** Shortfall */
+            shortfall: string;
         };
         /** SettingsIn */
         SettingsIn: {
@@ -2976,7 +3411,7 @@ export interface components {
              * @default monthly
              * @enum {string}
              */
-            frequency: "monthly" | "weekly" | "daily" | "single";
+            frequency: "monthly" | "weekly" | "daily" | "single" | "quarterly" | "half_yearly" | "yearly";
             /**
              * Method
              * @default reducing
@@ -4074,6 +4509,41 @@ export interface operations {
             };
         };
     };
+    cheque_status_api_v1_cheques__cheque_id__status_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cheque_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChequeStatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     dashboard_api_v1_dashboard_get: {
         parameters: {
             query?: never;
@@ -4504,6 +4974,37 @@ export interface operations {
             };
         };
     };
+    insurance_due_api_v1_insurance_due_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InsuranceDue"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_loans_api_v1_loans_get: {
         parameters: {
             query?: {
@@ -4701,6 +5202,41 @@ export interface operations {
             };
         };
     };
+    add_cheque_api_v1_loans__loan_id__cheques_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChequeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     add_fee_api_v1_loans__loan_id__fees_post: {
         parameters: {
             query?: never;
@@ -4723,6 +5259,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    no_dues_pdf_api_v1_loans__loan_id__no_dues_pdf_get: {
+        parameters: {
+            query?: {
+                lang?: ("en" | "ta") | null;
+            };
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -4861,6 +5430,146 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReminderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restructure_api_v1_loans__loan_id__restructure_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestructureIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restructure_preview_api_v1_loans__loan_id__restructure_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestructureIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestructurePreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seize_api_v1_loans__loan_id__seize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeizeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sell_api_v1_loans__loan_id__sell_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SellIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellOut"];
                 };
             };
             /** @description Validation Error */
@@ -5370,6 +6079,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResult"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_security_api_v1_securities__security_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                security_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecurityUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_security_api_v1_securities__security_id__release_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                security_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanDetailOut"];
                 };
             };
             /** @description Validation Error */

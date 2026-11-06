@@ -1342,6 +1342,185 @@
     "title": "ChargeOut",
     "type": "object"
    },
+   "ChequeIn": {
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "bank": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bank"
+     },
+     "cheque_date": {
+      "format": "date",
+      "title": "Cheque Date",
+      "type": "string"
+     },
+     "cheque_no": {
+      "maxLength": 20,
+      "minLength": 1,
+      "title": "Cheque No",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     }
+    },
+    "required": [
+     "cheque_no",
+     "amount",
+     "cheque_date"
+    ],
+    "title": "ChequeIn",
+    "type": "object"
+   },
+   "ChequeOut": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "bank": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Bank"
+     },
+     "cheque_date": {
+      "format": "date",
+      "title": "Cheque Date",
+      "type": "string"
+     },
+     "cheque_no": {
+      "title": "Cheque No",
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "status": {
+      "enum": [
+       "held",
+       "presented",
+       "cleared",
+       "bounced",
+       "returned"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "status_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status On"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "cheque_no",
+     "bank",
+     "amount",
+     "cheque_date",
+     "status",
+     "status_on",
+     "note",
+     "version"
+    ],
+    "title": "ChequeOut",
+    "type": "object"
+   },
+   "ChequeStatusIn": {
+    "properties": {
+     "on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On"
+     },
+     "status": {
+      "enum": [
+       "held",
+       "presented",
+       "cleared",
+       "bounced",
+       "returned"
+      ],
+      "title": "Status",
+      "type": "string"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "status",
+     "version"
+    ],
+    "title": "ChequeStatusIn",
+    "type": "object"
+   },
    "ConsentIn": {
     "properties": {
      "given": {
@@ -1807,6 +1986,64 @@
     "title": "HTTPValidationError",
     "type": "object"
    },
+   "InsuranceDue": {
+    "properties": {
+     "borrower": {
+      "$ref": "#/components/schemas/BorrowerRef"
+     },
+     "expired": {
+      "title": "Expired",
+      "type": "boolean"
+     },
+     "insurance_expiry": {
+      "format": "date",
+      "title": "Insurance Expiry",
+      "type": "string"
+     },
+     "insurer": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurer"
+     },
+     "loan_id": {
+      "format": "uuid",
+      "title": "Loan Id",
+      "type": "string"
+     },
+     "loan_no": {
+      "title": "Loan No",
+      "type": "string"
+     },
+     "registration_no": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Registration No"
+     }
+    },
+    "required": [
+     "loan_id",
+     "loan_no",
+     "borrower",
+     "registration_no",
+     "insurer",
+     "insurance_expiry",
+     "expired"
+    ],
+    "title": "InsuranceDue",
+    "type": "object"
+   },
    "LanguageIn": {
     "properties": {
      "language": {
@@ -1927,6 +2164,18 @@
      },
      "terms": {
       "$ref": "#/components/schemas/TermsIn"
+     },
+     "topup_of": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Topup Of"
      }
     },
     "required": [
@@ -1974,6 +2223,13 @@
       "title": "Charges",
       "type": "array"
      },
+     "cheques": {
+      "items": {
+       "$ref": "#/components/schemas/ChequeOut"
+      },
+      "title": "Cheques",
+      "type": "array"
+     },
      "closed_on": {
       "anyOf": [
        {
@@ -2000,6 +2256,10 @@
      "created_at": {
       "format": "date-time",
       "title": "Created At",
+      "type": "string"
+     },
+     "current_rate": {
+      "title": "Current Rate",
       "type": "string"
      },
      "disbursal_date": {
@@ -2065,7 +2325,10 @@
        "monthly",
        "weekly",
        "daily",
-       "single"
+       "single",
+       "quarterly",
+       "half_yearly",
+       "yearly"
       ],
       "title": "Frequency",
       "type": "string"
@@ -2189,6 +2452,22 @@
       "title": "Rate Basis",
       "type": "string"
      },
+     "recovery_status": {
+      "enum": [
+       "none",
+       "seized",
+       "sold"
+      ],
+      "title": "Recovery Status",
+      "type": "string"
+     },
+     "refunds": {
+      "items": {
+       "$ref": "#/components/schemas/RefundOut"
+      },
+      "title": "Refunds",
+      "type": "array"
+     },
      "reschedules": {
       "items": {
        "$ref": "#/components/schemas/RescheduleOut"
@@ -2219,6 +2498,29 @@
       ],
       "title": "Security Kind",
       "type": "string"
+     },
+     "seized_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seized On"
+     },
+     "seizure_note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Seizure Note"
      },
      "stored_status": {
       "enum": [
@@ -2251,6 +2553,17 @@
        }
       ],
       "title": "Term Value"
+     },
+     "topup_of": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Topup Of"
      },
      "total_interest": {
       "title": "Total Interest",
@@ -2318,7 +2631,14 @@
      "schedule",
      "payments",
      "fees",
-     "reschedules"
+     "reschedules",
+     "cheques",
+     "refunds",
+     "current_rate",
+     "recovery_status",
+     "seized_on",
+     "seizure_note",
+     "topup_of"
     ],
     "title": "LoanDetailOut",
     "type": "object"
@@ -2338,7 +2658,10 @@
        "monthly",
        "weekly",
        "daily",
-       "single"
+       "single",
+       "quarterly",
+       "half_yearly",
+       "yearly"
       ],
       "title": "Frequency",
       "type": "string"
@@ -3133,7 +3456,6 @@
     "type": "object"
    },
    "PreviewIn": {
-    "description": "Terms plus what is collected when the loan is given and what it is given against, so the\npreview can show the amount handed over, the true cost and the loan-to-value check.\n``principal`` is the loan amount before any charge added to it.",
     "properties": {
      "advance_installments": {
       "default": 0,
@@ -3265,7 +3587,10 @@
        "monthly",
        "weekly",
        "daily",
-       "single"
+       "single",
+       "quarterly",
+       "half_yearly",
+       "yearly"
       ],
       "title": "Frequency",
       "type": "string"
@@ -3347,6 +3672,18 @@
        }
       ],
       "title": "Term Value"
+     },
+     "topup_of": {
+      "anyOf": [
+       {
+        "format": "uuid",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Topup Of"
      }
     },
     "required": [
@@ -3484,6 +3821,10 @@
       ],
       "title": "Security Value"
      },
+     "topup_closing": {
+      "title": "Topup Closing",
+      "type": "string"
+     },
      "total_interest": {
       "title": "Total Interest",
       "type": "string"
@@ -3559,6 +3900,7 @@
      "ltv_percent",
      "ltv_maximum",
      "ltv_above_maximum",
+     "topup_closing",
      "rows"
     ],
     "title": "PreviewOut",
@@ -3584,6 +3926,69 @@
      "keys"
     ],
     "title": "PushIn",
+    "type": "object"
+   },
+   "RefundOut": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "mode": {
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "reason": {
+      "title": "Reason",
+      "type": "string"
+     },
+     "refunded_on": {
+      "format": "date",
+      "title": "Refunded On",
+      "type": "string"
+     }
+    },
+    "required": [
+     "amount",
+     "refunded_on",
+     "mode",
+     "reason"
+    ],
+    "title": "RefundOut",
+    "type": "object"
+   },
+   "ReleaseIn": {
+    "properties": {
+     "released_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Released On"
+     },
+     "released_to": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Released To",
+      "type": "string"
+     }
+    },
+    "required": [
+     "released_to"
+    ],
+    "title": "ReleaseIn",
     "type": "object"
    },
    "ReminderOut": {
@@ -3650,16 +4055,179 @@
       "title": "Extra",
       "type": "string"
      },
+     "holiday_months": {
+      "default": 0,
+      "title": "Holiday Months",
+      "type": "integer"
+     },
      "interest_saved": {
       "title": "Interest Saved",
+      "type": "string"
+     },
+     "kind": {
+      "default": "prepayment",
+      "enum": [
+       "prepayment",
+       "restructure"
+      ],
+      "title": "Kind",
       "type": "string"
      },
      "mode": {
       "enum": [
        "reduce_emi",
-       "reduce_term"
+       "reduce_term",
+       "restructure"
       ],
       "title": "Mode",
+      "type": "string"
+     },
+     "new_count": {
+      "title": "New Count",
+      "type": "integer"
+     },
+     "new_installment": {
+      "title": "New Installment",
+      "type": "string"
+     },
+     "new_maturity": {
+      "format": "date",
+      "title": "New Maturity",
+      "type": "string"
+     },
+     "new_rate": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "New Rate"
+     },
+     "old_count": {
+      "title": "Old Count",
+      "type": "integer"
+     },
+     "old_installment": {
+      "title": "Old Installment",
+      "type": "string"
+     },
+     "old_maturity": {
+      "format": "date",
+      "title": "Old Maturity",
+      "type": "string"
+     },
+     "paid_on": {
+      "format": "date",
+      "title": "Paid On",
+      "type": "string"
+     },
+     "reason": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Reason"
+     }
+    },
+    "required": [
+     "paid_on",
+     "extra",
+     "mode",
+     "old_installment",
+     "new_installment",
+     "old_count",
+     "new_count",
+     "old_maturity",
+     "new_maturity",
+     "interest_saved"
+    ],
+    "title": "RescheduleOut",
+    "type": "object"
+   },
+   "RestructureIn": {
+    "description": "Give the borrower relief: skip some installments (an EMI holiday; their interest is spread\nover the new installments), add installments to lower the EMI, and/or change the rate.",
+    "properties": {
+     "extra_installments": {
+      "default": 0,
+      "maximum": 120.0,
+      "minimum": 0.0,
+      "title": "Extra Installments",
+      "type": "integer"
+     },
+     "holiday": {
+      "default": 0,
+      "maximum": 12.0,
+      "minimum": 0.0,
+      "title": "Holiday",
+      "type": "integer"
+     },
+     "new_rate": {
+      "anyOf": [
+       {
+        "maximum": 100.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "New Rate"
+     },
+     "on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On"
+     },
+     "reason": {
+      "maxLength": 500,
+      "minLength": 3,
+      "title": "Reason",
+      "type": "string"
+     },
+     "version": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Version"
+     }
+    },
+    "required": [
+     "reason"
+    ],
+    "title": "RestructureIn",
+    "type": "object"
+   },
+   "RestructurePreviewOut": {
+    "properties": {
+     "carried_interest": {
+      "title": "Carried Interest",
+      "type": "string"
+     },
+     "interest_change": {
+      "title": "Interest Change",
       "type": "string"
      },
      "new_count": {
@@ -3688,25 +4256,42 @@
       "title": "Old Maturity",
       "type": "string"
      },
-     "paid_on": {
+     "on": {
       "format": "date",
-      "title": "Paid On",
+      "title": "On",
       "type": "string"
+     },
+     "principal": {
+      "title": "Principal",
+      "type": "string"
+     },
+     "rate": {
+      "title": "Rate",
+      "type": "string"
+     },
+     "rows": {
+      "items": {
+       "$ref": "#/components/schemas/ScheduleRowOut"
+      },
+      "title": "Rows",
+      "type": "array"
      }
     },
     "required": [
-     "paid_on",
-     "extra",
-     "mode",
+     "on",
+     "principal",
+     "carried_interest",
      "old_installment",
      "new_installment",
      "old_count",
      "new_count",
      "old_maturity",
      "new_maturity",
-     "interest_saved"
+     "rate",
+     "interest_change",
+     "rows"
     ],
-    "title": "RescheduleOut",
+    "title": "RestructurePreviewOut",
     "type": "object"
    },
    "RevealOut": {
@@ -4587,6 +5172,29 @@
       ],
       "title": "Registration No"
      },
+     "released_on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Released On"
+     },
+     "released_to": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Released To"
+     },
      "sub_registrar_office": {
       "anyOf": [
        {
@@ -4704,6 +5312,241 @@
      "version"
     ],
     "title": "SecurityOut",
+    "type": "object"
+   },
+   "SecurityUpdateIn": {
+    "description": "Details that change during a loan: a renewed insurance policy, the registration number\nonce it is issued, notes.",
+    "properties": {
+     "insurance_expiry": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Expiry"
+     },
+     "insurance_policy_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Policy No"
+     },
+     "insurer": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurer"
+     },
+     "lien_noted_on_rc": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Lien Noted On Rc"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "registration_no": {
+      "anyOf": [
+       {
+        "maxLength": 20,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Registration No"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     }
+    },
+    "required": [
+     "version"
+    ],
+    "title": "SecurityUpdateIn",
+    "type": "object"
+   },
+   "SeizeIn": {
+    "properties": {
+     "charge": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Charge"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On"
+     }
+    },
+    "title": "SeizeIn",
+    "type": "object"
+   },
+   "SellIn": {
+    "properties": {
+     "expenses": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "default": "0",
+      "title": "Expenses"
+     },
+     "idempotency_key": {
+      "maxLength": 80,
+      "minLength": 8,
+      "title": "Idempotency Key",
+      "type": "string"
+     },
+     "mode": {
+      "default": "cash",
+      "enum": [
+       "cash",
+       "upi",
+       "bank",
+       "cheque",
+       "other"
+      ],
+      "title": "Mode",
+      "type": "string"
+     },
+     "note": {
+      "anyOf": [
+       {
+        "maxLength": 500,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Note"
+     },
+     "on": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On"
+     },
+     "sale_price": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Sale Price"
+     }
+    },
+    "required": [
+     "sale_price",
+     "idempotency_key"
+    ],
+    "title": "SellIn",
+    "type": "object"
+   },
+   "SellOut": {
+    "properties": {
+     "closed": {
+      "title": "Closed",
+      "type": "boolean"
+     },
+     "paid_to_loan": {
+      "title": "Paid To Loan",
+      "type": "string"
+     },
+     "refund": {
+      "title": "Refund",
+      "type": "string"
+     },
+     "shortfall": {
+      "title": "Shortfall",
+      "type": "string"
+     }
+    },
+    "required": [
+     "closed",
+     "paid_to_loan",
+     "refund",
+     "shortfall"
+    ],
+    "title": "SellOut",
     "type": "object"
    },
    "SettingsIn": {
@@ -5561,7 +6404,10 @@
        "monthly",
        "weekly",
        "daily",
-       "single"
+       "single",
+       "quarterly",
+       "half_yearly",
+       "yearly"
       ],
       "title": "Frequency",
       "type": "string"
@@ -7298,6 +8144,59 @@
     ]
    }
   },
+  "/api/v1/cheques/{cheque_id}/status": {
+   "post": {
+    "operationId": "cheque_status_api_v1_cheques__cheque_id__status_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "cheque_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Cheque Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChequeStatusIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Cheque Status",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
   "/api/v1/dashboard": {
    "get": {
     "operationId": "dashboard_api_v1_dashboard_get",
@@ -7959,6 +8858,55 @@
     ]
    }
   },
+  "/api/v1/insurance/due": {
+   "get": {
+    "operationId": "insurance_due_api_v1_insurance_due_get",
+    "parameters": [
+     {
+      "in": "query",
+      "name": "days",
+      "required": false,
+      "schema": {
+       "default": 30,
+       "maximum": 365,
+       "minimum": 0,
+       "title": "Days",
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/InsuranceDue"
+         },
+         "title": "Response Insurance Due Api V1 Insurance Due Get",
+         "type": "array"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Insurance Due",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
   "/api/v1/loans": {
    "get": {
     "operationId": "list_loans_api_v1_loans_get",
@@ -8268,6 +9216,59 @@
     ]
    }
   },
+  "/api/v1/loans/{loan_id}/cheques": {
+   "post": {
+    "operationId": "add_cheque_api_v1_loans__loan_id__cheques_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChequeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Add Cheque",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
   "/api/v1/loans/{loan_id}/fees": {
    "post": {
     "operationId": "add_fee_api_v1_loans__loan_id__fees_post",
@@ -8316,6 +9317,67 @@
      }
     },
     "summary": "Add Fee",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/no-dues.pdf": {
+   "get": {
+    "operationId": "no_dues_pdf_api_v1_loans__loan_id__no_dues_pdf_get",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "lang",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "enum": [
+          "en",
+          "ta"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lang"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "No Dues Pdf",
     "tags": [
      "loans"
     ]
@@ -8570,6 +9632,218 @@
      }
     },
     "summary": "Reminder",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/restructure": {
+   "post": {
+    "operationId": "restructure_api_v1_loans__loan_id__restructure_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RestructureIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Restructure",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/restructure/preview": {
+   "post": {
+    "operationId": "restructure_preview_api_v1_loans__loan_id__restructure_preview_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RestructureIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RestructurePreviewOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Restructure Preview",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/seize": {
+   "post": {
+    "operationId": "seize_api_v1_loans__loan_id__seize_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SeizeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Seize",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/loans/{loan_id}/sell": {
+   "post": {
+    "operationId": "sell_api_v1_loans__loan_id__sell_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "loan_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Loan Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SellIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SellOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Sell",
     "tags": [
      "loans"
     ]
@@ -9517,6 +10791,112 @@
     "summary": "Search",
     "tags": [
      "borrowers"
+    ]
+   }
+  },
+  "/api/v1/securities/{security_id}": {
+   "patch": {
+    "operationId": "update_security_api_v1_securities__security_id__patch",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "security_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Security Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SecurityUpdateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Update Security",
+    "tags": [
+     "loans"
+    ]
+   }
+  },
+  "/api/v1/securities/{security_id}/release": {
+   "post": {
+    "operationId": "release_security_api_v1_securities__security_id__release_post",
+    "parameters": [
+     {
+      "in": "path",
+      "name": "security_id",
+      "required": true,
+      "schema": {
+       "format": "uuid",
+       "title": "Security Id",
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReleaseIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoanDetailOut"
+        }
+       }
+      },
+      "description": "Successful Response"
+     },
+     "422": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      },
+      "description": "Validation Error"
+     }
+    },
+    "summary": "Release Security",
+    "tags": [
+     "loans"
     ]
    }
   },

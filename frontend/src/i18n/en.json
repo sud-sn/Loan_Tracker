@@ -122,7 +122,10 @@
     "monthly": "Monthly",
     "weekly": "Weekly",
     "daily": "Daily",
-    "single": "Single payment at the end"
+    "single": "Single payment at the end",
+    "quarterly": "Every 3 months",
+    "half_yearly": "Every 6 months",
+    "yearly": "Yearly"
   },
   "rateBasis": {
     "month": "% per month",
@@ -137,7 +140,10 @@
     "monthly": "month",
     "weekly": "week",
     "daily": "day",
-    "single": "time"
+    "single": "time",
+    "quarterly": "quarter",
+    "half_yearly": "half-year",
+    "yearly": "year"
   },
   "home": {
     "title": "Today",
@@ -677,7 +683,14 @@
     "RESCHEDULE_MODE_NOT_FOR_METHOD": "An interest-only loan can only lower the installment.",
     "PAYMENT_LOCKED_BY_RESCHEDULE": "This payment cannot be reversed: the installments it paid were worked out again after a part payment.",
     "WAIVER_TOO_LARGE": "You can waive at most {{due}}.",
-    "FEE_NOT_FOUND": "That charge was not found."
+    "FEE_NOT_FOUND": "That charge was not found.",
+    "LATE_FEE_DUE_FIRST": "Collect or waive the late fee first.",
+    "NO_VEHICLE_SECURITY": "This loan is not given against a vehicle.",
+    "NOT_SEIZED": "Record the seizure first.",
+    "LOAN_NOT_CLOSED": "The loan is not closed yet.",
+    "SECURITY_NOT_FOUND": "That security was not found.",
+    "CHEQUE_NOT_FOUND": "That cheque was not found.",
+    "TOPUP_LOAN_INVALID": "That loan cannot be closed by a top-up."
   },
   "security": {
     "question": "What is the loan given against?",
@@ -720,7 +733,10 @@
     "ecDate": "EC date",
     "place": "Village, taluk, district",
     "originals": "Originals we keep",
-    "originalsHint": "Tick what you keep until the loan is closed."
+    "originalsHint": "Tick what you keep until the loan is closed.",
+    "edit": "Edit security",
+    "editTitle": "Edit security details",
+    "editIntro": "For example a renewed insurance policy or the registration number once issued."
   },
   "vehicleType": {
     "two_wheeler": "Two-wheeler",
@@ -849,5 +865,72 @@
     "rebate_none_hint": "The borrower pays all the interest of the loan.",
     "foreclosure": "Foreclosure charge",
     "foreclosureHint": "{{percent}}% of the principal being repaid (Settings). Type 0 to waive."
+  },
+  "restructure": {
+    "button": "Restructure",
+    "title": "Restructure the loan",
+    "intro": "Relief for the borrower: skip some installments, spread the loan over more installments, or change the rate. Interest of skipped installments and overdue interest are spread over the new ones.",
+    "holiday": "Installments to skip (EMI holiday)",
+    "extra": "Installments to add",
+    "rate": "New rate (% per period basis)",
+    "carried": "Interest carried into the new installments",
+    "interestChange": "Change in total interest",
+    "confirm": "Restructure"
+  },
+  "recovery": {
+    "seize": "Seize vehicle",
+    "seizeTitle": "Vehicle seized",
+    "seizeIntro": "Record that the vehicle has been taken back. Follow the agreement and the law; the app only keeps the record.",
+    "on": "Date",
+    "charge": "Towing / yard charges",
+    "sell": "Record sale",
+    "sellTitle": "Seized vehicle sold",
+    "sellIntro": "The sale pays the loan (interest to today, no foreclosure charge). Any surplus goes back to the borrower; any shortfall is still owed.",
+    "price": "Sale price",
+    "expenses": "Sale expenses",
+    "paidToLoan": "Paid into the loan",
+    "refund": "Given back to the borrower",
+    "shortfall": "Still owed",
+    "closed": "The loan is closed.",
+    "stillOwed": "The loan stays open for the rest.",
+    "seizedOn": "Vehicle seized on {{date}}",
+    "sold": "Seized vehicle sold"
+  },
+  "cheque": {
+    "title": "Cheques",
+    "add": "Add a cheque",
+    "addTitle": "Add a post-dated cheque",
+    "intro": "Keep track of cheques held. Marking one bounced adds the bounce charge.",
+    "no": "Cheque no.",
+    "bank": "Bank",
+    "date": "Cheque date",
+    "status": "Status",
+    "held": "Held",
+    "presented": "Presented",
+    "cleared": "Cleared",
+    "bounced": "Bounced",
+    "returned": "Returned to borrower"
+  },
+  "release": {
+    "cardTitle": "Loan closed: return the security",
+    "button": "Mark documents returned",
+    "title": "Documents returned",
+    "intro": "Record who received the originals (RC book, keys, deeds) and when.",
+    "to": "Given to",
+    "confirm": "Save",
+    "done": "returned to {{to}} on {{date}}",
+    "pending": "not returned yet",
+    "certificate": "No-dues certificate"
+  },
+  "insurance": {
+    "title": "Vehicle insurance expiring (30 days)",
+    "expires": "expires {{date}}",
+    "expired": "expired {{date}}"
+  },
+  "topup": {
+    "label": "Top-up: close an existing loan with this one",
+    "hint": "What closing it costs today is taken out of the amount handed over; its security moves to this loan.",
+    "none": "No, a separate loan",
+    "closing": "Closes the earlier loan"
   }
 }

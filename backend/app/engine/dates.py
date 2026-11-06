@@ -5,7 +5,7 @@ from __future__ import annotations
 import calendar
 from datetime import date, timedelta
 
-from app.engine.types import Frequency
+from app.engine.types import MONTHS_PER_PERIOD, Frequency
 
 
 def add_months(start: date, months: int, anchor_day: int | None = None) -> date:
@@ -23,7 +23,9 @@ def add_months(start: date, months: int, anchor_day: int | None = None) -> date:
 
 
 def one_period_after(start: date, frequency: Frequency) -> date:
-    if frequency is Frequency.MONTHLY or frequency is Frequency.SINGLE:
+    if frequency in MONTHS_PER_PERIOD:
+        return add_months(start, MONTHS_PER_PERIOD[frequency])
+    if frequency is Frequency.SINGLE:
         return add_months(start, 1)
     if frequency is Frequency.WEEKLY:
         return start + timedelta(days=7)
@@ -31,8 +33,9 @@ def one_period_after(start: date, frequency: Frequency) -> date:
 
 
 def due_dates(first_due: date, count: int, frequency: Frequency) -> list[date]:
-    if frequency is Frequency.MONTHLY:
-        return [add_months(first_due, k, anchor_day=first_due.day) for k in range(count)]
+    if frequency in MONTHS_PER_PERIOD:
+        step = MONTHS_PER_PERIOD[frequency]
+        return [add_months(first_due, k * step, anchor_day=first_due.day) for k in range(count)]
     step = 7 if frequency is Frequency.WEEKLY else 1
     return [first_due + timedelta(days=step * k) for k in range(count)]
 

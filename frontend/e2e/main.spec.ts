@@ -18,6 +18,9 @@ const T = {
     vehicle: "Vehicle", reg: "Registration no.", price: "On-road price", down: "Down payment", addCharge: "Add a charge",
     partPayment: "Part payment", amountReceivedPart: "Amount received", finishSooner: "Finish sooner",
     addFee: "Add a charge", feesTitle: "Charges after the loan was given", rescheduled: "Rescheduled",
+    restructure: "Restructure", restructureReason: "Reason", addCheque: "Add a cheque", chequeNo: "Cheque no.",
+    seize: "Seize vehicle", recordSale: "Record sale", salePrice: "Sale price", closedCard: "Loan closed: return the security",
+    noDues: "No-dues certificate", bounced: "Bounced",
     amount: "Amount", ltvAck: "I still want to give this loan", handedOver: "Handed over on the day",
   },
   ta: {
@@ -31,6 +34,9 @@ const T = {
     vehicle: "வாகனம்", reg: "பதிவு எண்", price: "ஆன்-ரோடு விலை", down: "முன்பணம்", addCharge: "கட்டணம் சேர்",
     partPayment: "பகுதி செலுத்தல்", amountReceivedPart: "பெற்ற தொகை", finishSooner: "சீக்கிரம் முடியும்",
     addFee: "கட்டணம் சேர்", feesTitle: "கடனுக்குப் பிறகு கட்டணங்கள்", rescheduled: "மாற்றியமைக்கப்பட்டது",
+    restructure: "கடனை மாற்றியமை", restructureReason: "காரணம்", addCheque: "காசோலை சேர்", chequeNo: "காசோலை எண்",
+    seize: "வாகனத்தைப் பறிமுதல் செய்", recordSale: "விற்பனையைப் பதிவு செய்", salePrice: "விற்பனை விலை",
+    closedCard: "கடன் முடிந்தது: அடமானத்தைத் திருப்பிக் கொடு", noDues: "நிலுவை இல்லாச் சான்று", bounced: "திரும்பியது",
     amount: "தொகை", ltvAck: "இருந்தாலும் இந்தக் கடனைக் கொடுக்கிறேன்", handedOver: "அன்று கையில் கொடுத்தது",
   },
 } as const;
@@ -266,6 +272,56 @@ for (const lang of ["en", "ta"] as const) {
     await page.getByRole("dialog").getByRole("button").last().click();
     await expect(page.locator("main")).toContainText(t.feesTitle);
     await expect(page.locator("main")).toContainText("₹500.00");
+    await noOverflowOrRawKeys(page);
+    expect(errors).toEqual([]);
+  });
+
+  test(`restructure, a bounced cheque, seizure and sale (${lang})`, async ({ page }) => {
+    const t = T[lang];
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    await signIn(page, lang);
+    const csrf = (await page.context().cookies()).find((c) => c.name === "lt_csrf")?.value ?? "";
+    const headers = { "X-CSRF-Token": csrf };
+    const id = unique();
+    const b = await (await page.request.post("/api/v1/borrowers", { headers, data: {
+      name_en: `Truck Owner ${id}`, phone: `9${id.padStart(9, "7")}`, aadhaar: aadhaar(`9${id.padStart(10, "7")}`),
+      address: "x", consent: { given: true } } })).json();
+    const today = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()));
+    const given = new Date(today.getTime() - 5 * 86400000).toISOString().slice(0, 10);
+    const loan = await (await page.request.post("/api/v1/loans", { headers, data: {
+      borrower_id: b.id, idempotency_key: `e2e-p3-${id}-${lang}`, security: [{ kind: "vehicle", registration_no: "TN 01 EF 5678",
+        on_road_price: "300000" }],
+      terms: { principal: "100000", rate: "2", term_value: 12, disbursal_date: given } } })).json();
+    await page.goto(`/loans/${loan.id}`);
+
+    await page.getByRole("button", { name: t.restructure, exact: true }).click();
+    let sheet = page.getByRole("dialog");
+    await sheet.getByLabel(t.restructureReason, { exact: true }).fill("harvest delayed");
+    await expect(sheet.locator("dl")).toBeVisible();
+    await noOverflowOrRawKeys(page);
+    await sheet.getByRole("button").last().click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("main")).toContainText(t.rescheduled);
+
+    await page.getByRole("button", { name: t.addCheque, exact: true }).click();
+    sheet = page.getByRole("dialog");
+    await sheet.getByLabel(t.chequeNo, { exact: true }).fill("000555");
+    await sheet.getByLabel(t.amount, { exact: true }).fill("9455.96");
+    await sheet.getByRole("button").last().click();
+    await page.locator("main select").filter({ hasText: t.bounced }).first().selectOption("bounced");
+    await expect(page.locator("main")).toContainText("₹500.00");
+
+    await page.getByRole("button", { name: t.seize, exact: true }).click();
+    await page.getByRole("dialog").getByRole("button").last().click();
+    await page.getByRole("button", { name: t.recordSale, exact: true }).click();
+    sheet = page.getByRole("dialog");
+    await sheet.getByLabel(t.salePrice, { exact: true }).fill("200000");
+    await sheet.getByRole("button").last().click();
+    await expect(sheet.locator("dl")).toBeVisible();
+    await sheet.getByRole("button").last().click();
+    await expect(page.locator("main")).toContainText(t.closedCard);
+    await expect(page.locator("main")).toContainText(t.noDues);
     await noOverflowOrRawKeys(page);
     expect(errors).toEqual([]);
   });

@@ -17,3 +17,4 @@ Short records of choices made where the PRD was open, or where two requirements 
 - [0013 · Laptop first](0013-laptop-first-layout.md)
 - [0014 · Vehicle and land loans (Phase 1)](0014-vehicle-and-land-loans.md)
 - [0015 · Part payment, charges, waivers, foreclosure (Phase 2)](0015-part-payment-charges-waivers-foreclosure.md)
+- [0016 · Restructure, seizure, release, top-up, cheques, insurance (Phase 3)](0016-phase-3-loan-lifecycle.md)

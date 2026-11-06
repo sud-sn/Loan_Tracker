@@ -30,8 +30,10 @@ from app.engine.money import q2
 from app.engine.types import Frequency
 
 # One installment period in months, as the schedule converts rates (a week = 7/30 of a month).
-_PERIOD_MONTHS = {Frequency.MONTHLY: 1.0, Frequency.WEEKLY: 7 / 30, Frequency.DAILY: 1 / 30}
-_PERIOD_DAYS = {Frequency.MONTHLY: 30, Frequency.WEEKLY: 7, Frequency.DAILY: 1}
+_PERIOD_MONTHS = {Frequency.MONTHLY: 1.0, Frequency.WEEKLY: 7 / 30, Frequency.DAILY: 1 / 30,
+                  Frequency.QUARTERLY: 3.0, Frequency.HALF_YEARLY: 6.0, Frequency.YEARLY: 12.0}
+_PERIOD_DAYS = {Frequency.MONTHLY: 30, Frequency.WEEKLY: 7, Frequency.DAILY: 1, Frequency.QUARTERLY: 90,
+                Frequency.HALF_YEARLY: 180, Frequency.YEARLY: 360}
 
 
 @dataclass(frozen=True)
