@@ -34,7 +34,7 @@ export function Sheet({ open, onOpenChange, title, description, children, footer
               <D.Title className="text-lg font-semibold">{title}</D.Title>
               {description && <D.Description className="text-sm text-muted">{description}</D.Description>}
             </div>
-            <D.Close className="-mr-2 inline-flex min-h-touch min-w-touch items-center justify-center rounded-xl hover:bg-sunken"
+            <D.Close className="-mr-2 inline-flex min-h-touch min-w-touch items-center justify-center rounded-full hover:bg-sunken"
               aria-label={t("app.close")}>
               <X className="h-5 w-5" aria-hidden />
             </D.Close>

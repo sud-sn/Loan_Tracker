@@ -179,7 +179,7 @@ export function NewLoanPage() {
         <ol className="mt-3 grid grid-cols-5 gap-1" aria-label={t("loan.step", { n: step })}>
           {stepTitles.map((title, i) => (
             <li key={title} aria-current={step === i + 1 ? "step" : undefined} aria-label={title}
-              className={cn("flex h-10 items-center justify-center rounded-lg text-base font-bold",
+              className={cn("flex h-8 items-center justify-center rounded-full text-sm font-bold",
                 step === i + 1 ? "bg-brand text-brand-ink" : step > i + 1 ? "bg-brand-soft text-brand" : "bg-sunken text-muted")}>
               {i + 1}
             </li>

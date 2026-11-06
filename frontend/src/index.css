@@ -1,7 +1,8 @@
-/* Loan Tracker design system.
-   Calm and trustworthy: deep teal ink on a warm paper background, with status colours that
-   always come with an icon and a word (never colour alone). Every value is a token so the dark
-   theme only redefines tokens. */
+/* Loan Tracker design system, in the Solviz palette (Querybot v2 tokens).
+   Solviz blue for actions and selection, Solviz yellow as the accent (logo, the add button, the
+   active menu marker), cool blue-grey neutrals, and status colours that always come with an icon
+   and a word (never colour alone). Every value is a token so the dark theme only redefines tokens.
+   Controls are 44 px on a phone (easy to tap) and 40 px on a laptop (compact, like Solviz). */
 @import "@fontsource/noto-sans/latin-400.css";
 @import "@fontsource/noto-sans/latin-600.css";
 @import "@fontsource/noto-sans/latin-700.css";
@@ -14,49 +15,66 @@
 @tailwind utilities;
 
 :root {
-  --bg: 247 245 240;
-  --surface: 255 255 255;
-  --sunken: 239 236 228;
-  --ink: 20 35 43;
-  --muted: 84 100 108;
-  --line: 218 214 204;
-  --brand: 13 79 74;
+  --bg: 245 246 251;          /* Solviz paper #F5F6FB */
+  --surface: 252 252 255;     /* cards #FCFCFF */
+  --sunken: 238 240 247;      /* #EEF0F7 */
+  --ink: 20 23 58;            /* #14173A */
+  --muted: 78 83 122;         /* #4E537A */
+  --line: 205 208 228;        /* #CDD0E4 */
+  --line-strong: 118 123 166; /* inputs #767BA6 */
+  --brand: 79 84 214;         /* Solviz blue #4F54D6 */
+  --brand-strong: 58 62 184;  /* hover #3A3EB8 */
   --brand-ink: 255 255 255;
-  --brand-soft: 222 238 234;
-  --paid: 22 112 64;
-  --paid-soft: 223 242 231;
-  --due: 150 90 0;
-  --due-soft: 253 240 210;
-  --late: 176 38 30;
-  --late-soft: 252 228 225;
-  --money-in: 22 112 64;
-  --money-out: 150 52 30;
-  --shadow: 20 35 43;
+  --brand-soft: 238 239 253;  /* #EEEFFD */
+  --accent: 229 157 18;       /* Solviz yellow #E59D12 */
+  --accent-soft: 253 244 225;
+  --accent-ink: 20 23 58;     /* navy text on yellow */
+  --paid: 6 118 71;           /* #067647 */
+  --paid-soft: 231 246 238;
+  --due: 166 73 12;           /* #A6490C */
+  --due-soft: 253 241 227;
+  --late: 180 35 24;          /* #B42318 */
+  --late-soft: 253 236 234;
+  --money-in: 6 118 71;
+  --money-out: 180 35 24;
+  --on-fill: 255 255 255;     /* text on green / red / blue fills */
+  --shadow: 20 23 58;
   --radius: 12px;
-  --focus: 0 0 0 3px rgb(13 79 74 / 0.35);
+  --touch: 44px;
+  --focus: 0 0 0 3px rgb(79 84 214 / 0.30);
   color-scheme: light;
 }
 
+@media (min-width: 768px) {
+  :root { --touch: 40px; }
+}
+
 [data-theme="dark"] {
-  --bg: 14 22 26;
-  --surface: 22 33 38;
-  --sunken: 30 44 50;
-  --ink: 232 238 236;
-  --muted: 160 176 178;
-  --line: 52 68 74;
-  --brand: 92 190 176;
-  --brand-ink: 8 26 24;
-  --brand-soft: 24 60 56;
-  --paid: 108 205 146;
-  --paid-soft: 22 56 38;
-  --due: 240 190 90;
-  --due-soft: 66 50 18;
-  --late: 248 132 120;
-  --late-soft: 72 30 28;
-  --money-in: 108 205 146;
-  --money-out: 242 150 120;
+  --bg: 13 16 41;             /* #0D1029 */
+  --surface: 20 24 66;        /* #141842 */
+  --sunken: 10 12 36;
+  --ink: 238 239 248;
+  --muted: 169 173 208;
+  --line: 54 63 136;
+  --line-strong: 122 130 200;
+  --brand: 166 170 250;       /* #A6AAFA */
+  --brand-strong: 190 193 252;
+  --brand-ink: 13 16 41;
+  --brand-soft: 30 34 102;
+  --accent: 247 182 60;       /* #F7B63C */
+  --accent-soft: 51 38 12;
+  --accent-ink: 13 16 41;
+  --paid: 94 227 174;
+  --paid-soft: 15 42 36;
+  --due: 245 176 122;
+  --due-soft: 51 32 15;
+  --late: 244 160 168;
+  --late-soft: 51 24 32;
+  --money-in: 94 227 174;
+  --money-out: 244 160 168;
+  --on-fill: 13 16 41;        /* dark fills are light, so their text is navy */
   --shadow: 0 0 0;
-  --focus: 0 0 0 3px rgb(92 190 176 / 0.45);
+  --focus: 0 0 0 3px rgb(166 170 250 / 0.45);
   color-scheme: dark;
 }
 
@@ -87,8 +105,8 @@
   .field-hint { @apply mt-1 text-sm text-muted; }
   .field-error { @apply mt-1 text-sm font-semibold text-late; }
   .control {
-    @apply w-full min-h-touch rounded-xl border border-line bg-surface px-3 py-2 text-ink
-           placeholder:text-muted/70 focus:border-brand;
+    @apply w-full min-h-touch rounded-[10px] border border-line-strong/60 bg-surface px-3 py-1.5 text-ink
+           placeholder:text-muted/70 hover:border-line-strong focus:border-brand;
   }
   .skeleton { @apply animate-pulse rounded-lg bg-sunken; }
   .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 76px); }

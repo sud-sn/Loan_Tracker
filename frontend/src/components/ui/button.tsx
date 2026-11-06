@@ -5,23 +5,26 @@ import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "btn inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-center transition-colors " +
+  // Solviz-style pill buttons: compact on a laptop, comfortable to tap on a phone.
+  "btn inline-flex items-center justify-center gap-2 rounded-full font-semibold text-center leading-tight " +
+    "transition-[background-color,border-color,color,transform] active:scale-[.97] " +
     "disabled:opacity-50 disabled:pointer-events-none select-none whitespace-normal",
   {
     variants: {
       variant: {
-        primary: "bg-brand text-brand-ink hover:bg-brand/90 active:bg-brand/80",
-        secondary: "bg-brand-soft text-brand hover:bg-brand-soft/80",
-        outline: "border border-line bg-surface text-ink hover:bg-sunken",
+        primary: "border border-brand bg-brand text-brand-ink hover:border-brand-strong hover:bg-brand-strong",
+        secondary: "border border-brand/25 bg-brand-soft text-brand hover:border-brand/50",
+        outline: "border border-line-strong/60 bg-surface text-ink hover:border-line-strong hover:bg-sunken",
         ghost: "text-ink hover:bg-sunken",
-        danger: "bg-late text-white hover:bg-late/90",
-        paid: "bg-paid text-white hover:bg-paid/90",
+        accent: "border border-accent bg-accent text-accent-ink hover:brightness-95",
+        danger: "border border-late bg-late text-onfill hover:brightness-95",
+        paid: "border border-paid bg-paid text-onfill hover:brightness-95",
       },
       size: {
-        md: "min-h-touch px-4 py-2 text-base",
-        lg: "min-h-[56px] px-5 py-3 text-lg",
+        md: "min-h-touch px-4 py-2 text-[15px] md:text-sm",
+        lg: "min-h-[48px] px-5 py-2.5 text-base md:min-h-[44px] md:text-[15px]",
         icon: "min-h-touch min-w-touch p-2",
-        sm: "min-h-[40px] px-3 py-1.5 text-sm",
+        sm: "min-h-[38px] px-3 py-1.5 text-sm md:min-h-[34px] md:text-[13px]",
       },
     },
     defaultVariants: { variant: "primary", size: "md" },

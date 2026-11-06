@@ -56,7 +56,7 @@ export function HomePage() {
           <h1 className="text-xl xl:text-2xl">{day === today ? t("home.title") : dmy(day)}</h1>
           <p className="text-sm text-muted">{longDate(day, lang)}</p>
         </div>
-        <label className="relative inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-xl border border-line bg-surface">
+        <label className="relative inline-flex min-h-touch min-w-touch cursor-pointer items-center justify-center rounded-full border border-line-strong/60 bg-surface hover:bg-sunken">
           <CalendarDays className="h-5 w-5" aria-hidden />
           <span className="sr-only">{t("app.pickDate")}</span>
           <input type="date" max={today} value={day} onChange={(e) => e.target.value && setDay(e.target.value)}
@@ -215,19 +215,19 @@ function EntryList({ title, icon, entries, empty, loading, onEdit }: { title: st
             // Narrow card: name and amount, details below. Wide card (36rem+): name | references | amount.
             <div className="grid min-h-touch grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 px-4 py-2.5 @xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_auto]">
               <div className="min-w-0">
-                <p className="truncate font-semibold">{label}</p>
-                <p className="truncate text-sm text-muted">{kind}</p>
+                <p className="[overflow-wrap:anywhere] font-semibold">{label}</p>
+                <p className="[overflow-wrap:anywhere] text-sm text-muted">{kind}</p>
               </div>
               <div className="col-span-2 row-start-2 min-w-0 text-sm text-muted @xl:col-span-1 @xl:row-start-auto">
-                <p className="truncate">
+                <p className="[overflow-wrap:anywhere]">
                   {e.code ? <span className="whitespace-nowrap">{e.code}</span> : null}
                   {e.loan_no ? <> · <span className="whitespace-nowrap">{e.loan_no}</span></> : null}
                   {e.code || e.loan_no ? " · " : ""}{t(`mode.${e.mode}`)}
                 </p>
                 {e.principal && e.kind !== "loan" && (
-                  <p className="truncate">{t("payment.principal")} {money(e.principal)} · {t("payment.interest")} {money(e.interest)}</p>
+                  <p className="[overflow-wrap:anywhere]">{t("payment.principal")} {money(e.principal)} · {t("payment.interest")} {money(e.interest)}</p>
                 )}
-                {e.note && <p className="truncate">{e.note}</p>}
+                {e.note && <p className="[overflow-wrap:anywhere]">{e.note}</p>}
               </div>
               <div className="col-start-2 row-start-1 flex shrink-0 items-center gap-1 @xl:col-start-3">
                 {e.kind === "reversal" && <Undo2 className="h-4 w-4 text-late" aria-label={t("home.reversed")} />}

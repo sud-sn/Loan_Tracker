@@ -53,7 +53,7 @@ function Suggestion({ text, onUse }: { text: string; onUse: () => void }) {
   const { t } = useTranslation();
   return (
     <button type="button" onClick={onUse}
-      className="mt-2 inline-flex min-h-touch items-center gap-2 rounded-xl bg-brand-soft px-3 text-left text-brand">
+      className="mt-2 inline-flex min-h-touch items-center gap-2 rounded-full bg-brand-soft px-4 text-left text-sm font-semibold text-brand">
       <Languages className="h-4 w-4 shrink-0" aria-hidden />
       <span>{text}</span>
       <span className="font-semibold underline">{t("borrower.useSuggestion")}</span>

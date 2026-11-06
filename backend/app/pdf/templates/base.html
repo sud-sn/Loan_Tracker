@@ -9,26 +9,26 @@
   @font-face { font-family: "Noto Sans Tamil"; src: url("{{ fonts }}/NotoSansTamil-Regular.ttf"); font-weight: 400; }
   @font-face { font-family: "Noto Sans Tamil"; src: url("{{ fonts }}/NotoSansTamil-Bold.ttf"); font-weight: 700; }
   @page { size: {{ page_size|default("A4") }}; margin: {{ "8mm 9mm 11mm" if page_size == "A5" else "14mm 12mm 16mm" }}; 
-          @bottom-center { content: "{{ footer_note|default('') }}  " counter(page) " / " counter(pages); font-size: 8pt; color: #5b6b73; } }
+          @bottom-center { content: "{{ footer_note|default('') }}  " counter(page) " / " counter(pages); font-size: 8pt; color: #4E537A; } }
   html { font-family: "Noto Sans", "Noto Sans Tamil", sans-serif; font-size: {{ "8.6pt" if page_size == "A5" else "10pt" }};
-         color: #14232b; line-height: 1.45; }
-  h1 { font-size: {{ "12.5pt" if page_size == "A5" else "15pt" }}; margin: 0 0 1mm; color: #0d4f4a; }
-  h2 { font-size: 11.5pt; margin: 6mm 0 2mm; color: #0d4f4a; border-bottom: 0.6pt solid #c9d6d4; padding-bottom: 1mm; }
-  .muted { color: #5b6b73; }
-  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1.5pt solid #0d4f4a;
+         color: #14173A; line-height: 1.45; }
+  h1 { font-size: {{ "12.5pt" if page_size == "A5" else "15pt" }}; margin: 0 0 1mm; color: #4F54D6; }
+  h2 { font-size: 11.5pt; margin: 6mm 0 2mm; color: #4F54D6; border-bottom: 0.6pt solid #CDD0E4; padding-bottom: 1mm; }
+  .muted { color: #4E537A; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1.5pt solid #4F54D6;
           padding-bottom: 2mm; margin-bottom: 3mm; gap: 4mm; }
   .lender { font-weight: 700; font-size: 11pt; }
   table { width: 100%; border-collapse: collapse; margin: 1mm 0 3mm; }
-  th { text-align: left; font-weight: 700; background: #eef4f3; padding: 1.6mm 2mm; font-size: 9pt; }
-  td { padding: 1.4mm 2mm; border-bottom: 0.4pt solid #dde6e4; vertical-align: top; }
+  th { text-align: left; font-weight: 700; background: #EEEFFD; padding: 1.6mm 2mm; font-size: 9pt; }
+  td { padding: 1.4mm 2mm; border-bottom: 0.4pt solid #E2E4EF; vertical-align: top; }
   td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .kv { width: 100%; }
-  .kv td:first-child { color: #5b6b73; width: 42%; }
-  .total td { font-weight: 700; border-top: 1pt solid #14232b; }
-  .big { font-size: 16pt; font-weight: 700; color: #0d4f4a; }
-  .box { border: 0.8pt solid #c9d6d4; border-radius: 2mm; padding: 3mm 4mm; margin: 3mm 0; }
+  .kv td:first-child { color: #4E537A; width: 42%; }
+  .total td { font-weight: 700; border-top: 1pt solid #14173A; }
+  .big { font-size: 16pt; font-weight: 700; color: #4F54D6; }
+  .box { border: 0.8pt solid #CDD0E4; border-radius: 2mm; padding: 3mm 4mm; margin: 3mm 0; }
   .sign { margin-top: {{ "7mm" if page_size == "A5" else "14mm" }}; display: flex; justify-content: flex-end; }
-  .sign div { border-top: 0.6pt solid #14232b; padding-top: 1mm; min-width: 50mm; text-align: center; }
+  .sign div { border-top: 0.6pt solid #14173A; padding-top: 1mm; min-width: 50mm; text-align: center; }
   .warn { color: #9a2b1f; font-weight: 700; }
 </style>
 </head>

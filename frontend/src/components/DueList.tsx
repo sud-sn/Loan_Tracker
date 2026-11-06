@@ -92,7 +92,7 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
   };
   const late = row.overdue_days > 0;
   const showOutstanding = which === "long_unpaid" && Number(row.overdue_amount) === 0;
-  const btn = "flex min-h-touch items-center justify-center gap-1.5 rounded-xl px-2 font-semibold @4xl:min-h-[40px] @4xl:px-3 @4xl:text-sm";
+  const btn = "flex min-h-touch items-center justify-center gap-1.5 rounded-full px-2 font-semibold @4xl:min-h-[40px] @4xl:px-3 @4xl:text-sm";
   // Narrow panel: a card (name and amount, then details, then three big buttons).
   // Wide panel (container 56rem+): one row with columns, like a table. Names wrap rather than being cut.
   return (
@@ -141,7 +141,7 @@ function DueRowCard({ row, which }: { row: DueRow; which: Which }) {
           <span className="min-w-0 leading-tight">{t("dues.whatsapp")}</span>
         </button>
         <button onClick={() => qa.receivePayment(row.loan_id, which === "upcoming" ? undefined : row.amount_due)}
-          className={cn(btn, "bg-paid text-white hover:bg-paid/90")}>
+          className={cn(btn, "bg-paid text-onfill hover:brightness-95")}>
           <HandCoins className="h-5 w-5 shrink-0 @4xl:h-4 @4xl:w-4" aria-hidden />
           <span className="leading-tight">{t("dues.recordPayment")}</span>
         </button>

@@ -110,8 +110,8 @@ export function QuickAddSheet({ open, onOpenChange }: { open: boolean; onOpenCha
       <div className="grid grid-cols-2 gap-3">
         {items.map((it) => (
           <button key={it.label} onClick={() => { onOpenChange(false); it.run(); }}
-            className="flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface p-3 text-center font-semibold hover:bg-sunken">
-            <it.Icon className={`h-7 w-7 ${it.tone}`} aria-hidden />{it.label}
+            className="flex min-h-[80px] flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface p-3 text-center text-[15px] font-semibold hover:border-brand/40 hover:bg-brand-soft/50">
+            <it.Icon className={`h-6 w-6 ${it.tone}`} aria-hidden />{it.label}
           </button>
         ))}
       </div>
@@ -124,17 +124,17 @@ export function QuickAddButtons() {
   const navigate = useNavigate();
   const qa = useQuickActions();
   const items = [
-    { label: t("nav.receivePayment"), Icon: HandCoins, run: () => qa.receivePayment(), cls: "bg-paid text-white" },
-    { label: t("nav.giveLoan"), Icon: Wallet, run: () => navigate("/loans/new"), cls: "bg-brand text-brand-ink" },
-    { label: t("nav.addExpense"), Icon: MinusCircle, run: () => qa.addCash("out"), cls: "bg-surface text-ink border border-line" },
-    { label: t("nav.addIncome"), Icon: PlusCircle, run: () => qa.addCash("in"), cls: "bg-surface text-ink border border-line" },
+    { label: t("nav.receivePayment"), Icon: HandCoins, run: () => qa.receivePayment(), cls: "border border-paid bg-paid text-onfill hover:brightness-95" },
+    { label: t("nav.giveLoan"), Icon: Wallet, run: () => navigate("/loans/new"), cls: "border border-brand bg-brand text-brand-ink hover:bg-brand-strong" },
+    { label: t("nav.addExpense"), Icon: MinusCircle, run: () => qa.addCash("out"), cls: "border border-line-strong/60 bg-surface text-ink hover:bg-sunken" },
+    { label: t("nav.addIncome"), Icon: PlusCircle, run: () => qa.addCash("in"), cls: "border border-line-strong/60 bg-surface text-ink hover:bg-sunken" },
   ];
   return (
     <div className="grid grid-cols-2 gap-2 @[44rem]/main:grid-cols-4">
       {items.map((it) => (
         <button key={it.label} onClick={it.run}
-          className={`flex min-h-[64px] items-center justify-center gap-2 rounded-2xl px-3 py-2 text-center font-semibold shadow-card ${it.cls}`}>
-          <it.Icon className="h-6 w-6 shrink-0" aria-hidden /><span>{it.label}</span>
+          className={`flex min-h-[52px] items-center justify-center gap-2 rounded-full px-4 py-2 text-center text-[15px] font-semibold leading-tight transition-transform active:scale-[.97] md:min-h-[44px] md:text-sm ${it.cls}`}>
+          <it.Icon className="h-5 w-5 shrink-0" aria-hidden /><span>{it.label}</span>
         </button>
       ))}
     </div>

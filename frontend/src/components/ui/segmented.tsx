@@ -26,7 +26,7 @@ export function Segmented<T extends string>({ label, value, options, onChange, c
       <div className={cn("grid gap-2", cols)}>
         {options.map((o) => (
           <label key={o.value}
-            className={cn("flex min-h-touch min-w-0 cursor-pointer flex-col justify-center rounded-xl border px-3 py-2",
+            className={cn("flex min-h-touch min-w-0 cursor-pointer flex-col justify-center rounded-[10px] border px-3 py-1.5",
               value === o.value ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface hover:bg-sunken")}>
             <input type="radio" className="sr-only" name={name} value={o.value} checked={value === o.value}
               onChange={() => onChange(o.value)} />

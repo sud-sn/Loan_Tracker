@@ -35,11 +35,12 @@ function NavItem({ to, Icon, label, title, end, variant }:
         "font-semibold",
         variant === "bar" && "flex min-h-touch min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 text-center text-[12px]",
         variant === "rail" && "flex w-full flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-center text-xs leading-tight [overflow-wrap:anywhere]",
-        variant === "full" && "flex min-h-touch w-full items-center gap-3 rounded-xl px-3 text-left text-base",
+        variant === "full" && "flex min-h-touch w-full items-center gap-3 rounded-xl px-3 text-left text-[15px]",
         variant === "bar" ? (isActive ? "text-brand" : "text-muted hover:text-ink")
-          : isActive ? "bg-brand-soft text-brand" : "text-muted hover:bg-sunken hover:text-ink",
+          // Active item: Solviz blue tint with a yellow marker on the left.
+          : isActive ? "bg-brand-soft text-brand shadow-[inset_3px_0_0_rgb(var(--accent))]" : "text-muted hover:bg-sunken hover:text-ink",
       )}>
-      <Icon className="h-6 w-6 shrink-0" aria-hidden />
+      <Icon className={cn("shrink-0", variant === "full" ? "h-5 w-5" : "h-6 w-6")} aria-hidden />
       <span className={cn(variant === "full" ? "min-w-0 leading-tight" : "leading-tight")}>{label}</span>
     </NavLink>
   );
@@ -101,8 +102,8 @@ export function AppShell() {
             ))}
           </nav>
           <button onClick={() => setAddOpen(true)} title={rail ? t("nav.add") : undefined}
-            className={cn("mt-3 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-brand-ink",
-              rail ? "min-h-touch flex-col gap-0.5 px-1 py-2 text-xs" : "min-h-touch px-3")}>
+            className={cn("mt-3 flex shrink-0 items-center justify-center gap-2 bg-brand font-semibold text-brand-ink hover:bg-brand-strong active:scale-[.97]",
+              rail ? "min-h-touch flex-col gap-0.5 rounded-xl px-1 py-2 text-xs" : "min-h-touch rounded-full px-4 text-sm")}>
             <Plus className="h-5 w-5" aria-hidden />{t("nav.add")}
           </button>
           {laptop && (
@@ -126,7 +127,7 @@ export function AppShell() {
               <div className="hidden items-center gap-2 md:flex">
                 <span className="hidden max-w-[12rem] truncate text-sm font-semibold lg:inline" title={me?.user.name}>{me?.user.name}</span>
                 <button onClick={signOut} title={t("app.signOut")}
-                  className="inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
+                  className="inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold hover:bg-sunken">
                   <LogOut className="h-5 w-5" aria-hidden /><span className="sr-only lg:not-sr-only">{t("app.signOut")}</span>
                 </button>
               </div>
@@ -151,7 +152,7 @@ export function AppShell() {
         <NavItem to="/borrowers" Icon={Users} label={t("nav.borrowersShort")} variant="bar" />
         <div className="flex min-w-0 flex-1 basis-0 items-start justify-center">
           <button onClick={() => setAddOpen(true)} aria-label={t("nav.add")}
-            className="-mt-5 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand text-brand-ink shadow-lg ring-4 ring-bg">
+            className="-mt-5 inline-flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-lg ring-4 ring-bg">
             <Plus className="h-7 w-7" aria-hidden />
           </button>
         </div>

@@ -119,7 +119,7 @@ export function LoanDetailPage() {
           <div className="flex flex-wrap gap-2 lg:grid lg:grid-cols-2">
             {l.borrower.phone && (
               <>
-                <a href={`tel:+91${l.borrower.phone}`} className="inline-flex min-h-touch items-center gap-2 rounded-xl border border-line bg-surface px-4 font-semibold">
+                <a href={`tel:+91${l.borrower.phone}`} className="inline-flex min-h-touch items-center gap-2 rounded-full border border-line-strong/60 bg-surface px-4 text-[15px] font-semibold hover:bg-sunken md:text-sm">
                   <Phone className="h-5 w-5" aria-hidden />{t("dues.call")}
                 </a>
                 <Button variant="outline" loading={reminder.isPending} onClick={() => reminder.mutate()}>
