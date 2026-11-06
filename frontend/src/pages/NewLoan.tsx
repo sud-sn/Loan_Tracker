@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, UserPlus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -8,6 +8,10 @@ import { ApiError, api } from "@/api/client";
 import type { AppSettings, Borrower, BorrowerDetail, LoanDetail, Preview, SearchResult, TermsIn } from "@/api/types";
 import { DateInput } from "@/components/DateInput";
 import { Documents } from "@/components/Documents";
+import {
+  ChargesCard, EMPTY_SECURITY, LoanOptions, LtvWarning, PreviewExtras, SecurityStep, chargesPayload, defaultCharges,
+  securityPayload, suggestedAmount, type ChargeRow, type OptionsState, type SecurityState,
+} from "@/components/LoanExtras";
 import { MoneyInput } from "@/components/MoneyInput";
 import { ScheduleList } from "@/components/ScheduleList";
 import { Button } from "@/components/ui/button";
@@ -60,17 +64,30 @@ const INITIAL: TermsState = {
   penaltyMode: "off", penaltyValue: "", graceDays: "0", purpose: "", notes: "",
 };
 
-/** Turn what the lender chose into the API's terms (PRD section 4 plus the fixed-amount toggle). */
-export function toTerms(s: TermsState): TermsIn | null {
+const NO_OPTIONS: OptionsState = { rounding: "0.01", advance: "0", brokenPeriod: "none" };
+
+/** A typed decimal: digits and one dot, at most ``places`` decimals (so "2.45" works, "2..4" cannot happen). */
+export function decimalText(value: string, places = 4): string {
+  const [whole, ...rest] = value.replace(/[^\d.]/g, "").split(".");
+  return rest.length ? `${whole}.${rest.join("").slice(0, places)}` : whole;
+}
+
+/** Turn what the lender chose into the API's terms (PRD section 4 plus the fixed-amount toggle and the
+ * options for vehicle and land loans: rounded EMI and advance EMIs for reducing/flat loans, odd first period). */
+export function toTerms(s: TermsState, o: OptionsState = NO_OPTIONS): TermsIn | null {
   if (!s.principal || Number(s.principal) <= 0) return null;
   const base = {
     principal: s.principal, rate: s.rate || "0", rate_basis: s.rateBasis, frequency: s.frequency,
-    disbursal_date: s.disbursalDate, first_due_date: s.firstDueDate || null,
+    disbursal_date: s.disbursalDate, first_due_date: s.firstDueDate || null, broken_period: o.brokenPeriod,
   };
+  const amortizing = { emi_rounding: o.rounding, advance_installments: Number(o.advance) };
   const term = { term_value: s.termValue ? Number(s.termValue) : null, term_unit: s.termUnit };
   if (s.frequency === "single") return { ...base, ...term, method: "simple_days" } as TermsIn;
-  if (!s.fixedOn) return { ...base, ...term, method: s.method === "simple_days" ? "reducing" : s.method } as TermsIn;
-  if (s.fixedMode === "period") return { ...base, ...term, method: s.style === "flat" ? "flat" : "reducing" } as TermsIn;
+  if (!s.fixedOn) {
+    const method = s.method === "simple_days" ? "reducing" : s.method;
+    return { ...base, ...term, ...(method === "interest_only" ? {} : amortizing), method } as TermsIn;
+  }
+  if (s.fixedMode === "period") return { ...base, ...term, ...amortizing, method: s.style === "flat" ? "flat" : "reducing" } as TermsIn;
   if (s.fixedMode === "amount") {
     if (!s.fixedAmount) return null;
     return { ...base, method: "fixed_amount", fixed_installment: s.fixedAmount, fixed_style: s.style } as TermsIn;
@@ -86,11 +103,16 @@ export function NewLoanPage() {
   const lang = useLang();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  // Started from a borrower's page: the borrower is already chosen, so begin at the terms.
+  // Started from a borrower's page: the borrower is already chosen, so begin at the security step.
   const [step, setStep] = useState(params.get("borrower") ? 2 : 1);
   const [borrowerId, setBorrowerId] = useState(params.get("borrower") ?? "");
   const [s, setS] = useState<TermsState>(INITIAL);
   const [ack, setAck] = useState(false);
+  const [ltvAck, setLtvAck] = useState(false);
+  const [sec, setSec] = useState<SecurityState>(EMPTY_SECURITY);
+  const [charges, setCharges] = useState<ChargeRow[]>([]);
+  const [opts, setOpts] = useState<OptionsState>({ rounding: "10", advance: "0", brokenPeriod: "first_installment" });
+  const [defaultsApplied, setDefaultsApplied] = useState(false);
   const [key] = useState(() => newKey("loan"));
   const [saved, setSaved] = useState<LoanDetail | null>(null);
   const set = <K extends keyof TermsState>(k: K, v: TermsState[K]) => setS((prev) => ({ ...prev, [k]: v }));
@@ -98,8 +120,21 @@ export function NewLoanPage() {
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => api.get<AppSettings>("/settings") });
   const borrower = useQuery({ queryKey: ["borrower", borrowerId], enabled: !!borrowerId,
     queryFn: () => api.get<BorrowerDetail>(`/borrowers/${borrowerId}`) });
-  const terms = useMemo(() => toTerms(s), [s]);
-  const debouncedTerms = useDebounced(terms, 120);
+  // The new-loan defaults come from Settings (rounding, advance EMIs, odd first period, charges).
+  useEffect(() => {
+    const d = settings.data;
+    if (!d || defaultsApplied) return;
+    setOpts({ rounding: String(Number(d.emi_rounding_default) < 1 ? "0.01" : Number(d.emi_rounding_default)),
+      advance: String(d.advance_installments_default ?? 0), brokenPeriod: d.broken_period_default ?? "first_installment" });
+    setCharges(defaultCharges(d));
+    setDefaultsApplied(true);
+  }, [settings.data, defaultsApplied]);
+  const terms = useMemo(() => toTerms(s, opts), [s, opts]);
+  const chargesIn = useMemo(() => chargesPayload(charges, s.principal, settings.data), [charges, s.principal, settings.data]);
+  const securityIn = useMemo(() => securityPayload(sec), [sec]);
+  const previewBody = useMemo(() => (terms ? { ...terms, charges: chargesIn, security: securityIn } : null),
+    [terms, chargesIn, securityIn]);
+  const debouncedTerms = useDebounced(previewBody, 120);
   const preview = useQuery({
     queryKey: ["preview", debouncedTerms],
     queryFn: () => api.post<Preview>("/loans/preview", debouncedTerms),
@@ -111,18 +146,25 @@ export function NewLoanPage() {
     mutationFn: () => api.post<LoanDetail>("/loans", {
       borrower_id: borrowerId, terms, disbursal_mode: s.disbursalMode, purpose: s.purpose || null, notes: s.notes || null,
       penalty: { mode: s.penaltyMode, value: s.penaltyValue || "0", grace_days: Number(s.graceDays || 0) },
-      acknowledge_rate_warning: ack, idempotency_key: key,
+      charges: chargesIn, security: securityIn,
+      acknowledge_rate_warning: ack, acknowledge_ltv_warning: ltvAck, idempotency_key: key,
     }),
     onSuccess: (loan) => {
       setSaved(loan);
-      setStep(4);
+      setStep(5);
     },
   });
   const period = t(`period.${s.frequency}`);
   const p = preview.data;
   const previewError = preview.error instanceof ApiError ? errorMessage(preview.error) : "";
 
-  const stepTitles = [t("loan.stepBorrower"), t("loan.stepTerms"), t("loan.stepReview"), t("loan.stepSave")];
+  const stepTitles = [t("loan.stepBorrower"), t("loan.stepSecurity"), t("loan.stepTerms"), t("loan.stepReview"), t("loan.stepSave")];
+  const amortizing = !!terms && (terms.method === "reducing" || terms.method === "flat");
+  const toTermsStep = () => {
+    const amount = suggestedAmount(sec);
+    if (amount && !s.principal) set("principal", amount);
+    setStep(3);
+  };
   return (
     // A form stays readable on ultrawide monitors: at most 110 rem wide, centred (only above ~2400 px).
     <div className="mx-auto max-w-[110rem] space-y-5">
@@ -130,7 +172,7 @@ export function NewLoanPage() {
         <h1 className="text-2xl">{t("loan.new")}</h1>
         {/* Numbers only in the bar; the current step's name is written out below, so long Tamil
             words never get cut off at phone width. */}
-        <ol className="mt-3 grid grid-cols-4 gap-1" aria-label={t("loan.step", { n: step })}>
+        <ol className="mt-3 grid grid-cols-5 gap-1" aria-label={t("loan.step", { n: step })}>
           {stepTitles.map((title, i) => (
             <li key={title} aria-current={step === i + 1 ? "step" : undefined} aria-label={title}
               className={cn("flex h-10 items-center justify-center rounded-lg text-base font-bold",
@@ -146,17 +188,27 @@ export function NewLoanPage() {
         <StepBorrower borrowerId={borrowerId} onPick={(id) => { setBorrowerId(id); setStep(2); }} />
       )}
 
-      {step >= 2 && step <= 3 && borrower.data && (
+      {step >= 2 && step <= 4 && borrower.data && (
         <div className="flex items-center justify-between gap-2 rounded-xl bg-brand-soft px-3 py-2 text-brand">
           <span className="font-semibold">{displayName(lang, borrower.data.name_en, borrower.data.name_ta)} · <span className="whitespace-nowrap">{borrower.data.code}</span></span>
           <Button size="sm" variant="ghost" onClick={() => setStep(1)}>{t("loan.change")}</Button>
         </div>
       )}
-      {step >= 2 && step <= 3 && borrower.data?.profile_incomplete && (
+      {step >= 2 && step <= 4 && borrower.data?.profile_incomplete && (
         <p className="rounded-xl bg-due-soft p-3 font-semibold text-due">{t("borrower.incomplete")}</p>
       )}
 
       {step === 2 && (
+        <div className="space-y-4">
+          <SecurityStep sec={sec} onChange={setSec} />
+          <div className="sticky bottom-20 z-10 flex gap-2 md:bottom-4 lg:static lg:max-w-xl">
+            <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
+            <Button size="lg" className="flex-1" onClick={toTermsStep}>{t("app.next")}<ArrowRight className="h-5 w-5" aria-hidden /></Button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(22rem,32%,40rem)]">
         <section className="min-w-0 space-y-4">
           <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start">
@@ -166,7 +218,7 @@ export function NewLoanPage() {
           <div className="grid grid-cols-[minmax(4.5rem,0.6fr)_minmax(9.5rem,1.4fr)] items-end gap-3">
             <Field label={t("loan.rate")}>
               {(id) => <Input id={id} inputMode="decimal" value={s.rate} className="tabular"
-                onChange={(e) => set("rate", e.target.value.replace(/[^\d.]/g, ""))} />}
+                onChange={(e) => set("rate", decimalText(e.target.value))} />}
             </Field>
             <Field label={t("loan.rateBasis")}>
               {(id) => (
@@ -269,6 +321,11 @@ export function NewLoanPage() {
             </Field>
           </div>
 
+          <ChargesCard rows={charges} onChange={setCharges} principal={s.principal} settings={settings.data} />
+          {s.frequency !== "single" && (
+            <LoanOptions o={opts} onChange={setOpts} amortizing={amortizing} oddFirst={!!s.firstDueDate} />
+          )}
+
           <details className="rounded-xl border border-line bg-surface p-3">
             <summary className="min-h-touch cursor-pointer py-2 font-semibold">{t("loan.penaltyTitle")}</summary>
             <div className="mt-2 space-y-3">
@@ -279,7 +336,7 @@ export function NewLoanPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <Field label={t("loan.penaltyValue")}>
                     {(id) => <Input id={id} inputMode="decimal" value={s.penaltyValue}
-                      onChange={(e) => set("penaltyValue", e.target.value.replace(/[^\d.]/g, ""))} />}
+                      onChange={(e) => set("penaltyValue", decimalText(e.target.value))} />}
                   </Field>
                   <Field label={t("loan.graceDays")}>
                     {(id) => <Input id={id} inputMode="numeric" value={s.graceDays}
@@ -299,8 +356,8 @@ export function NewLoanPage() {
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
             fixedNote={s.fixedOn && p ? t("loan.fixedNote", { amount: money(p.installment), period }) : undefined} />
           <div className="sticky bottom-20 z-10 flex gap-2 md:bottom-4 lg:static">
-            <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
-            <Button size="lg" className="flex-1" disabled={!p || !!previewError} onClick={() => setStep(3)}>
+            <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
+            <Button size="lg" className="flex-1" disabled={!p || !!previewError} onClick={() => setStep(4)}>
               {t("app.next")}<ArrowRight className="h-5 w-5" aria-hidden />
             </Button>
           </div>
@@ -308,7 +365,7 @@ export function NewLoanPage() {
         </div>
       )}
 
-      {step === 3 && p && (
+      {step === 4 && p && (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_clamp(22rem,32%,40rem)]">
         <aside className="space-y-3 lg:sticky lg:top-24 lg:order-2">
           <PreviewCard p={p} error={previewError} loading={preview.isFetching} period={period}
@@ -323,11 +380,13 @@ export function NewLoanPage() {
               </label>
             </div>
           )}
+          <LtvWarning p={p} ack={ltvAck} onAck={setLtvAck} />
           {save.error && <p role="alert" className="field-error">{errorMessage(save.error)}</p>}
           <div className="sticky bottom-20 z-10 flex gap-2 md:bottom-4 lg:static">
-            <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
+            <Button variant="outline" onClick={() => setStep(3)}><ArrowLeft className="h-5 w-5" aria-hidden />{t("app.back")}</Button>
             <Button size="lg" variant="paid" className="flex-1" loading={save.isPending}
-              disabled={(p.rate_above_maximum && !ack) || !!previewError || !terms} onClick={() => save.mutate()}>
+              disabled={(p.rate_above_maximum && !ack) || (p.ltv_above_maximum && !ltvAck) || !!previewError || !terms}
+              onClick={() => save.mutate()}>
               {t("loan.save")}
             </Button>
           </div>
@@ -339,7 +398,7 @@ export function NewLoanPage() {
         </div>
       )}
 
-      {step === 4 && saved && (
+      {step === 5 && saved && (
         <section className="space-y-4">
           <div className="flex items-start gap-3 rounded-2xl bg-paid-soft p-4 text-paid">
             <CheckCircle2 className="h-8 w-8 shrink-0" aria-hidden />
@@ -352,7 +411,10 @@ export function NewLoanPage() {
           <div className="card p-4"><Documents ownerType="loan" ownerId={saved.id} maxMb={settings.data?.max_upload_mb} /></div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => navigate(`/loans/${saved.id}`)}>{t("loan.openLoan")}</Button>
-            <Button variant="outline" onClick={() => { setS(INITIAL); setSaved(null); setStep(1); setBorrowerId(""); }}>
+            <Button variant="outline" onClick={() => {
+              setS(INITIAL); setSec(EMPTY_SECURITY); setCharges(defaultCharges(settings.data)); setSaved(null); setStep(1);
+              setBorrowerId(""); setAck(false); setLtvAck(false);
+            }}>
               {t("loan.another")}
             </Button>
           </div>
@@ -425,6 +487,7 @@ function PreviewCard({ p, error, loading, period, fixedNote }: { p?: Preview; er
         <KeyValue label={t("loan.totalPayable")} value={money(p.total_payable)} strong />
         <KeyValue label={t("loan.maturity")} value={dmy(p.maturity_date)} />
       </dl>
+      <PreviewExtras p={p} />
     </section>
   );
 }

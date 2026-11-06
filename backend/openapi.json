@@ -1240,6 +1240,108 @@
     "title": "CategoryOut",
     "type": "object"
    },
+   "ChargeIn": {
+    "description": "A charge collected when the loan is given: taken out of the amount handed over\n(\"deducted\") or added to the loan amount and repaid with it (\"added\").",
+    "properties": {
+     "amount": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Amount"
+     },
+     "kind": {
+      "enum": [
+       "processing_fee",
+       "document_charges",
+       "rto_stamp",
+       "insurance",
+       "other"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "treatment": {
+      "default": "deducted",
+      "enum": [
+       "deducted",
+       "added"
+      ],
+      "title": "Treatment",
+      "type": "string"
+     }
+    },
+    "required": [
+     "kind",
+     "amount"
+    ],
+    "title": "ChargeIn",
+    "type": "object"
+   },
+   "ChargeOut": {
+    "properties": {
+     "amount": {
+      "title": "Amount",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "processing_fee",
+       "document_charges",
+       "rto_stamp",
+       "insurance",
+       "odd_period_interest",
+       "other"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "label": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Label"
+     },
+     "treatment": {
+      "enum": [
+       "deducted",
+       "added"
+      ],
+      "title": "Treatment",
+      "type": "string"
+     }
+    },
+    "required": [
+     "kind",
+     "label",
+     "amount",
+     "treatment"
+    ],
+    "title": "ChargeOut",
+    "type": "object"
+   },
    "ConsentIn": {
     "properties": {
      "given": {
@@ -1582,6 +1684,11 @@
    },
    "LoanCreateIn": {
     "properties": {
+     "acknowledge_ltv_warning": {
+      "default": false,
+      "title": "Acknowledge Ltv Warning",
+      "type": "boolean"
+     },
      "acknowledge_rate_warning": {
       "default": false,
       "title": "Acknowledge Rate Warning",
@@ -1591,6 +1698,14 @@
       "format": "uuid",
       "title": "Borrower Id",
       "type": "string"
+     },
+     "charges": {
+      "items": {
+       "$ref": "#/components/schemas/ChargeIn"
+      },
+      "maxItems": 10,
+      "title": "Charges",
+      "type": "array"
      },
      "disbursal_mode": {
       "default": "cash",
@@ -1642,6 +1757,14 @@
       ],
       "title": "Purpose"
      },
+     "security": {
+      "items": {
+       "$ref": "#/components/schemas/SecurityIn"
+      },
+      "maxItems": 5,
+      "title": "Security",
+      "type": "array"
+     },
      "terms": {
       "$ref": "#/components/schemas/TermsIn"
      }
@@ -1656,8 +1779,40 @@
    },
    "LoanDetailOut": {
     "properties": {
+     "advance_installments": {
+      "title": "Advance Installments",
+      "type": "integer"
+     },
+     "amount_handed_over": {
+      "title": "Amount Handed Over",
+      "type": "string"
+     },
      "borrower": {
       "$ref": "#/components/schemas/BorrowerRef"
+     },
+     "broken_period": {
+      "enum": [
+       "none",
+       "first_installment",
+       "upfront"
+      ],
+      "title": "Broken Period",
+      "type": "string"
+     },
+     "broken_period_days": {
+      "title": "Broken Period Days",
+      "type": "integer"
+     },
+     "broken_period_interest": {
+      "title": "Broken Period Interest",
+      "type": "string"
+     },
+     "charges": {
+      "items": {
+       "$ref": "#/components/schemas/ChargeOut"
+      },
+      "title": "Charges",
+      "type": "array"
      },
      "closed_on": {
       "anyOf": [
@@ -1701,6 +1856,10 @@
        "other"
       ],
       "title": "Disbursal Mode",
+      "type": "string"
+     },
+     "emi_rounding": {
+      "title": "Emi Rounding",
       "type": "string"
      },
      "first_due_date": {
@@ -1772,6 +1931,17 @@
      "loan_no": {
       "title": "Loan No",
       "type": "string"
+     },
+     "ltv_percent": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ltv Percent"
      },
      "maturity_date": {
       "format": "date",
@@ -1859,6 +2029,23 @@
       "title": "Schedule",
       "type": "array"
      },
+     "security": {
+      "items": {
+       "$ref": "#/components/schemas/SecurityOut"
+      },
+      "title": "Security",
+      "type": "array"
+     },
+     "security_kind": {
+      "enum": [
+       "none",
+       "vehicle",
+       "land",
+       "both"
+      ],
+      "title": "Security Kind",
+      "type": "string"
+     },
      "stored_status": {
       "enum": [
        "active",
@@ -1895,6 +2082,17 @@
       "title": "Total Interest",
       "type": "string"
      },
+     "true_cost_monthly": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "True Cost Monthly"
+     },
      "version": {
       "title": "Version",
       "type": "integer"
@@ -1929,6 +2127,17 @@
      "last_payment_on",
      "purpose",
      "notes",
+     "emi_rounding",
+     "advance_installments",
+     "broken_period",
+     "broken_period_days",
+     "broken_period_interest",
+     "amount_handed_over",
+     "true_cost_monthly",
+     "security_kind",
+     "ltv_percent",
+     "charges",
+     "security",
      "version",
      "created_at",
      "summary",
@@ -2590,11 +2799,268 @@
     "title": "PenaltyIn",
     "type": "object"
    },
+   "PreviewIn": {
+    "description": "Terms plus what is collected when the loan is given and what it is given against, so the\npreview can show the amount handed over, the true cost and the loan-to-value check.\n``principal`` is the loan amount before any charge added to it.",
+    "properties": {
+     "advance_installments": {
+      "default": 0,
+      "maximum": 12.0,
+      "minimum": 0.0,
+      "title": "Advance Installments",
+      "type": "integer"
+     },
+     "broken_period": {
+      "default": "none",
+      "enum": [
+       "none",
+       "first_installment",
+       "upfront"
+      ],
+      "title": "Broken Period",
+      "type": "string"
+     },
+     "charges": {
+      "items": {
+       "$ref": "#/components/schemas/ChargeIn"
+      },
+      "maxItems": 10,
+      "title": "Charges",
+      "type": "array"
+     },
+     "custom_interest": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Interest"
+     },
+     "custom_principal": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Principal"
+     },
+     "custom_rows": {
+      "anyOf": [
+       {
+        "items": {
+         "$ref": "#/components/schemas/CustomRowIn"
+        },
+        "maxItems": 3660,
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Custom Rows"
+     },
+     "disbursal_date": {
+      "format": "date",
+      "title": "Disbursal Date",
+      "type": "string"
+     },
+     "emi_rounding": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "default": "0.01",
+      "title": "Emi Rounding"
+     },
+     "first_due_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "First Due Date"
+     },
+     "fixed_installment": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fixed Installment"
+     },
+     "fixed_style": {
+      "default": "flat",
+      "enum": [
+       "flat",
+       "reducing"
+      ],
+      "title": "Fixed Style",
+      "type": "string"
+     },
+     "frequency": {
+      "default": "monthly",
+      "enum": [
+       "monthly",
+       "weekly",
+       "daily",
+       "single"
+      ],
+      "title": "Frequency",
+      "type": "string"
+     },
+     "method": {
+      "default": "reducing",
+      "enum": [
+       "reducing",
+       "flat",
+       "interest_only",
+       "simple_days",
+       "fixed_amount",
+       "custom"
+      ],
+      "title": "Method",
+      "type": "string"
+     },
+     "principal": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Principal"
+     },
+     "rate": {
+      "anyOf": [
+       {
+        "maximum": 100.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "title": "Rate"
+     },
+     "rate_basis": {
+      "default": "month",
+      "enum": [
+       "month",
+       "year"
+      ],
+      "title": "Rate Basis",
+      "type": "string"
+     },
+     "security": {
+      "items": {
+       "$ref": "#/components/schemas/SecurityIn"
+      },
+      "maxItems": 5,
+      "title": "Security",
+      "type": "array"
+     },
+     "term_unit": {
+      "default": "months",
+      "enum": [
+       "months",
+       "days",
+       "installments"
+      ],
+      "title": "Term Unit",
+      "type": "string"
+     },
+     "term_value": {
+      "anyOf": [
+       {
+        "maximum": 3660.0,
+        "minimum": 1.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Term Value"
+     }
+    },
+    "required": [
+     "principal",
+     "rate",
+     "disbursal_date"
+    ],
+    "title": "PreviewIn",
+    "type": "object"
+   },
    "PreviewOut": {
     "properties": {
+     "advance_amount": {
+      "title": "Advance Amount",
+      "type": "string"
+     },
+     "advance_installments": {
+      "title": "Advance Installments",
+      "type": "integer"
+     },
+     "amount_handed_over": {
+      "title": "Amount Handed Over",
+      "type": "string"
+     },
+     "broken_period_days": {
+      "title": "Broken Period Days",
+      "type": "integer"
+     },
+     "broken_period_interest": {
+      "title": "Broken Period Interest",
+      "type": "string"
+     },
+     "charges_added": {
+      "title": "Charges Added",
+      "type": "string"
+     },
+     "charges_deducted": {
+      "title": "Charges Deducted",
+      "type": "string"
+     },
      "first_due_date": {
       "format": "date",
       "title": "First Due Date",
+      "type": "string"
+     },
+     "first_installment": {
+      "title": "First Installment",
       "type": "string"
      },
      "installment": {
@@ -2608,6 +3074,36 @@
      "last_installment": {
       "title": "Last Installment",
       "type": "string"
+     },
+     "loan_amount": {
+      "title": "Loan Amount",
+      "type": "string"
+     },
+     "ltv_above_maximum": {
+      "title": "Ltv Above Maximum",
+      "type": "boolean"
+     },
+     "ltv_maximum": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ltv Maximum"
+     },
+     "ltv_percent": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ltv Percent"
      },
      "maturity_date": {
       "format": "date",
@@ -2629,6 +3125,10 @@
       "title": "Monthly Rate Equivalent",
       "type": "string"
      },
+     "odd_period_upfront": {
+      "title": "Odd Period Upfront",
+      "type": "string"
+     },
      "rate_above_maximum": {
       "title": "Rate Above Maximum",
       "type": "boolean"
@@ -2639,6 +3139,17 @@
       },
       "title": "Rows",
       "type": "array"
+     },
+     "security_value": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Security Value"
      },
      "total_interest": {
       "title": "Total Interest",
@@ -2651,6 +3162,39 @@
      "total_principal": {
       "title": "Total Principal",
       "type": "string"
+     },
+     "true_cost_monthly": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "True Cost Monthly"
+     },
+     "true_cost_yearly": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "True Cost Yearly"
+     },
+     "unrounded_installment": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Unrounded Installment"
      }
     },
     "required": [
@@ -2665,6 +3209,23 @@
      "monthly_rate_equivalent",
      "rate_above_maximum",
      "max_rate_monthly",
+     "first_installment",
+     "unrounded_installment",
+     "broken_period_days",
+     "broken_period_interest",
+     "advance_installments",
+     "advance_amount",
+     "loan_amount",
+     "charges_added",
+     "charges_deducted",
+     "odd_period_upfront",
+     "amount_handed_over",
+     "true_cost_monthly",
+     "true_cost_yearly",
+     "security_value",
+     "ltv_percent",
+     "ltv_maximum",
+     "ltv_above_maximum",
      "rows"
     ],
     "title": "PreviewOut",
@@ -3006,8 +3567,761 @@
     "title": "SearchResult",
     "type": "object"
    },
+   "SecurityIn": {
+    "description": "The vehicle or land the loan is given against. ``value`` is the valuation used for the\nloan-to-value check; when it is missing, the on-road price (vehicle) or the market value,\nthen the guideline value (land) is used.",
+    "properties": {
+     "chassis_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chassis No"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "document_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Document No"
+     },
+     "down_payment": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Down Payment"
+     },
+     "ec_checked": {
+      "default": false,
+      "title": "Ec Checked",
+      "type": "boolean"
+     },
+     "ec_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ec Date"
+     },
+     "engine_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Engine No"
+     },
+     "extent": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Extent"
+     },
+     "guideline_value": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Guideline Value"
+     },
+     "insurance_expiry": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Expiry"
+     },
+     "insurance_policy_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Policy No"
+     },
+     "insurer": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurer"
+     },
+     "kind": {
+      "enum": [
+       "vehicle",
+       "land"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "lien_noted_on_rc": {
+      "default": false,
+      "title": "Lien Noted On Rc",
+      "type": "boolean"
+     },
+     "make_model": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Make Model"
+     },
+     "market_value": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Value"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "on_road_price": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On Road Price"
+     },
+     "originals_held": {
+      "items": {
+       "enum": [
+        "rc_book",
+        "duplicate_key",
+        "insurance_copy",
+        "blank_cheques",
+        "promissory_note",
+        "sale_deed",
+        "patta",
+        "ec",
+        "parent_documents",
+        "tax_receipt",
+        "other"
+       ],
+       "type": "string"
+      },
+      "maxItems": 11,
+      "title": "Originals Held",
+      "type": "array"
+     },
+     "patta_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patta No"
+     },
+     "registration_no": {
+      "anyOf": [
+       {
+        "maxLength": 20,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Registration No"
+     },
+     "sub_registrar_office": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub Registrar Office"
+     },
+     "survey_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Survey No"
+     },
+     "taluk": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taluk"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "vehicle_condition": {
+      "anyOf": [
+       {
+        "enum": [
+         "new",
+         "used"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Vehicle Condition"
+     },
+     "vehicle_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "two_wheeler",
+         "three_wheeler",
+         "car",
+         "commercial",
+         "tractor",
+         "other"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Vehicle Type"
+     },
+     "village": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Village"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "maximum": 2100.0,
+        "minimum": 1950.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     }
+    },
+    "required": [
+     "kind"
+    ],
+    "title": "SecurityIn",
+    "type": "object"
+   },
+   "SecurityOut": {
+    "properties": {
+     "chassis_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Chassis No"
+     },
+     "district": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "District"
+     },
+     "document_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Document No"
+     },
+     "down_payment": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Down Payment"
+     },
+     "ec_checked": {
+      "default": false,
+      "title": "Ec Checked",
+      "type": "boolean"
+     },
+     "ec_date": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ec Date"
+     },
+     "engine_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Engine No"
+     },
+     "extent": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Extent"
+     },
+     "guideline_value": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Guideline Value"
+     },
+     "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+     },
+     "insurance_expiry": {
+      "anyOf": [
+       {
+        "format": "date",
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Expiry"
+     },
+     "insurance_policy_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurance Policy No"
+     },
+     "insurer": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Insurer"
+     },
+     "kind": {
+      "enum": [
+       "vehicle",
+       "land"
+      ],
+      "title": "Kind",
+      "type": "string"
+     },
+     "lien_noted_on_rc": {
+      "default": false,
+      "title": "Lien Noted On Rc",
+      "type": "boolean"
+     },
+     "make_model": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Make Model"
+     },
+     "market_value": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Market Value"
+     },
+     "notes": {
+      "anyOf": [
+       {
+        "maxLength": 1000,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notes"
+     },
+     "on_road_price": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "On Road Price"
+     },
+     "originals_held": {
+      "items": {
+       "enum": [
+        "rc_book",
+        "duplicate_key",
+        "insurance_copy",
+        "blank_cheques",
+        "promissory_note",
+        "sale_deed",
+        "patta",
+        "ec",
+        "parent_documents",
+        "tax_receipt",
+        "other"
+       ],
+       "type": "string"
+      },
+      "maxItems": 11,
+      "title": "Originals Held",
+      "type": "array"
+     },
+     "patta_no": {
+      "anyOf": [
+       {
+        "maxLength": 40,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Patta No"
+     },
+     "registration_no": {
+      "anyOf": [
+       {
+        "maxLength": 20,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Registration No"
+     },
+     "sub_registrar_office": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sub Registrar Office"
+     },
+     "survey_no": {
+      "anyOf": [
+       {
+        "maxLength": 60,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Survey No"
+     },
+     "taluk": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Taluk"
+     },
+     "value": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Value"
+     },
+     "vehicle_condition": {
+      "anyOf": [
+       {
+        "enum": [
+         "new",
+         "used"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Vehicle Condition"
+     },
+     "vehicle_type": {
+      "anyOf": [
+       {
+        "enum": [
+         "two_wheeler",
+         "three_wheeler",
+         "car",
+         "commercial",
+         "tractor",
+         "other"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Vehicle Type"
+     },
+     "version": {
+      "title": "Version",
+      "type": "integer"
+     },
+     "village": {
+      "anyOf": [
+       {
+        "maxLength": 80,
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Village"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "maximum": 2100.0,
+        "minimum": 1950.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Year"
+     }
+    },
+    "required": [
+     "kind",
+     "id",
+     "version"
+    ],
+    "title": "SecurityOut",
+    "type": "object"
+   },
    "SettingsIn": {
     "properties": {
+     "advance_installments_default": {
+      "anyOf": [
+       {
+        "maximum": 12.0,
+        "minimum": 0.0,
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Advance Installments Default"
+     },
      "balance_start_date": {
       "anyOf": [
        {
@@ -3019,6 +4333,22 @@
        }
       ],
       "title": "Balance Start Date"
+     },
+     "broken_period_default": {
+      "anyOf": [
+       {
+        "enum": [
+         "none",
+         "first_installment",
+         "upfront"
+        ],
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Broken Period Default"
      },
      "daily_summary_time": {
       "anyOf": [
@@ -3047,6 +4377,21 @@
       ],
       "title": "Default Language"
      },
+     "document_charges_default": {
+      "anyOf": [
+       {
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Document Charges Default"
+     },
      "due_soon_days": {
       "anyOf": [
        {
@@ -3072,6 +4417,21 @@
        }
       ],
       "title": "Due Window Days"
+     },
+     "emi_rounding_default": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Emi Rounding Default"
      },
      "lender_address": {
       "anyOf": [
@@ -3121,6 +4481,38 @@
        }
       ],
       "title": "Long Unpaid Days"
+     },
+     "ltv_max_land": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "maximum": 100.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ltv Max Land"
+     },
+     "ltv_max_vehicle": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "maximum": 100.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ltv Max Vehicle"
      },
      "max_files_per_owner": {
       "anyOf": [
@@ -3221,6 +4613,22 @@
        }
       ],
       "title": "Penalty Grace Days"
+     },
+     "processing_fee_percent": {
+      "anyOf": [
+       {
+        "maximum": 25.0,
+        "minimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Processing Fee Percent"
      },
      "retention_years": {
       "anyOf": [
@@ -3551,6 +4959,23 @@
    "TermsIn": {
     "description": "Loan terms as the lender enters them.\n\nFixed amount every installment (``method=\"fixed_amount\"``): give ``fixed_installment``;\nthe app works out how many installments are needed. ``fixed_style`` says whether the\ninterest inside each payment is the same every time (flat) or on the remaining balance.\n\nSet the split yourself (``method=\"custom\"``): give ``custom_principal`` and optionally\n``custom_interest`` per installment (the period is worked out), or a term to split the\nprincipal equally, or ``custom_rows`` with one row per installment.",
     "properties": {
+     "advance_installments": {
+      "default": 0,
+      "maximum": 12.0,
+      "minimum": 0.0,
+      "title": "Advance Installments",
+      "type": "integer"
+     },
+     "broken_period": {
+      "default": "none",
+      "enum": [
+       "none",
+       "first_installment",
+       "upfront"
+      ],
+      "title": "Broken Period",
+      "type": "string"
+     },
      "custom_interest": {
       "anyOf": [
        {
@@ -3600,6 +5025,19 @@
       "format": "date",
       "title": "Disbursal Date",
       "type": "string"
+     },
+     "emi_rounding": {
+      "anyOf": [
+       {
+        "exclusiveMinimum": 0.0,
+        "type": "number"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "default": "0.01",
+      "title": "Emi Rounding"
      },
      "first_due_date": {
       "anyOf": [
@@ -6098,7 +7536,7 @@
      "content": {
       "application/json": {
        "schema": {
-        "$ref": "#/components/schemas/TermsIn"
+        "$ref": "#/components/schemas/PreviewIn"
        }
       }
      },

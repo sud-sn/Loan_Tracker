@@ -11,7 +11,7 @@ from sqlalchemy import func, literal, or_, select, text
 from sqlalchemy.orm import Session
 
 from app.core.text import has_tamil, phonetic_key
-from app.models import Borrower, Loan, ScheduleItem
+from app.models import Borrower, Collateral, Loan, ScheduleItem
 
 SortKey = Literal["name", "code", "outstanding", "overdue_days"]
 
@@ -107,8 +107,9 @@ _LOAN = re.compile(r"^ln-?(\d{4})-?0*(\d{1,6})$", re.I)
 
 
 def search(db: Session, q: str, today: date, limit: int = 20) -> list[tuple[Borrower, int, bool, str, Loan | None]]:
-    """Find borrowers by name (either script, partial, typo-tolerant), code, phone, loan number or
-    the last 4 Aadhaar digits. Returns (borrower, outstanding paise, overdue, matched-on, loan)."""
+    """Find borrowers by name (either script, partial, typo-tolerant), code, phone, loan number,
+    the last 4 Aadhaar digits or a vehicle registration number (whole, part, or its last 4 digits).
+    Returns (borrower, outstanding paise, overdue, matched-on, loan)."""
     q = q.strip()
     if not q:
         return []
@@ -130,6 +131,7 @@ def search(db: Session, q: str, today: date, limit: int = 20) -> list[tuple[Borr
     elif digits and len(digits) == len(re.sub(r"[\s+-]", "", q)):
         if len(digits) == 4:
             found += [(b, "aadhaar_last4", None) for b in db.scalars(base.where(Borrower.aadhaar_last4 == digits).limit(limit))]
+            found += _by_vehicle(db, f"%{digits}", limit)
             found += [(b, "code", None) for b in db.scalars(base.where(Borrower.code == f"BRW-{int(digits):06d}"))]
         if 4 <= len(digits) <= 10:
             found += [(b, "phone", None) for b in db.scalars(
@@ -138,6 +140,9 @@ def search(db: Session, q: str, today: date, limit: int = 20) -> list[tuple[Borr
         if len(digits) in (5, 6):
             found += [(b, "code", None) for b in db.scalars(base.where(Borrower.code == f"BRW-{int(digits):06d}"))]
     else:
+        plate = re.sub(r"[^A-Z0-9]", "", q.upper())
+        if len(plate) >= 4 and re.search(r"[A-Z]", plate) and re.search(r"\d", plate):
+            found += _by_vehicle(db, f"%{plate}%", limit)
         pattern = f"%{q.lower()}%"
         key = phonetic_key(q)
         conditions: list[Any] = (
@@ -187,6 +192,18 @@ def search(db: Session, q: str, today: date, limit: int = 20) -> list[tuple[Borr
         )
     )
     return [(b, int(totals.get(b.id) or 0), b.id in overdue_ids, how, loan) for b, how, loan in unique]
+
+
+def _by_vehicle(db: Session, pattern: str, limit: int) -> list[tuple[Borrower, str, Loan | None]]:
+    """Loans given against a vehicle whose registration (upper case, letters and digits only)
+    matches ``pattern``."""
+    rows = db.execute(
+        select(Borrower, Loan).join(Loan, Loan.borrower_id == Borrower.id)
+        .join(Collateral, Collateral.loan_id == Loan.id)
+        .where(Collateral.registration_key.like(pattern), Loan.deleted_at.is_(None), Borrower.deleted_at.is_(None))
+        .order_by(Loan.created_at.desc()).limit(limit)
+    ).all()
+    return [(b, "vehicle", loan) for b, loan in rows]
 
 
 def borrower_totals(db: Session, borrower_id: uuid.UUID, today: date) -> dict[str, Any]:

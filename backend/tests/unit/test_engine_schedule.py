@@ -275,7 +275,9 @@ def test_principal_repaid_equals_principal_lent(
         assert row.principal_part >= 0 and row.interest_part >= 0
         balance -= row.principal_part
         assert row.closing_balance == balance
-    assert len(s.rows) == n
+    # A reducing loan may finish a month early when rounding the installment up repays a tiny
+    # principal before the last month (for example ₹100 over 104 months); it never runs longer.
+    assert len(s.rows) == n or (method is Method.REDUCING and len(s.rows) < n)
     assert [r.due_date for r in s.rows] == sorted(r.due_date for r in s.rows)
 
 

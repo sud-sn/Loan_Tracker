@@ -38,3 +38,23 @@ words (PRD section 9). **To be reviewed by a native speaker before launch.**
 | Reverse (a payment) | ரத்து செய் | |
 | Statement | கணக்கு அறிக்கை | |
 | Cash / UPI / Bank transfer / Cheque | ரொக்கம் / UPI / வங்கிப் பரிமாற்றம் / காசோலை | |
+
+## Vehicle and land loans
+
+| English | தமிழ் |
+| --- | --- |
+| Security (collateral) | அடமானம் |
+| Down payment | முன்பணம் |
+| On-road price | ஆன்-ரோடு விலை |
+| Registration no. / chassis / engine | பதிவு எண் / சேஸ் எண் / என்ஜின் எண் |
+| Our name on the RC (hypothecation) | ஆர்.சி.யில் நம் பெயர் பதிவு (அடமானம்) |
+| Survey no. / patta / extent | சர்வே எண் / பட்டா / பரப்பளவு |
+| Guideline value / market value | வழிகாட்டி மதிப்பு / சந்தை மதிப்பு |
+| Encumbrance certificate | வில்லங்கச் சான்று |
+| Sale deed | கிரையப் பத்திரம் |
+| Processing fee / document charges | செயலாக்கக் கட்டணம் / ஆவணக் கட்டணம் |
+| Taken out of the loan / added to the loan | கடனிலிருந்து பிடித்தம் / கடனுடன் சேர்த்தல் |
+| Handed over | கையில் கொடுத்தது |
+| Advance installment | முன்கூட்டிய தவணை |
+| True cost | உண்மையான செலவு |
+| Loan to value | மதிப்புக்கு கடன் |

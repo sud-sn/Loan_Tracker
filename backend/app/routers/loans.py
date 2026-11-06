@@ -20,6 +20,7 @@ from app.schemas.loans import (
     LoanUpdateIn,
     PaymentIn,
     PaymentOut,
+    PreviewIn,
     PreviewOut,
     ReminderOut,
     ReverseIn,
@@ -36,9 +37,9 @@ router = APIRouter(tags=["loans"])
 
 
 @router.post("/loans/preview", response_model=PreviewOut)
-def preview(data: TermsIn, ctx: CtxDep) -> dict[str, Any]:
-    result, above = service.preview(data, ctx.business)
-    return service.preview_out(result, above, ctx.business)
+def preview(data: PreviewIn, ctx: CtxDep) -> dict[str, Any]:
+    terms = TermsIn.model_validate(data.model_dump(exclude={"charges", "security"}))
+    return service.preview_out(service.figures(terms, data.charges, data.security, ctx.business), ctx.business)
 
 
 @router.post("/loans", response_model=LoanDetailOut, status_code=201)

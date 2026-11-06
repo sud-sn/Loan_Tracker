@@ -59,8 +59,23 @@ class BusinessSettings(Entity):
     max_upload_mb: Mapped[int] = mapped_column(Integer, nullable=False, server_default="10")
     max_files_per_owner: Mapped[int] = mapped_column(Integer, nullable=False, server_default="20")
     consent_notice_version: Mapped[str] = mapped_column(String(20), nullable=False, server_default="v1")
+    # New-loan defaults for vehicle and land loans (the form starts from these; each loan can differ).
+    ltv_max_vehicle: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="75")
+    ltv_max_land: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="50")
+    emi_rounding_default: Mapped[Decimal] = mapped_column(Numeric(7, 2), nullable=False, server_default="10")
+    broken_period_default: Mapped[str] = mapped_column(String(20), nullable=False, server_default="first_installment")
+    advance_installments_default: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    processing_fee_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="0")
+    document_charges_default: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
     version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
     __mapper_args__ = {"version_id_col": version}
+
+    __table_args__ = (
+        CheckConstraint(
+            "broken_period_default in ('none','first_installment','upfront')", name="broken_period_default"
+        ),
+        CheckConstraint("emi_rounding_default in (0.01, 1, 5, 10, 50, 100)", name="emi_rounding_default"),
+    )
 
 
 class User(Entity):
@@ -206,6 +221,17 @@ class Loan(Entity):
     purpose: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
     rate_warning_acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    # Vehicle and land loans (Phase 1). Saved with the loan and locked like the other terms.
+    emi_rounding: Mapped[Decimal] = mapped_column(Numeric(7, 2), nullable=False, server_default="0.01")
+    advance_installments: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    broken_period: Mapped[str] = mapped_column(String(20), nullable=False, server_default="none")
+    broken_period_days: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    broken_period_interest: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    amount_handed_over: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    true_cost_monthly: Mapped[Decimal | None] = mapped_column(Numeric(9, 2))
+    security_kind: Mapped[str] = mapped_column(String(8), nullable=False, server_default="none")
+    ltv_percent: Mapped[Decimal | None] = mapped_column(Numeric(9, 2))
+    ltv_warning_acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     idempotency_key: Mapped[str | None] = mapped_column(String(80), unique=True)
     created_by: Mapped[uuid.UUID | None] = fk("user.id", nullable=True)
     import_batch_id: Mapped[uuid.UUID | None] = fk("import_batch.id", nullable=True)
@@ -215,6 +241,8 @@ class Loan(Entity):
 
     borrower: Mapped[Borrower] = relationship()
     items: Mapped[list[ScheduleItem]] = relationship(back_populates="loan", order_by="ScheduleItem.seq")
+    charges: Mapped[list[LoanCharge]] = relationship(order_by="LoanCharge.created_at")
+    securities: Mapped[list[Collateral]] = relationship(order_by="Collateral.created_at")
 
     __table_args__ = (
         CheckConstraint("principal > 0", name="principal_positive"),
@@ -227,6 +255,9 @@ class Loan(Entity):
         ),
         CheckConstraint("disbursal_mode in ('cash','upi','bank','cheque','other')", name="disbursal_mode"),
         CheckConstraint("first_due_date >= disbursal_date", name="dates"),
+        CheckConstraint("broken_period in ('none','first_installment','upfront')", name="broken_period"),
+        CheckConstraint("security_kind in ('none','vehicle','land','both')", name="security_kind"),
+        CheckConstraint("advance_installments between 0 and 12", name="advance_installments"),
         Index("ix_loan_borrower_status", "borrower_id", "status"),
         Index("ix_loan_active_next_unpaid", "next_unpaid_due",
               postgresql_where=text("status = 'active' AND deleted_at IS NULL")),
@@ -234,6 +265,83 @@ class Loan(Entity):
             "ix_loan_active_last_activity", text("(coalesce(last_payment_on, disbursal_date))"),
             postgresql_where=text("status = 'active' AND deleted_at IS NULL"),
         ),
+    )
+
+
+class LoanCharge(Entity):
+    """Money collected when the loan is given: fees taken out of the loan or added to it, and
+    interest for extra days collected up front. Locked with the loan (append-only)."""
+
+    __tablename__ = "loan_charge"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    kind: Mapped[str] = mapped_column(String(24), nullable=False)
+    label: Mapped[str | None] = mapped_column(String(80))
+    amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    treatment: Mapped[str] = mapped_column(String(10), nullable=False)
+
+    __table_args__ = (
+        CheckConstraint("amount > 0", name="amount_positive"),
+        CheckConstraint(
+            "kind in ('processing_fee','document_charges','rto_stamp','insurance','odd_period_interest','other')",
+            name="kind",
+        ),
+        CheckConstraint("treatment in ('deducted','added')", name="treatment"),
+        CheckConstraint("kind <> 'other' or label is not null", name="other_needs_label"),
+    )
+
+
+class Collateral(Entity):
+    """The vehicle or land a loan is given against. Details can be corrected later (for example a
+    renewed insurance policy); the value used for the loan-to-value check stays on the loan."""
+
+    __tablename__ = "collateral"
+
+    loan_id: Mapped[uuid.UUID] = fk("loan.id")
+    kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    value: Mapped[int | None] = mapped_column(BigInteger)  # the valuation used for loan-to-value
+    # Vehicle
+    vehicle_type: Mapped[str | None] = mapped_column(String(16))
+    vehicle_condition: Mapped[str | None] = mapped_column(String(4))
+    registration_no: Mapped[str | None] = mapped_column(String(20))
+    registration_key: Mapped[str | None] = mapped_column(String(20), index=True)  # upper case, letters and digits
+    make_model: Mapped[str | None] = mapped_column(String(80))
+    year: Mapped[int | None] = mapped_column(Integer)
+    chassis_no: Mapped[str | None] = mapped_column(String(40))
+    engine_no: Mapped[str | None] = mapped_column(String(40))
+    on_road_price: Mapped[int | None] = mapped_column(BigInteger)
+    down_payment: Mapped[int | None] = mapped_column(BigInteger)
+    insurer: Mapped[str | None] = mapped_column(String(80))
+    insurance_policy_no: Mapped[str | None] = mapped_column(String(60))
+    insurance_expiry: Mapped[date | None] = mapped_column(Date)
+    lien_noted_on_rc: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    # Land
+    survey_no: Mapped[str | None] = mapped_column(String(60))
+    patta_no: Mapped[str | None] = mapped_column(String(40))
+    extent: Mapped[str | None] = mapped_column(String(40))
+    village: Mapped[str | None] = mapped_column(String(80))
+    taluk: Mapped[str | None] = mapped_column(String(80))
+    district: Mapped[str | None] = mapped_column(String(80))
+    document_no: Mapped[str | None] = mapped_column(String(60))
+    sub_registrar_office: Mapped[str | None] = mapped_column(String(80))
+    guideline_value: Mapped[int | None] = mapped_column(BigInteger)
+    market_value: Mapped[int | None] = mapped_column(BigInteger)
+    ec_checked: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    ec_date: Mapped[date | None] = mapped_column(Date)
+    # Both
+    originals_held: Mapped[list[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
+    notes: Mapped[str | None] = mapped_column(Text)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
+    __mapper_args__ = {"version_id_col": version}
+
+    __table_args__ = (
+        CheckConstraint("kind in ('vehicle','land')", name="kind"),
+        CheckConstraint("value is null or value > 0", name="value_positive"),
+        CheckConstraint(
+            "vehicle_type is null or vehicle_type in ('two_wheeler','three_wheeler','car','commercial','tractor','other')",
+            name="vehicle_type",
+        ),
+        CheckConstraint("vehicle_condition is null or vehicle_condition in ('new','used')", name="vehicle_condition"),
     )
 
 

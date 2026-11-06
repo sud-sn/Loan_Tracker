@@ -11,6 +11,11 @@ export type LoanListItem = Schemas["LoanListItem"];
 export type Payment = Schemas["PaymentOut"];
 export type Preview = Schemas["PreviewOut"];
 export type TermsIn = Schemas["TermsIn"];
+export type PreviewIn = Schemas["PreviewIn"];
+export type ChargeIn = Schemas["ChargeIn"];
+export type SecurityIn = Schemas["SecurityIn"];
+export type SecurityOut = Schemas["SecurityOut"];
+export type ChargeOut = Schemas["ChargeOut"];
 export type ScheduleItem = Schemas["ScheduleItemOut"];
 export type Settlement = Schemas["SettlementOut"];
 export type Reminder = Schemas["ReminderOut"];
@@ -48,9 +53,10 @@ export interface DueRow {
 export interface DaybookEntry {
   date: string;
   direction: "in" | "out";
-  source_type: "payment" | "loan" | "cash_entry";
+  source_type: "payment" | "loan" | "cash_entry" | "loan_charge";
   source_id: string;
-  kind: "payment" | "reversal" | "settlement" | "loan" | "income" | "expense";
+  kind: "payment" | "reversal" | "settlement" | "loan" | "income" | "expense" | "charge";
+  treatment?: "deducted" | "added";
   amount: string;
   mode: string;
   loan_id: string | null;
@@ -121,6 +127,13 @@ export interface AppSettings {
   retention_years: number;
   max_upload_mb: number;
   max_files_per_owner: number;
+  ltv_max_vehicle: string;
+  ltv_max_land: string;
+  emi_rounding_default: string;
+  broken_period_default: "none" | "first_installment" | "upfront";
+  advance_installments_default: number;
+  processing_fee_percent: string;
+  document_charges_default: string;
 }
 
 export interface ImportSummary {

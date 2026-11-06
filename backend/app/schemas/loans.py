@@ -14,6 +14,16 @@ Frequency = Literal["monthly", "weekly", "daily", "single"]
 TermUnit = Literal["months", "days", "installments"]
 RateBasis = Literal["month", "year"]
 PenaltyMode = Literal["off", "per_day", "pct_month"]
+BrokenPeriodMode = Literal["none", "first_installment", "upfront"]
+ChargeKind = Literal["processing_fee", "document_charges", "rto_stamp", "insurance", "other"]
+ChargeTreatment = Literal["deducted", "added"]
+VehicleType = Literal["two_wheeler", "three_wheeler", "car", "commercial", "tractor", "other"]
+# Original documents (or keys) the lender keeps until the loan is closed.
+Original = Literal[
+    "rc_book", "duplicate_key", "insurance_copy", "blank_cheques", "promissory_note",
+    "sale_deed", "patta", "ec", "parent_documents", "tax_receipt", "other",
+]
+SecurityKind = Literal["none", "vehicle", "land", "both"]
 
 
 class CustomRowIn(Schema):
@@ -47,6 +57,14 @@ class TermsIn(Schema):
     custom_principal: PositiveMoney | None = None
     custom_interest: Money | None = Field(default=None, ge=0)
     custom_rows: list[CustomRowIn] | None = Field(default=None, max_length=3660)
+    # Round the regular installment up to a multiple of this: 0.01 (no rounding), 1, 5, 10, 50 or 100.
+    # Reducing and flat loans only. The form starts from the owner's setting; the API default is none.
+    emi_rounding: Decimal = Field(default=Decimal("0.01"), gt=0, max_digits=7, decimal_places=2)
+    # Installments collected on the day the loan is given (reducing and flat loans only).
+    advance_installments: int = Field(default=0, ge=0, le=12)
+    # An odd first period: "first_installment" charges the actual days on the first installment,
+    # "upfront" collects extra days' interest when the loan is given, "none" ignores it.
+    broken_period: BrokenPeriodMode = "none"
 
     @model_validator(mode="after")
     def _needs(self) -> TermsIn:
@@ -57,6 +75,85 @@ class TermsIn(Schema):
         if self.method == "custom" and not (self.custom_rows or self.custom_principal or self.term_value):
             raise ValueError("custom needs rows, a principal per installment, or a term")
         return self
+
+
+class ChargeIn(Schema):
+    """A charge collected when the loan is given: taken out of the amount handed over
+    ("deducted") or added to the loan amount and repaid with it ("added")."""
+
+    kind: ChargeKind
+    label: str | None = Field(default=None, max_length=80)
+    amount: PositiveMoney
+    treatment: ChargeTreatment = "deducted"
+
+    @model_validator(mode="after")
+    def _label(self) -> ChargeIn:
+        if self.kind == "other" and not (self.label or "").strip():
+            raise ValueError("a label is required for another charge")
+        return self
+
+
+class SecurityIn(Schema):
+    """The vehicle or land the loan is given against. ``value`` is the valuation used for the
+    loan-to-value check; when it is missing, the on-road price (vehicle) or the market value,
+    then the guideline value (land) is used."""
+
+    kind: Literal["vehicle", "land"]
+    value: PositiveMoney | None = None
+    vehicle_type: VehicleType | None = None
+    vehicle_condition: Literal["new", "used"] | None = None
+    registration_no: str | None = Field(default=None, max_length=20)
+    make_model: str | None = Field(default=None, max_length=80)
+    year: int | None = Field(default=None, ge=1950, le=2100)
+    chassis_no: str | None = Field(default=None, max_length=40)
+    engine_no: str | None = Field(default=None, max_length=40)
+    on_road_price: PositiveMoney | None = None
+    down_payment: Money | None = Field(default=None, ge=0)
+    insurer: str | None = Field(default=None, max_length=80)
+    insurance_policy_no: str | None = Field(default=None, max_length=60)
+    insurance_expiry: date | None = None
+    lien_noted_on_rc: bool = False
+    survey_no: str | None = Field(default=None, max_length=60)
+    patta_no: str | None = Field(default=None, max_length=40)
+    extent: str | None = Field(default=None, max_length=40)
+    village: str | None = Field(default=None, max_length=80)
+    taluk: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
+    document_no: str | None = Field(default=None, max_length=60)
+    sub_registrar_office: str | None = Field(default=None, max_length=80)
+    guideline_value: PositiveMoney | None = None
+    market_value: PositiveMoney | None = None
+    ec_checked: bool = False
+    ec_date: date | None = None
+    originals_held: list[Original] = Field(default_factory=list, max_length=11)
+    notes: str | None = Field(default=None, max_length=1000)
+
+    @model_validator(mode="after")
+    def _down_payment(self) -> SecurityIn:
+        if self.down_payment and self.on_road_price and self.down_payment >= self.on_road_price:
+            raise ValueError("the down payment must be less than the price")
+        return self
+
+
+class SecurityOut(SecurityIn):
+    id: uuid.UUID
+    version: int
+
+
+class ChargeOut(Schema):
+    kind: Literal["processing_fee", "document_charges", "rto_stamp", "insurance", "odd_period_interest", "other"]
+    label: str | None
+    amount: Money
+    treatment: ChargeTreatment
+
+
+class PreviewIn(TermsIn):
+    """Terms plus what is collected when the loan is given and what it is given against, so the
+    preview can show the amount handed over, the true cost and the loan-to-value check.
+    ``principal`` is the loan amount before any charge added to it."""
+
+    charges: list[ChargeIn] = Field(default_factory=list, max_length=10)
+    security: list[SecurityIn] = Field(default_factory=list, max_length=5)
 
 
 class PenaltyIn(Schema):
@@ -86,12 +183,32 @@ class PreviewOut(Schema):
     monthly_rate_equivalent: Decimal
     rate_above_maximum: bool
     max_rate_monthly: Decimal | None
+    first_installment: Money
+    unrounded_installment: Money | None
+    broken_period_days: int
+    broken_period_interest: Money  # added to (negative: taken off) the first installment
+    advance_installments: int
+    advance_amount: Money
+    loan_amount: Money  # as entered, before charges added to it
+    charges_added: Money
+    charges_deducted: Money  # includes extra days' interest collected up front
+    odd_period_upfront: Money
+    amount_handed_over: Money  # cash the borrower takes home on the day
+    true_cost_monthly: Decimal | None  # % a month, reducing, including charges
+    true_cost_yearly: Decimal | None
+    security_value: Money | None
+    ltv_percent: Decimal | None
+    ltv_maximum: Decimal | None
+    ltv_above_maximum: bool
     rows: list[ScheduleRowOut]
 
 
 class LoanCreateIn(Schema):
     borrower_id: uuid.UUID
     terms: TermsIn
+    charges: list[ChargeIn] = Field(default_factory=list, max_length=10)
+    security: list[SecurityIn] = Field(default_factory=list, max_length=5)
+    acknowledge_ltv_warning: bool = False
     penalty: PenaltyIn = PenaltyIn()
     disbursal_mode: PaymentMode = "cash"
     purpose: str | None = Field(default=None, max_length=500)
@@ -207,6 +324,17 @@ class LoanOut(Schema):
     last_payment_on: date | None
     purpose: str | None
     notes: str | None
+    emi_rounding: Decimal
+    advance_installments: int
+    broken_period: BrokenPeriodMode
+    broken_period_days: int
+    broken_period_interest: Money
+    amount_handed_over: Money
+    true_cost_monthly: Decimal | None
+    security_kind: SecurityKind
+    ltv_percent: Decimal | None
+    charges: list[ChargeOut]
+    security: list[SecurityOut]
     version: int
     created_at: datetime
     summary: LoanSummaryOut

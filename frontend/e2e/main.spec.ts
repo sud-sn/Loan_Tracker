@@ -15,6 +15,8 @@ const T = {
     saveLoan: "Save loan", openLoan: "Open the loan", recordPayment: "Record payment",
     amountReceived: "Amount received", savePayment: "Save payment", interest: "Interest", principal: "Principal",
     overdueTab: "Overdue", daysLate: "10 days late", collapse: "Collapse menu", expand: "Expand menu",
+    vehicle: "Vehicle", reg: "Registration no.", price: "On-road price", down: "Down payment", addCharge: "Add a charge",
+    amount: "Amount", ltvAck: "I still want to give this loan", handedOver: "Handed over on the day",
   },
   ta: {
     switch: "தமிழ்", mobile: "கைபேசி எண்", password: "கடவுச்சொல்", signIn: "உள்நுழை", createOwner: "கணக்கை உருவாக்கு",
@@ -24,6 +26,8 @@ const T = {
     next: "அடுத்து", saveLoan: "கடனைச் சேமி", openLoan: "கடனைத் திற", recordPayment: "பணம் பதிவு",
     amountReceived: "பெற்ற தொகை", savePayment: "கட்டணத்தைச் சேமி", interest: "வட்டி", principal: "அசல்",
     overdueTab: "தவறியவை", daysLate: "10 நாள் தாமதம்", collapse: "மெனுவைச் சுருக்கு", expand: "மெனுவை விரி",
+    vehicle: "வாகனம்", reg: "பதிவு எண்", price: "ஆன்-ரோடு விலை", down: "முன்பணம்", addCharge: "கட்டணம் சேர்",
+    amount: "தொகை", ltvAck: "இருந்தாலும் இந்தக் கடனைக் கொடுக்கிறேன்", handedOver: "அன்று கையில் கொடுத்தது",
   },
 } as const;
 
@@ -83,6 +87,7 @@ for (const lang of ["en", "ta"] as const) {
     await noOverflowOrRawKeys(page);
 
     await page.getByRole("button", { name: t.giveLoan, exact: true }).first().click();
+    await page.getByRole("button", { name: t.next }).click(); // no security for this loan
     await page.getByLabel(t.loanAmount, { exact: true }).fill("50000");
     await page.getByText(t.fixedToggle, { exact: true }).click();
     await page.getByLabel(t.fixedAmount, { exact: true }).fill("5000");
@@ -179,5 +184,48 @@ for (const lang of ["en", "ta"] as const) {
     expect(after.touching).toBe(true);
     expect(Math.abs(after.total - after.screen)).toBeLessThanOrEqual(2);
     await noOverflowOrRawKeys(page);
+  });
+
+  test(`vehicle loan: down payment, a charge taken out, loan-to-value check (${lang})`, async ({ page }) => {
+    const t = T[lang];
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    await signIn(page, lang);
+    const csrf = (await page.context().cookies()).find((c) => c.name === "lt_csrf")?.value ?? "";
+    const id = unique();
+    const b = await (await page.request.post("/api/v1/borrowers", { headers: { "X-CSRF-Token": csrf }, data: {
+      name_en: `Vehicle Buyer ${id}`, phone: `7${id.padStart(9, "3")}`, aadhaar: aadhaar(`7${id.padStart(10, "5")}`),
+      address: "x", consent: { given: true } } })).json();
+    await page.goto(`/loans/new?borrower=${b.id}`);
+
+    // Security: a new vehicle at 1,20,000 with 20,000 down; the loan amount becomes 1,00,000.
+    await page.getByText(t.vehicle, { exact: true }).first().click();
+    await page.getByLabel(t.reg).fill("TN 59 AB 1234"); // optional fields are labelled "… (optional)"
+    await page.getByLabel(t.price, { exact: true }).fill("120000");
+    await page.getByLabel(t.down).fill("20000");
+    await noOverflowOrRawKeys(page);
+    await page.getByRole("button", { name: t.next }).click();
+    await expect(page.getByLabel(t.loanAmount, { exact: true })).toHaveValue("1,00,000");
+
+    // A 2,000 processing fee taken out: 98,000 is handed over; 1,00,000 on a 1,20,000 vehicle is 83.33 %.
+    await page.getByRole("button", { name: t.addCharge }).click();
+    await page.getByLabel(t.amount, { exact: true }).last().fill("2000");
+    const preview = page.locator('section[aria-live="polite"]');
+    await expect(preview).toContainText("₹98,000.00");
+    await expect(preview).toContainText("83.33%");
+    await noOverflowOrRawKeys(page);
+    await page.getByRole("button", { name: t.next }).click();
+
+    const save = page.getByRole("button", { name: t.saveLoan, exact: true });
+    await expect(save).toBeDisabled(); // above the 75 % limit until confirmed
+    await page.getByText(t.ltvAck).click();
+    await save.click();
+    await page.getByRole("button", { name: t.openLoan, exact: true }).click();
+    await page.waitForURL(/\/loans\/[0-9a-f-]{36}$/);
+    await expect(page.locator("main")).toContainText("TN 59 AB 1234");
+    await expect(page.locator("main")).toContainText(t.handedOver);
+    await expect(page.locator("main")).toContainText("₹98,000.00");
+    await noOverflowOrRawKeys(page);
+    expect(errors).toEqual([]);
   });
 }

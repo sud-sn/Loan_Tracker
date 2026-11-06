@@ -1,6 +1,7 @@
 """Home page: today's log, or daybook (PRD section 7).
 
-Built from the ``daily_log`` view (payments in, loans out, hand-typed cash entries). The cash
+Built from the ``daily_log`` view (payments in, loans out, charges collected when a loan is given,
+hand-typed cash entries). The cash
 balance runs from the start date and opening balance in Settings; earlier entries are history
 only. closing = opening + in - out, always.
 """
@@ -17,7 +18,16 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Session
 
 from app.engine import from_paise
-from app.models import Borrower, BusinessSettings, CashEntry, Category, Loan, Payment, PaymentAllocation
+from app.models import Borrower, BusinessSettings, CashEntry, Category, Loan, LoanCharge, Payment, PaymentAllocation
+
+# How a charge collected when a loan is given is named on the daily log and in exports.
+CHARGE_NAMES = {
+    "processing_fee": ("Processing fee", "செயலாக்கக் கட்டணம்"),
+    "document_charges": ("Document charges", "ஆவணக் கட்டணம்"),
+    "rto_stamp": ("RTO / stamp charges", "ஆர்.டி.ஓ / முத்திரைக் கட்டணம்"),
+    "insurance": ("Insurance", "காப்பீடு"),
+    "odd_period_interest": ("Interest for extra days", "கூடுதல் நாட்களுக்கான வட்டி"),
+}
 
 daily_log = table(
     "daily_log",
@@ -101,6 +111,21 @@ def entries(db: Session, start: date, end: date) -> list[dict[str, Any]]:
             "code": code, "name_en": name_en, "name_ta": name_ta, "receipt_no": None, "principal": None,
             "interest": None, "penalty": None, "category_en": None, "category_ta": None, "note": ln.purpose,
             "created_at": ln.created_at,
+        })
+    # Charges collected when a loan is given (fees taken out or added, extra days' interest).
+    for ch, ln, code, name_en, name_ta in db.execute(
+        select(LoanCharge, Loan, Borrower.code, Borrower.name_en, Borrower.name_ta)
+        .join(Loan, Loan.id == LoanCharge.loan_id).join(Borrower, Borrower.id == Loan.borrower_id)
+        .where(Loan.disbursal_date.between(start, end), Loan.deleted_at.is_(None))
+        .order_by(Loan.disbursal_date, LoanCharge.created_at)
+    ):
+        en, ta = CHARGE_NAMES.get(ch.kind, (ch.label or "", ch.label or ""))
+        out.append({
+            "date": ln.disbursal_date, "direction": "in", "source_type": "loan_charge", "source_id": ch.id,
+            "kind": "charge", "amount": from_paise(ch.amount), "mode": ln.disbursal_mode, "loan_id": ln.id,
+            "loan_no": ln.loan_no, "code": code, "name_en": name_en, "name_ta": name_ta, "receipt_no": None,
+            "principal": None, "interest": None, "penalty": None, "category_en": en, "category_ta": ta,
+            "note": ch.label if ch.kind != "other" else None, "treatment": ch.treatment, "created_at": ch.created_at,
         })
     for c, cat in db.execute(
         select(CashEntry, Category).join(Category, Category.id == CashEntry.category_id)

@@ -18,6 +18,27 @@
   <tr><td>{{ t("loan.total_payable") }}</td><td><b>{{ money(loan.principal + loan.total_interest) }}</b></td></tr>
   <tr><td>{{ t("loan.disbursal_date") }}</td><td>{{ date(loan.disbursal_date) }}</td></tr>
   <tr><td>{{ t("loan.maturity_date") }}</td><td>{{ date(loan.maturity_date) }}</td></tr>
+  {% for c in loan.charges %}
+  <tr><td>{{ c.label if c.kind == "other" else t("charge." ~ c.kind) }}</td><td>{{ money(c.amount) }} ({{ t("charge." ~ c.treatment) }})</td></tr>
+  {% endfor %}
+  {% if loan.amount_handed_over != loan.principal %}
+  <tr><td>{{ t("loan.handed_over") }}</td><td><b>{{ money(loan.amount_handed_over) }}</b></td></tr>
+  {% endif %}
+  {% if loan.true_cost_monthly is not none %}
+  <tr><td>{{ t("loan.true_cost") }}</td><td>{{ t("loan.true_cost_value", monthly=loan.true_cost_monthly, yearly=loan.true_cost_monthly * 12) }}</td></tr>
+  {% endif %}
+  {% for sec in loan.security %}
+  <tr><td>{{ t("security.title") }}</td><td><b>{{ t("security." ~ sec.kind) }}</b>{% if sec.value %} · {{ t("security.value") }} {{ money(sec.value) }}{% endif %}{% if loan.ltv_percent %} · {{ t("security.ltv") }} {{ loan.ltv_percent }}%{% endif %}</td></tr>
+  {% if sec.kind == "vehicle" %}
+  {% if sec.registration_no %}<tr><td>{{ t("security.registration_no") }}</td><td>{{ sec.registration_no }}</td></tr>{% endif %}
+  {% if sec.make_model %}<tr><td>{{ t("security.make_model") }}</td><td>{{ sec.make_model }}{% if sec.year %} ({{ sec.year }}){% endif %}</td></tr>{% endif %}
+  {% if sec.chassis_no or sec.engine_no %}<tr><td>{{ t("security.chassis_engine") }}</td><td>{{ sec.chassis_no or "—" }} / {{ sec.engine_no or "—" }}</td></tr>{% endif %}
+  {% else %}
+  {% if sec.survey_no %}<tr><td>{{ t("security.survey_no") }}</td><td>{{ sec.survey_no }}{% if sec.extent %} · {{ t("security.extent") }} {{ sec.extent }}{% endif %}</td></tr>{% endif %}
+  {% if sec.village or sec.taluk or sec.district %}<tr><td>{{ t("security.place") }}</td><td>{{ [sec.village, sec.taluk, sec.district] | select | join(", ") }}</td></tr>{% endif %}
+  {% if sec.document_no %}<tr><td>{{ t("security.document_no") }}</td><td>{{ sec.document_no }}</td></tr>{% endif %}
+  {% endif %}
+  {% endfor %}
 </table>
 <h2>{{ t("loan.schedule") }}</h2>
 <table>

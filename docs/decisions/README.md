@@ -15,3 +15,4 @@ Short records of choices made where the PRD was open, or where two requirements 
 - [0011 · Defaults until the owner answers the open questions (PRD §16)](0011-defaults-for-open-questions.md)
 - [0012 · Cached ledger columns](0012-cached-ledger-columns.md)
 - [0013 · Laptop first](0013-laptop-first-layout.md)
+- [0014 · Vehicle and land loans (Phase 1)](0014-vehicle-and-land-loans.md)

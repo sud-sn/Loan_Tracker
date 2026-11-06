@@ -40,6 +40,14 @@ class FixedStyle(StrEnum):
     REDUCING = "reducing"  # interest on the remaining balance
 
 
+class BrokenPeriod(StrEnum):
+    """What to do when the first due date is not exactly one period after the loan is given."""
+
+    NONE = "none"  # the first period counts as a full period, whatever its length
+    FIRST_INSTALLMENT = "first_installment"  # interest for the actual days, on the first installment
+    UPFRONT = "upfront"  # extra days' interest collected when the loan is given (fewer days: as above)
+
+
 @dataclass(frozen=True)
 class CustomRow:
     principal_part: Decimal
@@ -56,6 +64,9 @@ class LoanTerms:
 
     * ``FIXED_AMOUNT`` needs ``fixed_installment``; ``term_value`` is ignored and the number
       of installments is the result. ``fixed_style`` picks flat or reducing interest.
+    * ``REDUCING`` and ``FLAT`` also take ``emi_rounding`` and ``advance_installments``.
+    * ``broken_period`` decides how an odd first period (first due date earlier or later than one
+      period after the loan is given) is charged; see ``BrokenPeriod``.
     * ``CUSTOM`` takes either explicit ``custom_rows`` (one per installment, principal parts
       must add up to the principal), or ``custom_principal`` (and optional
       ``custom_interest``) to fill every row with the same split, or just a term to divide the
@@ -76,3 +87,10 @@ class LoanTerms:
     custom_principal: Decimal | None = None
     custom_interest: Decimal | None = None
     custom_rows: tuple[CustomRow, ...] | None = field(default=None)
+    # Round the regular installment UP to a multiple of this (0.01 = no rounding; 1, 10, 100 ...).
+    # Reducing and flat loans only; the last installment is smaller.
+    emi_rounding: Decimal = Decimal("0.01")
+    # Installments collected on the day the loan is given (reducing and flat loans only). They are
+    # part of the term: 12 installments with 1 in advance = 1 today and 11 from the first due date.
+    advance_installments: int = 0
+    broken_period: BrokenPeriod = BrokenPeriod.NONE

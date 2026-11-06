@@ -203,8 +203,11 @@ function EntryList({ title, icon, entries, empty, loading, onEdit }: { title: st
       <ul className="divide-y divide-line">
         {entries?.map((e) => {
           const label = e.code ? displayName(lang, e.name_en, e.name_ta) : (lang === "ta" ? e.category_ta : e.category_en);
-          const kind = { payment: t("home.repayments"), settlement: t("payment.settlement"), reversal: t("home.reversed"),
-            loan: t("home.loansGiven"), income: t("home.otherIncome"), expense: t("home.ownSpending") }[e.kind];
+          const kind = e.kind === "charge"
+            // A charge collected when a loan was given: what it was for, and whether it was taken out or added.
+            ? `${(lang === "ta" ? e.category_ta : e.category_en) ?? ""} · ${t(`charge.${e.treatment ?? "deducted"}`)}`
+            : { payment: t("home.repayments"), settlement: t("payment.settlement"), reversal: t("home.reversed"),
+              loan: t("home.loansGiven"), income: t("home.otherIncome"), expense: t("home.ownSpending") }[e.kind];
           const to = e.loan_id ? `/loans/${e.loan_id}` : undefined;
           const body = (
             // Narrow card: name and amount, details below. Wide card (36rem+): name | references | amount.

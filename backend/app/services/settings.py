@@ -20,13 +20,18 @@ EDITABLE = (
     "licence_no", "lender_name", "lender_address", "max_rate_monthly", "due_soon_days", "due_window_days",
     "long_unpaid_days", "default_language", "balance_start_date", "opening_balance", "penalty_default_mode",
     "penalty_default_value", "penalty_grace_days", "staff_enabled", "staff_can_create_loans", "daily_summary_time",
-    "retention_years", "max_upload_mb", "max_files_per_owner",
+    "retention_years", "max_upload_mb", "max_files_per_owner", "ltv_max_vehicle", "ltv_max_land",
+    "emi_rounding_default", "broken_period_default", "advance_installments_default", "processing_fee_percent",
+    "document_charges_default",
 )
+MONEY = ("opening_balance", "document_charges_default")  # stored in paise
+TWO_DECIMALS = ("ltv_max_vehicle", "ltv_max_land", "emi_rounding_default", "processing_fee_percent")
 
 
 def serialize(b: BusinessSettings) -> dict[str, Any]:
     out = {name: getattr(b, name) for name in EDITABLE}
-    out["opening_balance"] = from_paise(b.opening_balance)
+    for name in MONEY:
+        out[name] = from_paise(getattr(b, name))
     out["version"] = b.version
     return out
 
@@ -46,8 +51,10 @@ def update(ctx: Ctx, data: dict[str, Any]) -> BusinessSettings:
         if name not in data:
             continue
         value = data[name]
-        if name == "opening_balance":
+        if name in MONEY:
             value = to_paise(Decimal(value or 0))
+        elif name in TWO_DECIMALS and value is not None:
+            value = Decimal(value).quantize(Decimal("0.01"))
         if value != getattr(b, name):
             changes[name] = [_plain(getattr(b, name)), _plain(value)]
             setattr(b, name, value)

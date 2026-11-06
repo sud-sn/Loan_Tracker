@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 from fastapi import APIRouter, File, Query, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select, text
 
 from app.config import get_settings
@@ -20,6 +20,7 @@ from app.core.errors import AppError
 from app.db import get_engine
 from app.deps import DB, CtxDep, OwnerCtx, StepUpCtx
 from app.engine import from_paise
+from app.engine.schedule import ROUNDING_STEPS
 from app.models import (
     AuditLog,
     Borrower,
@@ -61,6 +62,20 @@ class SettingsIn(BaseModel):
     retention_years: int | None = Field(default=None, ge=1, le=50)
     max_upload_mb: int | None = Field(default=None, ge=1, le=50)
     max_files_per_owner: int | None = Field(default=None, ge=1, le=200)
+    ltv_max_vehicle: Decimal | None = Field(default=None, gt=0, le=100, decimal_places=2)
+    ltv_max_land: Decimal | None = Field(default=None, gt=0, le=100, decimal_places=2)
+    emi_rounding_default: Decimal | None = Field(default=None, gt=0, decimal_places=2)
+    broken_period_default: Literal["none", "first_installment", "upfront"] | None = None
+    advance_installments_default: int | None = Field(default=None, ge=0, le=12)
+    processing_fee_percent: Decimal | None = Field(default=None, ge=0, le=25, decimal_places=2)
+    document_charges_default: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+
+    @field_validator("emi_rounding_default")
+    @classmethod
+    def _step(cls, value: Decimal | None) -> Decimal | None:
+        if value is not None and value not in ROUNDING_STEPS:
+            raise ValueError("rounding must be 0.01, 1, 5, 10, 50 or 100")
+        return value
 
 
 class PushIn(BaseModel):
@@ -72,8 +87,11 @@ class PushIn(BaseModel):
 def get_settings_(ctx: CtxDep) -> dict[str, Any]:
     out = settings_service.serialize(ctx.business)
     if not ctx.is_owner:
+        # Staff see what they need to work; staff who give loans also need the new-loan defaults.
         return {k: out[k] for k in ("due_soon_days", "due_window_days", "long_unpaid_days", "default_language",
-                                    "lender_name")}
+                                    "lender_name", "ltv_max_vehicle", "ltv_max_land", "emi_rounding_default",
+                                    "broken_period_default", "advance_installments_default",
+                                    "processing_fee_percent", "document_charges_default", "max_rate_monthly")}
     return out
 
 

@@ -117,6 +117,48 @@ export function SettingsPage() {
             </div>
           </Card>
           <Card>
+            <h2 className="mb-1 text-lg">{t("settings.newLoans")}</h2>
+            <p className="field-hint mb-3">{t("settings.newLoansHint")}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label={t("settings.ltvVehicle")}>
+                {(id) => <Input id={id} inputMode="decimal" value={form.ltv_max_vehicle} onChange={(e) => set("ltv_max_vehicle", e.target.value.replace(/[^\d.]/g, ""))} />}
+              </Field>
+              <Field label={t("settings.ltvLand")}>
+                {(id) => <Input id={id} inputMode="decimal" value={form.ltv_max_land} onChange={(e) => set("ltv_max_land", e.target.value.replace(/[^\d.]/g, ""))} />}
+              </Field>
+              <Field label={t("options.rounding")}>
+                {(id) => (
+                  <Select id={id} value={String(Number(form.emi_rounding_default) < 1 ? "0.01" : Number(form.emi_rounding_default))}
+                    onChange={(e) => set("emi_rounding_default", e.target.value)}>
+                    {["0.01", "1", "5", "10", "50", "100"].map((v) => (
+                      <option key={v} value={v}>{v === "0.01" ? t("options.noRounding") : t("options.roundTo", { step: v })}</option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t("options.advance")}>
+                {(id) => (
+                  <Select id={id} value={String(form.advance_installments_default)} onChange={(e) => set("advance_installments_default", Number(e.target.value))}>
+                    {[0, 1, 2, 3].map((v) => <option key={v} value={v}>{v}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t("options.oddFirst")} className="sm:col-span-2">
+                {(id) => (
+                  <Select id={id} value={form.broken_period_default} onChange={(e) => set("broken_period_default", e.target.value as AppSettings["broken_period_default"])}>
+                    {(["first_installment", "upfront", "none"] as const).map((v) => <option key={v} value={v}>{t(`options.odd_${v}`)}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t("settings.processingFee")}>
+                {(id) => <Input id={id} inputMode="decimal" value={form.processing_fee_percent} onChange={(e) => set("processing_fee_percent", e.target.value.replace(/[^\d.]/g, ""))} />}
+              </Field>
+              <Field label={t("settings.documentCharges")}>
+                {(id) => <MoneyInput id={id} value={form.document_charges_default} onChange={(v) => set("document_charges_default", v || "0")} />}
+              </Field>
+            </div>
+          </Card>
+          <Card>
             <h2 className="mb-3 text-lg">{t("settings.penalty")}</h2>
             <div className="grid gap-3 sm:grid-cols-3">
               <Field label={t("loan.penaltyTitle")}>

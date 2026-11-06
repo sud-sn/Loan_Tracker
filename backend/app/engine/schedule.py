@@ -5,19 +5,29 @@ Rules enforced for every method:
 * money is ``Decimal`` and every part is rounded half-up to 2 decimals;
 * the last installment absorbs rounding, so principal parts add up to the principal exactly;
 * monthly due dates keep the first due day, clamped to the end of short months.
+
+Options for vehicle and land loans (Phase 1):
+
+* ``emi_rounding`` rounds the regular installment *up* (for example to ₹10); the last one is smaller;
+* ``advance_installments`` are due on the day the loan is given (no interest has run yet on a
+  reducing loan, so they are all principal);
+* ``broken_period``: when the first due date is earlier or later than one period after the loan
+  is given, the difference in days is charged at the daily rate (monthly rate / 30, or yearly
+  rate / 365), on the first installment or, for extra days, when the loan is given.
 """
 
 from __future__ import annotations
 
 import math
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
-from decimal import Decimal, localcontext
+from decimal import ROUND_CEILING, Decimal, localcontext
 
 from app.engine.dates import add_months, due_dates, one_period_after
 from app.engine.errors import EngineError
-from app.engine.money import ZERO, q2
-from app.engine.types import CustomRow, FixedStyle, Frequency, LoanTerms, Method, RateBasis, TermUnit
+from app.engine.money import CENT, ZERO, q2
+from app.engine.types import BrokenPeriod, CustomRow, FixedStyle, Frequency, LoanTerms, Method, RateBasis, TermUnit
 
 MAX_INSTALLMENTS = 3660  # ten years of daily collection
 MAX_PRINCIPAL = Decimal("100000000000")  # ₹1,000 crore: anything above is a typo
@@ -25,6 +35,8 @@ MAX_RATE_PERCENT = Decimal("100")
 # With a fixed installment, a leftover below ₹1 is folded into the previous payment instead of
 # creating an extra installment of a few paise.
 ABSORB_BELOW = Decimal("1.00")
+ROUNDING_STEPS = tuple(Decimal(x) for x in ("0.01", "1", "5", "10", "50", "100"))
+MAX_ADVANCE = 12
 
 
 @dataclass(frozen=True)
@@ -50,6 +62,13 @@ class ScheduleResult:
     maturity_date: date
     periodic_rate: Decimal  # fraction per installment period
     monthly_rate_equivalent: Decimal  # % per month, used for the maximum-rate warning
+    first_installment: Decimal = ZERO  # first installment after the loan is given (incl. odd-period interest)
+    broken_period_days: int = 0  # first period minus one normal period, in days (negative: shorter)
+    broken_period_interest: Decimal = ZERO  # added to (or taken off) the first installment's interest
+    broken_period_upfront: Decimal = ZERO  # extra days' interest collected when the loan is given
+    advance_installments: int = 0
+    advance_amount: Decimal = ZERO  # total of the installments due on the day the loan is given
+    unrounded_installment: Decimal | None = None  # the exact installment before rounding up
 
 
 def periodic_rate(rate_percent: Decimal, basis: RateBasis, frequency: Frequency) -> Decimal:
@@ -104,6 +123,12 @@ def _validate(terms: LoanTerms) -> None:
         raise EngineError("FREQUENCY_METHOD_MISMATCH")
     if terms.first_due_date is not None and terms.first_due_date <= terms.disbursal_date:
         raise EngineError("FIRST_DUE_NOT_AFTER_DISBURSAL")
+    if terms.emi_rounding not in ROUNDING_STEPS:
+        raise EngineError("ROUNDING_INVALID")
+    if not 0 <= terms.advance_installments <= MAX_ADVANCE:
+        raise EngineError("ADVANCE_INVALID", max=MAX_ADVANCE)
+    if terms.advance_installments and terms.method not in (Method.REDUCING, Method.FLAT):
+        raise EngineError("ADVANCE_NOT_FOR_METHOD")
 
 
 def _make_rows(
@@ -136,7 +161,66 @@ def _reducing_parts(principal: Decimal, r: Decimal, n: int) -> list[tuple[Decima
         p = balance if k == n else min(installment - interest, balance)
         parts.append((p, interest))
         balance -= p
+        if balance == 0:  # only for tiny loans over many months, where rounding repays it early
+            break
     return parts
+
+
+def _round_up(amount: Decimal, step: Decimal) -> Decimal:
+    if step <= CENT:
+        return q2(amount)
+    return q2((amount / step).to_integral_value(rounding=ROUND_CEILING) * step)
+
+
+def _annuity_factor(r: Decimal, m: int) -> Decimal:
+    """Present value of 1 a period for ``m`` periods."""
+    if r == 0:
+        return Decimal(m)
+    return (1 - (1 + r) ** -m) / r
+
+
+def _reducing_parts_ext(
+    principal: Decimal, r: Decimal, n: int, advance: int, step: Decimal
+) -> tuple[list[tuple[Decimal, Decimal]], Decimal | None]:
+    """Reducing balance with advance installments and/or a rounded installment.
+
+    ``advance`` installments are paid on the day the loan is given, so the installment solves
+    principal = advance x EMI + EMI x annuity(n - advance). Rounding up makes every regular
+    installment a round figure; the balance is then repaid a little sooner and the last
+    installment is smaller (a leftover under ₹1 is folded into the one before).
+    """
+    if advance == 0 and step <= CENT:
+        return _reducing_parts(principal, r, n), None
+    exact = q2(principal / (advance + _annuity_factor(r, n - advance)))
+    emi = _round_up(exact, step)
+    balance = principal - emi * advance
+    if balance <= 0:
+        raise EngineError("ROUNDING_TOO_LARGE")
+    parts: list[tuple[Decimal, Decimal]] = [(emi, ZERO)] * advance
+    regular = n - advance
+    for k in range(1, regular + 1):
+        interest = q2(balance * r)
+        p = balance if k == regular else min(emi - interest, balance)
+        if step > CENT and balance - p < ABSORB_BELOW:
+            p = balance
+        parts.append((p, interest))
+        balance -= p
+        if balance == 0:
+            break
+    return parts, (exact if step > CENT else None)
+
+
+def _flat_parts_ext(
+    principal: Decimal, r: Decimal, n: int, step: Decimal
+) -> tuple[list[tuple[Decimal, Decimal]], Decimal | None]:
+    """Flat interest with the installment rounded up; interest per installment stays the same."""
+    if step <= CENT:
+        return _flat_parts(principal, r, n), None
+    total_interest = q2(principal * r * n)
+    interest_each = q2(total_interest / n)
+    exact = q2((principal + total_interest) / n)
+    emi = _round_up(exact, step)
+    return _fill_fixed_principal(principal, emi - interest_each, interest_each), exact
 
 
 def _equal_split(total: Decimal, n: int) -> list[Decimal]:
@@ -261,12 +345,41 @@ def _monthly_equivalent(terms: LoanTerms, total_interest: Decimal, start: date, 
     return q2(total_interest / terms.principal / months * 100)
 
 
+def _broken_period(terms: LoanTerms, first_due: date, owed: Decimal) -> tuple[int, Decimal]:
+    """Days the first period is longer (+) or shorter (-) than one period, and their interest."""
+    if terms.broken_period is BrokenPeriod.NONE or terms.method in (Method.SIMPLE_DAYS, Method.CUSTOM):
+        return 0, ZERO
+    days = (first_due - one_period_after(terms.disbursal_date, terms.frequency)).days
+    if days == 0:
+        return 0, ZERO
+    day_count = 30 if terms.rate_basis is RateBasis.MONTH else 365
+    return days, q2(owed * terms.rate / Decimal(100) / day_count * days)
+
+
+def _regular_installment(rows: tuple[ScheduleRow, ...], advance: int, odd_first: Decimal) -> Decimal:
+    """The installment the borrower pays most months: not the advance ones, not an odd first one,
+    not the last one (which absorbs rounding)."""
+    pool = [row.installment for row in rows[advance:]]
+    if odd_first:
+        pool = pool[1:]
+    pool = pool[:-1]
+    if pool:
+        return Counter(pool).most_common(1)[0][0]
+    if advance:  # every installment but the last was paid in advance: they are the regular ones
+        return rows[0].installment
+    return rows[0].installment - odd_first
+
+
 def build_schedule(terms: LoanTerms) -> ScheduleResult:
     _validate(terms)
     with localcontext() as ctx:
         ctx.prec = 40
         r = periodic_rate(terms.rate, terms.rate_basis, terms.frequency)
         first_due = terms.first_due_date or one_period_after(terms.disbursal_date, terms.frequency)
+        advance = terms.advance_installments
+        step = terms.emi_rounding
+        unrounded: Decimal | None = None
+        bpi_days, bpi_applied, bpi_upfront = 0, ZERO, ZERO
 
         if terms.method is Method.SIMPLE_DAYS:
             maturity, interest = _simple_days(terms)
@@ -274,9 +387,15 @@ def build_schedule(terms: LoanTerms) -> ScheduleResult:
             first_due = maturity
         else:
             if terms.method is Method.REDUCING:
-                parts = _reducing_parts(terms.principal, r, installment_count(terms))
+                n = installment_count(terms)
+                if advance >= n:
+                    raise EngineError("ADVANCE_TOO_MANY", max=n - 1)
+                parts, unrounded = _reducing_parts_ext(terms.principal, r, n, advance, step)
             elif terms.method is Method.FLAT:
-                parts = _flat_parts(terms.principal, r, installment_count(terms))
+                n = installment_count(terms)
+                if advance >= n:
+                    raise EngineError("ADVANCE_TOO_MANY", max=n - 1)
+                parts, unrounded = _flat_parts_ext(terms.principal, r, n, step)
             elif terms.method is Method.INTEREST_ONLY:
                 parts = _interest_only_parts(terms.principal, r, installment_count(terms))
             elif terms.method is Method.FIXED_AMOUNT:
@@ -285,14 +404,36 @@ def build_schedule(terms: LoanTerms) -> ScheduleResult:
                 parts = _fixed_amount_parts(terms.principal, r, terms.fixed_installment, terms.fixed_style)
             else:
                 parts = _custom_parts(terms, r)
-            rows = _make_rows(terms.principal, due_dates(first_due, len(parts), terms.frequency), parts)
+            if len(parts) <= advance:
+                raise EngineError("ROUNDING_TOO_LARGE")
+
+            # Odd first period: charge the extra (or take off the missing) days on the first
+            # installment after the loan is given, or collect extra days' interest up front.
+            flat_style = terms.method is Method.FLAT or (
+                terms.method is Method.FIXED_AMOUNT and terms.fixed_style is FixedStyle.FLAT
+            )
+            owed = terms.principal if flat_style else terms.principal - sum((p for p, _ in parts[:advance]), ZERO)
+            bpi_days, bpi = _broken_period(terms, first_due, owed)
+            if bpi > 0 and terms.broken_period is BrokenPeriod.UPFRONT:
+                bpi_upfront = bpi
+            elif bpi != 0:
+                p0, i0 = parts[advance]
+                new_interest = max(i0 + bpi, ZERO)
+                if p0 + new_interest <= 0:
+                    raise EngineError("FIRST_DUE_TOO_SOON")
+                bpi_applied = new_interest - i0
+                parts[advance] = (p0, new_interest)
+
+            dates = [terms.disbursal_date] * advance + due_dates(first_due, len(parts) - advance, terms.frequency)
+            rows = _make_rows(terms.principal, dates, parts)
 
         total_interest = sum((row.interest_part for row in rows), ZERO)
         total_principal = sum((row.principal_part for row in rows), ZERO)
         maturity_date = rows[-1].due_date
+        changed = bool(advance or bpi_applied or unrounded is not None)
         return ScheduleResult(
             rows=rows,
-            installment=rows[0].installment,
+            installment=_regular_installment(rows, advance, bpi_applied) if changed else rows[0].installment,
             last_installment=rows[-1].installment,
             total_principal=total_principal,
             total_interest=total_interest,
@@ -304,4 +445,11 @@ def build_schedule(terms: LoanTerms) -> ScheduleResult:
             monthly_rate_equivalent=_monthly_equivalent(
                 terms, total_interest, terms.disbursal_date, maturity_date
             ),
+            first_installment=rows[advance].installment if len(rows) > advance else rows[0].installment,
+            broken_period_days=bpi_days,
+            broken_period_interest=bpi_applied,
+            broken_period_upfront=bpi_upfront,
+            advance_installments=advance,
+            advance_amount=sum((row.installment for row in rows[:advance]), ZERO),
+            unrounded_installment=unrounded,
         )

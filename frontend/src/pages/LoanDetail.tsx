@@ -8,6 +8,7 @@ import { api, openFile, shareFile } from "@/api/client";
 import type { AppSettings, LoanDetail, Payment, Reminder, Settlement } from "@/api/types";
 import { ConfirmSheet } from "@/components/Confirm";
 import { Documents } from "@/components/Documents";
+import { LoanSummaryExtras, SecurityCard } from "@/components/LoanExtras";
 import { DateInput } from "@/components/DateInput";
 import { MoneyInput } from "@/components/MoneyInput";
 import { ScheduleList } from "@/components/ScheduleList";
@@ -92,10 +93,12 @@ export function LoanDetailPage() {
               <KeyValue label={t("loan.totalInterest")} value={money(l.total_interest)} />
               <KeyValue label={t("loan.disbursalDate")} value={`${dmy(l.disbursal_date)} · ${t(`mode.${l.disbursal_mode}`)}`} />
               <KeyValue label={t("loan.maturity")} value={dmy(l.maturity_date)} />
+              <LoanSummaryExtras l={l} />
               {Number(s.penalty_outstanding) > 0 && <KeyValue label={t("payment.penalty")} value={money(s.penalty_outstanding)} />}
               {l.purpose && <KeyValue label={t("loan.purpose")} value={l.purpose} />}
             </dl>
           </Card>
+          <SecurityCard security={l.security} />
           <div className="flex flex-wrap gap-2 lg:grid lg:grid-cols-2">
             {l.borrower.phone && (
               <>

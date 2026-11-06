@@ -83,13 +83,18 @@ def export_daybook(ctx: StepUpCtx, start: date, end: date, fmt: Literal["csv", "
     headers = [t("report.date"), t("daybook.in") + " / " + t("daybook.out"), t("report.borrower"), t("receipt.loan"),
                t("receipt.mode"), t("receipt.principal"), t("receipt.interest"), t("report.amount")]
     kinds = {"payment": "daybook.payment", "reversal": "daybook.reversal", "settlement": "daybook.settlement",
-             "loan": "daybook.loan", "income": "daybook.income", "expense": "daybook.expense"}
+             "loan": "daybook.loan", "income": "daybook.income", "expense": "daybook.expense",
+             "charge": "daybook.charge"}
     rows = []
     for e in lines:
         who = i18n.name(language, e["name_en"], e["name_ta"]) if e["code"] else (
             e["category_ta"] if language == "ta" else e["category_en"])
         rows.append([
-            i18n.fmt_date(e["date"]), t(kinds[e["kind"]]), f"{who}{' · ' + e['code'] if e['code'] else ''}",
+            i18n.fmt_date(e["date"]),
+            # A charge is named by what it was for (for example "Processing fee").
+            (e["category_ta"] if language == "ta" else e["category_en"]) or t(kinds[e["kind"]])
+            if e["kind"] == "charge" else t(kinds[e["kind"]]),
+            f"{who}{' · ' + e['code'] if e['code'] else ''}",
             e["loan_no"] or "", t("mode." + e["mode"]), i18n.money(e["principal"], False) if e["principal"] else "",
             i18n.money(e["interest"], False) if e["interest"] else "",
             ("-" if e["direction"] == "out" else "") + i18n.money(e["amount"], False),

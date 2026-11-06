@@ -1530,6 +1530,45 @@ export interface components {
              */
             sort_order: number;
         };
+        /**
+         * ChargeIn
+         * @description A charge collected when the loan is given: taken out of the amount handed over
+         *     ("deducted") or added to the loan amount and repaid with it ("added").
+         */
+        ChargeIn: {
+            /** Amount */
+            amount: number | string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "processing_fee" | "document_charges" | "rto_stamp" | "insurance" | "other";
+            /** Label */
+            label?: string | null;
+            /**
+             * Treatment
+             * @default deducted
+             * @enum {string}
+             */
+            treatment: "deducted" | "added";
+        };
+        /** ChargeOut */
+        ChargeOut: {
+            /** Amount */
+            amount: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "processing_fee" | "document_charges" | "rto_stamp" | "insurance" | "odd_period_interest" | "other";
+            /** Label */
+            label: string | null;
+            /**
+             * Treatment
+             * @enum {string}
+             */
+            treatment: "deducted" | "added";
+        };
         /** ConsentIn */
         ConsentIn: {
             /** Given */
@@ -1662,6 +1701,11 @@ export interface components {
         /** LoanCreateIn */
         LoanCreateIn: {
             /**
+             * Acknowledge Ltv Warning
+             * @default false
+             */
+            acknowledge_ltv_warning: boolean;
+            /**
              * Acknowledge Rate Warning
              * @default false
              */
@@ -1671,6 +1715,8 @@ export interface components {
              * Format: uuid
              */
             borrower_id: string;
+            /** Charges */
+            charges?: components["schemas"]["ChargeIn"][];
             /**
              * Disbursal Mode
              * @default cash
@@ -1689,11 +1735,28 @@ export interface components {
             penalty: components["schemas"]["PenaltyIn"];
             /** Purpose */
             purpose?: string | null;
+            /** Security */
+            security?: components["schemas"]["SecurityIn"][];
             terms: components["schemas"]["TermsIn"];
         };
         /** LoanDetailOut */
         LoanDetailOut: {
+            /** Advance Installments */
+            advance_installments: number;
+            /** Amount Handed Over */
+            amount_handed_over: string;
             borrower: components["schemas"]["BorrowerRef"];
+            /**
+             * Broken Period
+             * @enum {string}
+             */
+            broken_period: "none" | "first_installment" | "upfront";
+            /** Broken Period Days */
+            broken_period_days: number;
+            /** Broken Period Interest */
+            broken_period_interest: string;
+            /** Charges */
+            charges: components["schemas"]["ChargeOut"][];
             /** Closed On */
             closed_on: string | null;
             /** Closed Reason */
@@ -1713,6 +1776,8 @@ export interface components {
              * @enum {string}
              */
             disbursal_mode: "cash" | "upi" | "bank" | "cheque" | "other";
+            /** Emi Rounding */
+            emi_rounding: string;
             /**
              * First Due Date
              * Format: date
@@ -1740,6 +1805,8 @@ export interface components {
             last_payment_on: string | null;
             /** Loan No */
             loan_no: string;
+            /** Ltv Percent */
+            ltv_percent: string | null;
             /**
              * Maturity Date
              * Format: date
@@ -1776,6 +1843,13 @@ export interface components {
             rate_basis: "month" | "year";
             /** Schedule */
             schedule: components["schemas"]["ScheduleItemOut"][];
+            /** Security */
+            security: components["schemas"]["SecurityOut"][];
+            /**
+             * Security Kind
+             * @enum {string}
+             */
+            security_kind: "none" | "vehicle" | "land" | "both";
             /**
              * Stored Status
              * @enum {string}
@@ -1791,6 +1865,8 @@ export interface components {
             term_value: number | null;
             /** Total Interest */
             total_interest: string;
+            /** True Cost Monthly */
+            true_cost_monthly: string | null;
             /** Version */
             version: number;
         };
@@ -2034,19 +2110,122 @@ export interface components {
              */
             value: number | string;
         };
+        /**
+         * PreviewIn
+         * @description Terms plus what is collected when the loan is given and what it is given against, so the
+         *     preview can show the amount handed over, the true cost and the loan-to-value check.
+         *     ``principal`` is the loan amount before any charge added to it.
+         */
+        PreviewIn: {
+            /**
+             * Advance Installments
+             * @default 0
+             */
+            advance_installments: number;
+            /**
+             * Broken Period
+             * @default none
+             * @enum {string}
+             */
+            broken_period: "none" | "first_installment" | "upfront";
+            /** Charges */
+            charges?: components["schemas"]["ChargeIn"][];
+            /** Custom Interest */
+            custom_interest?: number | string | null;
+            /** Custom Principal */
+            custom_principal?: number | string | null;
+            /** Custom Rows */
+            custom_rows?: components["schemas"]["CustomRowIn"][] | null;
+            /**
+             * Disbursal Date
+             * Format: date
+             */
+            disbursal_date: string;
+            /**
+             * Emi Rounding
+             * @default 0.01
+             */
+            emi_rounding: number | string;
+            /** First Due Date */
+            first_due_date?: string | null;
+            /** Fixed Installment */
+            fixed_installment?: number | string | null;
+            /**
+             * Fixed Style
+             * @default flat
+             * @enum {string}
+             */
+            fixed_style: "flat" | "reducing";
+            /**
+             * Frequency
+             * @default monthly
+             * @enum {string}
+             */
+            frequency: "monthly" | "weekly" | "daily" | "single";
+            /**
+             * Method
+             * @default reducing
+             * @enum {string}
+             */
+            method: "reducing" | "flat" | "interest_only" | "simple_days" | "fixed_amount" | "custom";
+            /** Principal */
+            principal: number | string;
+            /** Rate */
+            rate: number | string;
+            /**
+             * Rate Basis
+             * @default month
+             * @enum {string}
+             */
+            rate_basis: "month" | "year";
+            /** Security */
+            security?: components["schemas"]["SecurityIn"][];
+            /**
+             * Term Unit
+             * @default months
+             * @enum {string}
+             */
+            term_unit: "months" | "days" | "installments";
+            /** Term Value */
+            term_value?: number | null;
+        };
         /** PreviewOut */
         PreviewOut: {
+            /** Advance Amount */
+            advance_amount: string;
+            /** Advance Installments */
+            advance_installments: number;
+            /** Amount Handed Over */
+            amount_handed_over: string;
+            /** Broken Period Days */
+            broken_period_days: number;
+            /** Broken Period Interest */
+            broken_period_interest: string;
+            /** Charges Added */
+            charges_added: string;
+            /** Charges Deducted */
+            charges_deducted: string;
             /**
              * First Due Date
              * Format: date
              */
             first_due_date: string;
+            /** First Installment */
+            first_installment: string;
             /** Installment */
             installment: string;
             /** Installments */
             installments: number;
             /** Last Installment */
             last_installment: string;
+            /** Loan Amount */
+            loan_amount: string;
+            /** Ltv Above Maximum */
+            ltv_above_maximum: boolean;
+            /** Ltv Maximum */
+            ltv_maximum: string | null;
+            /** Ltv Percent */
+            ltv_percent: string | null;
             /**
              * Maturity Date
              * Format: date
@@ -2056,16 +2235,26 @@ export interface components {
             max_rate_monthly: string | null;
             /** Monthly Rate Equivalent */
             monthly_rate_equivalent: string;
+            /** Odd Period Upfront */
+            odd_period_upfront: string;
             /** Rate Above Maximum */
             rate_above_maximum: boolean;
             /** Rows */
             rows: components["schemas"]["ScheduleRowOut"][];
+            /** Security Value */
+            security_value: string | null;
             /** Total Interest */
             total_interest: string;
             /** Total Payable */
             total_payable: string;
             /** Total Principal */
             total_principal: string;
+            /** True Cost Monthly */
+            true_cost_monthly: string | null;
+            /** True Cost Yearly */
+            true_cost_yearly: string | null;
+            /** Unrounded Installment */
+            unrounded_installment: string | null;
         };
         /** PushIn */
         PushIn: {
@@ -2191,18 +2380,178 @@ export interface components {
             /** Phone */
             phone: string | null;
         };
+        /**
+         * SecurityIn
+         * @description The vehicle or land the loan is given against. ``value`` is the valuation used for the
+         *     loan-to-value check; when it is missing, the on-road price (vehicle) or the market value,
+         *     then the guideline value (land) is used.
+         */
+        SecurityIn: {
+            /** Chassis No */
+            chassis_no?: string | null;
+            /** District */
+            district?: string | null;
+            /** Document No */
+            document_no?: string | null;
+            /** Down Payment */
+            down_payment?: number | string | null;
+            /**
+             * Ec Checked
+             * @default false
+             */
+            ec_checked: boolean;
+            /** Ec Date */
+            ec_date?: string | null;
+            /** Engine No */
+            engine_no?: string | null;
+            /** Extent */
+            extent?: string | null;
+            /** Guideline Value */
+            guideline_value?: number | string | null;
+            /** Insurance Expiry */
+            insurance_expiry?: string | null;
+            /** Insurance Policy No */
+            insurance_policy_no?: string | null;
+            /** Insurer */
+            insurer?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "vehicle" | "land";
+            /**
+             * Lien Noted On Rc
+             * @default false
+             */
+            lien_noted_on_rc: boolean;
+            /** Make Model */
+            make_model?: string | null;
+            /** Market Value */
+            market_value?: number | string | null;
+            /** Notes */
+            notes?: string | null;
+            /** On Road Price */
+            on_road_price?: number | string | null;
+            /** Originals Held */
+            originals_held?: ("rc_book" | "duplicate_key" | "insurance_copy" | "blank_cheques" | "promissory_note" | "sale_deed" | "patta" | "ec" | "parent_documents" | "tax_receipt" | "other")[];
+            /** Patta No */
+            patta_no?: string | null;
+            /** Registration No */
+            registration_no?: string | null;
+            /** Sub Registrar Office */
+            sub_registrar_office?: string | null;
+            /** Survey No */
+            survey_no?: string | null;
+            /** Taluk */
+            taluk?: string | null;
+            /** Value */
+            value?: number | string | null;
+            /** Vehicle Condition */
+            vehicle_condition?: ("new" | "used") | null;
+            /** Vehicle Type */
+            vehicle_type?: ("two_wheeler" | "three_wheeler" | "car" | "commercial" | "tractor" | "other") | null;
+            /** Village */
+            village?: string | null;
+            /** Year */
+            year?: number | null;
+        };
+        /** SecurityOut */
+        SecurityOut: {
+            /** Chassis No */
+            chassis_no?: string | null;
+            /** District */
+            district?: string | null;
+            /** Document No */
+            document_no?: string | null;
+            /** Down Payment */
+            down_payment?: string | null;
+            /**
+             * Ec Checked
+             * @default false
+             */
+            ec_checked: boolean;
+            /** Ec Date */
+            ec_date?: string | null;
+            /** Engine No */
+            engine_no?: string | null;
+            /** Extent */
+            extent?: string | null;
+            /** Guideline Value */
+            guideline_value?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Insurance Expiry */
+            insurance_expiry?: string | null;
+            /** Insurance Policy No */
+            insurance_policy_no?: string | null;
+            /** Insurer */
+            insurer?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "vehicle" | "land";
+            /**
+             * Lien Noted On Rc
+             * @default false
+             */
+            lien_noted_on_rc: boolean;
+            /** Make Model */
+            make_model?: string | null;
+            /** Market Value */
+            market_value?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** On Road Price */
+            on_road_price?: string | null;
+            /** Originals Held */
+            originals_held?: ("rc_book" | "duplicate_key" | "insurance_copy" | "blank_cheques" | "promissory_note" | "sale_deed" | "patta" | "ec" | "parent_documents" | "tax_receipt" | "other")[];
+            /** Patta No */
+            patta_no?: string | null;
+            /** Registration No */
+            registration_no?: string | null;
+            /** Sub Registrar Office */
+            sub_registrar_office?: string | null;
+            /** Survey No */
+            survey_no?: string | null;
+            /** Taluk */
+            taluk?: string | null;
+            /** Value */
+            value?: string | null;
+            /** Vehicle Condition */
+            vehicle_condition?: ("new" | "used") | null;
+            /** Vehicle Type */
+            vehicle_type?: ("two_wheeler" | "three_wheeler" | "car" | "commercial" | "tractor" | "other") | null;
+            /** Version */
+            version: number;
+            /** Village */
+            village?: string | null;
+            /** Year */
+            year?: number | null;
+        };
         /** SettingsIn */
         SettingsIn: {
+            /** Advance Installments Default */
+            advance_installments_default?: number | null;
             /** Balance Start Date */
             balance_start_date?: string | null;
+            /** Broken Period Default */
+            broken_period_default?: ("none" | "first_installment" | "upfront") | null;
             /** Daily Summary Time */
             daily_summary_time?: string | null;
             /** Default Language */
             default_language?: ("en" | "ta") | null;
+            /** Document Charges Default */
+            document_charges_default?: number | string | null;
             /** Due Soon Days */
             due_soon_days?: number | null;
             /** Due Window Days */
             due_window_days?: number | null;
+            /** Emi Rounding Default */
+            emi_rounding_default?: number | string | null;
             /** Lender Address */
             lender_address?: string | null;
             /** Lender Name */
@@ -2211,6 +2560,10 @@ export interface components {
             licence_no?: string | null;
             /** Long Unpaid Days */
             long_unpaid_days?: number | null;
+            /** Ltv Max Land */
+            ltv_max_land?: number | string | null;
+            /** Ltv Max Vehicle */
+            ltv_max_vehicle?: number | string | null;
             /** Max Files Per Owner */
             max_files_per_owner?: number | null;
             /** Max Rate Monthly */
@@ -2225,6 +2578,8 @@ export interface components {
             penalty_default_value?: number | string | null;
             /** Penalty Grace Days */
             penalty_grace_days?: number | null;
+            /** Processing Fee Percent */
+            processing_fee_percent?: number | string | null;
             /** Retention Years */
             retention_years?: number | null;
             /** Staff Can Create Loans */
@@ -2337,6 +2692,17 @@ export interface components {
          *     principal equally, or ``custom_rows`` with one row per installment.
          */
         TermsIn: {
+            /**
+             * Advance Installments
+             * @default 0
+             */
+            advance_installments: number;
+            /**
+             * Broken Period
+             * @default none
+             * @enum {string}
+             */
+            broken_period: "none" | "first_installment" | "upfront";
             /** Custom Interest */
             custom_interest?: number | string | null;
             /** Custom Principal */
@@ -2348,6 +2714,11 @@ export interface components {
              * Format: date
              */
             disbursal_date: string;
+            /**
+             * Emi Rounding
+             * @default 0.01
+             */
+            emi_rounding: number | string;
             /** First Due Date */
             first_due_date?: string | null;
             /** Fixed Installment */
@@ -3925,7 +4296,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TermsIn"];
+                "application/json": components["schemas"]["PreviewIn"];
             };
         };
         responses: {
